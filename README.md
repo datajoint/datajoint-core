@@ -15,7 +15,7 @@ cargo build
 
 Run the python
 
-```
+```bash
 cd ../../datajoint-python
 python connection.py
 ```
