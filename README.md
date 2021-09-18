@@ -8,7 +8,7 @@ datajoint-python is a temporary home for the light python wrapper to show POC of
 
 build datajoint-core-ffi-c package
 
-```
+```bash
 cd packages/datajoint-core-ffi-c
 cargo build
 ```
