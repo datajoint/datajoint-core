@@ -2,7 +2,7 @@
 
 Common DataJoint OSS framework
 
-datajoint-python is a temporary home for the light python wrapper to show POC of how the rust packages will operate.
+`./datajoint-python` is a temporary home for the light python wrapper to show a POC of how the Rust packages will operate.
 
 ## Run instructions (temporary)
 
