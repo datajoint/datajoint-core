@@ -2,8 +2,8 @@ from cffi import FFI
 ffi = FFI()
 
 ffi.cdef("""
-    void conn();
-    """)
+            void conn();
+            """)
 
 
 #C = ffi.dlopen("..my-library/target/debug/my_library.dll")
