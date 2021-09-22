@@ -6,8 +6,35 @@ use libc::c_char;
 use std::ffi::CStr;
 
 #[no_mangle]
-pub extern "C" fn connection_new() -> *mut Connection {
-    Box::into_raw(Box::new(Connection::new()))
+pub extern "C" fn connection_new(
+    host: *const c_char,
+    user: *const c_char,
+    password: *const c_char,
+    reset: bool,
+    use_tls: bool) -> *mut Connection {
+
+    let host = unsafe {
+        assert!(!host.is_null());
+        CStr::from_ptr(host)
+    };
+
+    let host_str = host.to_str().unwrap();
+
+    let user = unsafe {
+        assert!(!user.is_null());
+        CStr::from_ptr(user)
+    };
+
+    let user_str = user.to_str().unwrap();
+
+    let password = unsafe {
+        assert!(!password.is_null());
+        CStr::from_ptr(password)
+    };
+
+    let password_str = password.to_str().unwrap();
+
+    Box::into_raw(Box::new(Connection::new(host_str, user_str, password_str, reset, use_tls)))
 }
 
 #[no_mangle]
@@ -21,39 +48,12 @@ pub extern "C" fn connection_free(ptr: *mut Connection) {
 }
 
 #[no_mangle]
-pub extern "C" fn connection_connect(
-    ptr: *mut Connection,
-    host: *const c_char,
-    user: *const c_char,
-    password: *const c_char,
-    reset: bool,
-    use_tls: bool) {
-
+pub extern "C" fn connection_connect(ptr: *mut Connection) {
     let database = unsafe {
         assert!(!ptr.is_null());
         &mut *ptr
     };
-    let host = unsafe {
-        assert!(!host.is_null());
-        CStr::from_ptr(host)
-    };
-    let host_str = host.to_str().unwrap();
-
-    let user = unsafe {
-        assert!(!user.is_null());
-        CStr::from_ptr(user)
-    };
-    let user_str = user.to_str().unwrap();
-
-    let password = unsafe {
-        assert!(!password.is_null());
-        CStr::from_ptr(password)
-    };
-    let password_str = password.to_str().unwrap();
-
-
-    database.connect(host_str, user_str, password_str, reset, use_tls);
-    // should this be returning something ???
+    database.connect();
 }
 
 #[no_mangle]
@@ -70,5 +70,5 @@ pub extern "C" fn connection_query(
         CStr::from_ptr(query)
     };
     let query_str = query.to_str().unwrap();
-    database.query(query_str)
+    database.raw_query(query_str)
 }

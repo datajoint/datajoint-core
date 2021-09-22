@@ -32,5 +32,5 @@ You can also test from the python interactive shell
 import datajoint as dj
 
 connection = dj.conn("example@email.com", "Username123", "secretPassword", reset=False, use_tls=True)
-connection.query("SELECT STUFF FROM TABLE")
+connection.raw_query("SELECT STUFF FROM TABLE")
 ```
