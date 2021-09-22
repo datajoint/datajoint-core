@@ -5,4 +5,5 @@ edition = "2018"
 repository = "https://github.com/datajoint/datajoint-core"
 
 [dependencies]
+tokio = { version = "1.11.0", features = ["full"] }
 sqlx = { version = "0.5", features = ["runtime-async-std-native-tls", "postgres", "mysql", "tls"]}

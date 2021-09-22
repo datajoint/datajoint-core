@@ -60,7 +60,7 @@ pub extern "C" fn connection_connect(ptr: *mut Connection) {
 pub extern "C" fn connection_query(
     ptr: *const Connection,
     query: *const c_char,
-) -> u32 {
+) -> i32 {
     let database = unsafe {
         assert!(!ptr.is_null());
         &*ptr
