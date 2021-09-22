@@ -2,10 +2,12 @@
 name = "datajoint-core-ffi-c"
 version = "0.1.0"
 edition = "2018"
+repository = "https://github.com/datajoint/datajoint-core"
 
 [lib]
-name="connection"
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
+name="corelib"
 
 [dependencies]
 datajoint-core = { path = "../datajoint-core" }
+libc = "0.2.101"
