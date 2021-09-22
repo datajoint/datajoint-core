@@ -1,4 +1,4 @@
-
+use datajoint_core::connection::Connection;
 
 #[no_mangle]
 pub extern "C" fn connection_new() -> *mut Connection {
