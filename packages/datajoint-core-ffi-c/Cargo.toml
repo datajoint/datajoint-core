@@ -3,9 +3,10 @@ name = "datajoint-core-ffi-c"
 version = "0.1.0"
 edition = "2018"
 
-[lib]
-name="connection"
-crate-type = ["dylib"]
-
 [dependencies]
 datajoint-core = { path = "../datajoint-core" }
+libc = "0.2.101"
+
+[lib]
+name="core_ffi"
+crate-type = ["cdylib"]

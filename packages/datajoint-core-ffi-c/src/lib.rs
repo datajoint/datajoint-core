@@ -1,4 +1,8 @@
+use std::ffi::CStr;
+use std::os::raw::c_char;
 use datajoint_core::connection::Connection;
+
+extern crate libc;
 
 #[no_mangle]
 pub extern "C" fn connection_new() -> *mut Connection {

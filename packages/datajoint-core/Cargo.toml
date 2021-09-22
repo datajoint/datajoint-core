@@ -4,3 +4,5 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+tokio = { version = "1.11.0", features = ["full"] }
+sqlx = { version = "0.5", features = ["runtime-async-std-native-tls", "postgres", "mysql", "tls"]}
