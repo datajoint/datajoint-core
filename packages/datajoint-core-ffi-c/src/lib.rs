@@ -57,10 +57,9 @@ pub extern "C" fn connection_connect(ptr: *mut Connection) {
 }
 
 #[no_mangle]
-pub extern "C" fn connection_query(
+pub extern "C" fn connection_raw_query(
     ptr: *const Connection,
-    query: *const c_char,
-) -> u32 {
+    query: *const c_char,) -> u32 {
     let database = unsafe {
         assert!(!ptr.is_null());
         &*ptr

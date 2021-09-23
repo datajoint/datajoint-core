@@ -22,8 +22,8 @@ lib.connection_connect.argtypes = (POINTER(ConnectionStruct), )
 lib.connection_connect.restype = c_void_p
 
 # connect_query
-lib.connection_query.argtypes = (POINTER(ConnectionStruct), c_char_p)
-lib.connection_query.restype = c_uint32
+lib.connection_raw_query.argtypes = (POINTER(ConnectionStruct), c_char_p)
+lib.connection_raw_query.restype = c_uint32
 
 class Connection:
     def __init__(self, host, user, password, reset, use_tls):
@@ -40,7 +40,7 @@ class Connection:
         lib.connection_connect(self._conn)
 
     def raw_query(self, query):
-        return lib.connection_query(self._conn, query.encode('utf-8'))
+        return lib.connection_raw_query(self._conn, query.encode('utf-8'))
 
 def conn(host=None, user=None, password=None, *, init_fun=None, reset=False, use_tls=None):
     conn.Connection = Connection(host, user, password, reset, use_tls)
