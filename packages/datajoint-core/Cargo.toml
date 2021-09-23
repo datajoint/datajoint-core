@@ -2,6 +2,7 @@
 name = "datajoint-core"
 version = "0.1.0"
 edition = "2018"
+repository = "https://github.com/datajoint/datajoint-core"
 
 [dependencies]
 tokio = { version = "1.11.0", features = ["full"] }
