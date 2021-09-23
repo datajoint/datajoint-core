@@ -5,16 +5,22 @@ use tokio::runtime::Runtime;
 use std::rc::Rc;
 use sqlx::{Pool, Postgres, FromRow, Row};
 
+
+
 pub struct Connection {
     host: String,
     user: String,
     password: String,
     reset: bool,
     use_tls: bool,
+    // TODO switch to the generic version of Pool and Pool Options
     pool :  Option<Pool<Postgres>>,
     options : PgPoolOptions,
     run_time : Runtime
 }
+
+
+// TODO use jonny's settings module instead of a list of flat settings
 
 impl Connection {
     pub fn new(host: &str, user: &str, password: &str, reset: bool, use_tls: bool) -> Self {
@@ -46,8 +52,8 @@ impl Connection {
                 self.host, self.user, self.password, self.reset, self.use_tls);
     }
 
-    //will eventually need to pass in parameters from connect
-    pub async fn get_pool_async(&self) -> Pool<Postgres> {
+    // TODO pass in settings when making this connection
+    async fn get_pool_async(&self) -> Pool<Postgres> {
 
         // let driver = {"PostgreSQL"};
         // let server = "127.0.0.1";
@@ -78,13 +84,16 @@ impl Connection {
     // Provide a utility in the lib to receive a Generic SQL query and
     //      execute against a relational database server
     // No placeholder arguments (hard-coded into the queries for now)
+
+    // TODO have raw query return an executor / database cursor
     pub fn raw_query(&self, query: &str) -> i32 {
         println!("Making query from rust library: {}", query);
         self.run_time.block_on(self.query_async(query))
 
     }
 
-    pub async fn query_async(&self, query : & str ) -> i32 {
+    // TODO return an executor / database cursor
+    async fn query_async(&self, query : & str ) -> i32 {
 
         println!("{}",query);
 
