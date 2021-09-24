@@ -8,6 +8,9 @@ repository = "https://github.com/datajoint/datajoint-core"
 crate-type = ["cdylib"]
 name="corelib"
 
+[build-dependencies]
+cbindgen = "0.20.0"
+
 [dependencies]
 datajoint-core = { path = "../datajoint-core" }
 libc = "0.2.101"
