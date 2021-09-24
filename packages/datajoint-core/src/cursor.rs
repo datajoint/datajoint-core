@@ -1,32 +1,36 @@
 use std::collections::HashMap;
+use sqlx::Executor;
+use sqlx::Row;
 
 
 // Used to execute queries and access their results.
+// Wraps sqlx::Executor.
 pub struct Cursor {
-    // put whatever fields
-    results: TableRowVector;
-    row_number: usize;
-    row_count: usize;
+    executor: &impl sqlx::Executor;
 }
 impl Cursor {
     fn new() -> Cursor {
         Cursor {
-            // whatever data fields it...
-            row_number = 0;
-            row_count = 0;
+
         }
     }
 
+    // TODO: Needs to return Cursor
+    fn load_executor(&self, executor: &impl sqlx::Executor) -> Cursor {
+        self.executor = executor;
+    }
+
+    // TODO: are these good places to use return a Result?
+
     // Fetches all of the query results.
-    // Returns an integer code. 0 on success, nonzero represents an error code.
-    fn fetch_all(&self) -> TableRowVector {
-        // results
+    fn fetch_all(&self) -> Result<TableRowVector, Error> {
+        // fetch all query results and return a TableRowVector on success
+        self.executor.fetch_all();
     }
 
     // Fetches the next result of the query.
-    // Returns an integer code. 0 on success, nonzero represents an error code.
-    fn fetch_one(&self) -> TableRow {
-        // results.get(row_number);
+    fn fetch_one(&self) -> Result<TableRow, Error> {
+        self.executor.fetch_one();
 
     }
 }
@@ -62,7 +66,7 @@ impl TableRowVector {
 // Used to read a single row.
 // Roughly equivalent to a row in SQLx.
 pub struct TableRow {
-    data: HashMap<T, T>;
+    row: &impl sqlx::Row;
 }
 impl TableRow {
     fn new() -> TableRow {
@@ -71,26 +75,28 @@ impl TableRow {
         }
     }
 
-    fn column_count(&self) -> usize {
-        self.data.len()
+    //TODO: Needs to return Cursor 
+    fn load_row(&self, row: &impl sqlx::Row) -> Cursor {
+        self.row = row;
     }
+
+    fn column_count(&self) -> usize {
+        self.row.len();
+    }
+
     // Gets column value by integer index.
     // Value is returned. Unknown what type!
-    fn get(&self, index: usize) -> T {
-
+    fn get(&self, ordinal: usize) -> T {
+        self.row.get(ordinal);
     }
 
     // Gets column value by column name.
     // Value is returned. Unknown what type!
     fn get(&self, column_name: &str) -> T {
-        self.data.get(column_name)
-    }
-
-    fn load_row(&self, row: sqlx::Row) -> Cursor {
-
+        self.row.get(column_name);
     }
 
     fn is_empty(&self) -> bool {
-        self.data.is_empty();
+        self.row.is_empty();
     }
 }
