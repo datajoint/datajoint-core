@@ -10,7 +10,6 @@ header_file = os.path.join(dirname + '/../../packages/datajoint-core-ffi-c/dataj
 
 with open(header_file, 'r') as f:
     headers = f.read()
-    headers = headers.replace('Connection', 'void')
     ffi.cdef(headers)
 
 C = ffi.dlopen(library_file)

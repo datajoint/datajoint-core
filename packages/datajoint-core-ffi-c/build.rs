@@ -10,6 +10,8 @@ fn main() {
         .with_crate(crate_dir)
         .with_language(Language::C)
         .with_no_includes()
+        .with_parse_include(&["datajoint-core"])
+        .with_parse_deps(true)
         .generate()
         .expect("Unable to generate bindings")
         .write_to_file("datajoint-core-ffi-c.h");
