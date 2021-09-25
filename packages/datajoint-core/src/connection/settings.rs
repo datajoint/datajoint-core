@@ -35,6 +35,5 @@ fn createuri() -> String{
     }else if urimaker.database_type == DatabaseType::Postgres {
         uri = format!("postgres://{}:{}@{}:{}/{}",urimaker.username,urimaker.password,urimaker.hostname,urimaker.port.to_string(),urimaker.database_name);
     } 
-    println!("{}", uri);
     return uri;
 }
