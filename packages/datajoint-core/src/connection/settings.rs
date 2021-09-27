@@ -25,15 +25,15 @@ impl ConnectionSettings{
             use_tls: None,
         }
     }
-    fn uri() -> String{
-        let urimaker = ConnectionSettings::new();
+    fn uri(&self) -> String {
+        //Hardcode in the username, password, and databasename, ect whatever is needed since those are not defaults
         let mut uri = "".to_string();
-        if urimaker.database_type == DatabaseType::MySql {
-            uri = format!("mysql://{}:{}@{}:{}/{}",urimaker.username,urimaker.password,urimaker.hostname,urimaker.port.to_string(),urimaker.database_name);
-        }else if urimaker.database_type == DatabaseType::Postgres {
-            uri = format!("postgres://{}:{}@{}:{}/{}",urimaker.username,urimaker.password,urimaker.hostname,urimaker.port.to_string(),urimaker.database_name);
-        } 
-        println!("{}", uri);
+        //set the default protcall to mysql
+        let protocall = "mysql".to_string();
+        if self.database_type == DatabaseType::Postgres {
+            let protocall = "postgres";
+        }
+        uri = format!("{}://{}:{}@{}:{}/{}",protocall,self.username,self.password,self.hostname,self.port.to_string(),self.database_name);
         return uri;
     }
 }
