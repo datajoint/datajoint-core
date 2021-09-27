@@ -29,11 +29,11 @@ impl ConnectionSettings{
         //Hardcode in the username, password, and databasename, ect whatever is needed since those are not defaults
         let mut uri = "".to_string();
         //set the default protcall to mysql
-        let protocall = "mysql".to_string();
+        let protocol = "mysql".to_string();
         if self.database_type == DatabaseType::Postgres {
-            let protocall = "postgres".to_string();
+            let protocol = "postgres".to_string();
         }
-        uri = format!("{}://{}:{}@{}:{}/{}",protocall,self.username,self.password,self.hostname,self.port.to_string(),self.database_name);
+        uri = format!("{}://{}:{}@{}:{}/{}",protocol,self.username,self.password,self.hostname,self.port.to_string(),self.database_name);
         return uri;
     }
 }
