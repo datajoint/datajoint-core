@@ -2,5 +2,7 @@
 name = "datajoint-core"
 version = "0.1.0"
 edition = "2018"
+repository = "https://github.com/datajoint/datajoint-core"
 
 [dependencies]
+sqlx = { version = "0.5", features = ["runtime-async-std-native-tls", "postgres", "mysql", "tls"]}
