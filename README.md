@@ -4,18 +4,33 @@ Common DataJoint OSS framework
 
 `./datajoint-python` is a temporary home for the light python wrapper to show a POC of how the Rust packages will operate.
 
-## Run instructions (temporary)
+## Build and Run
 
-build datajoint-core-ffi-c package
+Build the rust library
 
 ```bash
-cd packages/datajoint-core-ffi-c
 cargo build
 ```
 
-Run the python
+Run the python tests
 
 ```bash
-cd ../../datajoint-python
-python connection.py
+python datajoint-python/test.py
+```
+
+output
+
+```
+Connected to database: Host: example@email.com User: Username123 Password: secretPassword Reset: false use_TLS: true
+Making query from rust library: SELECT STUFF FROM TABLE
+result from query is: 0
+```
+
+You can also test from the python interactive shell
+
+```python
+import datajoint as dj
+
+connection = dj.conn("example@email.com", "Username123", "secretPassword", reset=False, use_tls=True)
+connection.raw_query("SELECT STUFF FROM TABLE")
 ```
