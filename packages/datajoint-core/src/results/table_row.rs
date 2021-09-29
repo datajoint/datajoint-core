@@ -1,6 +1,18 @@
 use crate::results::table_column::{ColumnIndex, TableColumnRef};
-use crate::results::value::ValueRef;
 use sqlx::Row;
+
+/// Type trait for indicating if a type is safe to be decoded to.
+///
+/// Currently only implements how SQLx type checks return types.
+pub trait ValueDecodable<'r>:
+    sqlx::Decode<'r, sqlx::any::Any> + sqlx::Type<sqlx::any::Any>
+{
+}
+
+impl<'r, T> ValueDecodable<'r> for T where
+    T: sqlx::Decode<'r, sqlx::any::Any> + sqlx::Type<sqlx::any::Any>
+{
+}
 
 /// A single row in a database table or query result that is used to
 /// read values out of.
@@ -57,21 +69,24 @@ impl TableRow {
     /// Gets a reference to the value stored at the given column in the row.
     ///
     /// Panics on error.
-    pub fn get<'r, I>(&self, index: I) -> ValueRef
+    pub fn get<'r, T, I>(&'r self, index: I) -> T
     where
+        T: ValueDecodable<'r>,
         I: ColumnIndex,
     {
         self.try_get(index).unwrap()
     }
 
     /// Gets a reference to the value stored at the given column in the row.
-    pub fn try_get<'r, I>(&self, index: I) -> Result<ValueRef, &str>
+    pub fn try_get<'r, T, I>(&'r self, index: I) -> Result<T, &str>
     where
+        T: ValueDecodable<'r>,
         I: ColumnIndex,
     {
-        match self.row.try_get_raw(index) {
+        let result: Result<T, sqlx::Error> = self.row.try_get(index);
+        match result {
             Err(_) => Err("error in get"),
-            Ok(value_ref) => Ok(ValueRef::new(value_ref)),
+            Ok(value) => Ok(value),
         }
     }
 }
