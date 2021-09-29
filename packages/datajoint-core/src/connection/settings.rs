@@ -14,7 +14,7 @@ struct ConnectionSettings {
 }
 
 impl ConnectionSettings{
-    fn new() -> ConnectionSettings{
+    pub fn new() -> ConnectionSettings{
         ConnectionSettings{
             database_type: DatabaseType::MySql,
             username: "".to_string(),
@@ -25,15 +25,12 @@ impl ConnectionSettings{
             use_tls: None,
         }
     }
-    fn uri(&self) -> String {
-        //Hardcode in the username, password, and databasename, ect whatever is needed since those are not defaults
-        let mut uri = "".to_string();
-        //set the default protcall to mysql
-        let protocol = "mysql".to_string();
+    pub fn uri(&self) -> String {
+        // Hardcode in the username, password, and databasename, ect whatever is needed since those are not defaults.
+        let mut protocol = "mysql".to_string();
         if self.database_type == DatabaseType::Postgres {
-            let protocol = "postgres".to_string();
+            protocol = "postgres".to_string();
         }
-        uri = format!("{}://{}:{}@{}:{}/{}",protocol,self.username,self.password,self.hostname,self.port.to_string(),self.database_name);
-        return uri;
+        return format!("{}://{}:{}@{}:{}/{}",protocol,self.username,self.password,self.hostname,self.port.to_string(),self.database_name);
     }
 }
