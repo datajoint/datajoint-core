@@ -10,6 +10,7 @@ impl<T> ColumnIndex for T where T: sqlx::ColumnIndex<sqlx::any::AnyRow> {}
 pub struct TableColumn {
     pub ordinal: usize,
     pub name: String,
+    pub type_data : sqlx::any::AnyTypeInfo
 }
 
 /// A reference to data about a table column.
@@ -42,6 +43,7 @@ impl<'r> TableColumnRef<'r> {
         TableColumn {
             ordinal: self.ordinal(),
             name: self.name().to_string(),
+            type_data : self.column.type_info().to_owned()
         }
     }
 }
