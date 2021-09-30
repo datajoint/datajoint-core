@@ -2,6 +2,7 @@ use crate::connection::cursor::Cursor;
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
+    // TODO(jonathanschroeter): Replace with settings object, and use to build URI.
     settings: String,
     pool: Option<sqlx::AnyPool>,
     runtime: tokio::runtime::Runtime,
@@ -10,7 +11,7 @@ pub struct Connection {
 impl Connection {
     /// Creates a new connection to a SQL database based on the given settings.
     ///
-    /// The connection is not actuall established until [.connect()][Connection::connect]
+    /// The connection is not actually established until [.connect()][Connection::connect]
     /// is called.
     pub fn new(settings: String) -> Self {
         Connection {
