@@ -2,39 +2,35 @@ pub mod connection;
 pub mod results;
 pub mod utils;
 
-
 //////////////////////////////////////////////////////////////////////////////////
 //  Tests
 //////////////////////////////////////////////////////////////////////////////////
 #[cfg(test)]
 mod tests {
     use crate::connection::Connection;
-
-    use sqlx::{Row, Column};
-    use futures::StreamExt;
-    use std::ops::Deref;
-    use sqlx::postgres::PgRow;
-    use std::fmt::Pointer;
-    use crate::utils::print_row;
+    use crate::utils::print_row_vec;
 
     #[test]
-    fn demo() {
+    fn demo_postgres() {
         let settings = "postgres://postgres:password@localhost/datajoint";
         let mut con = Connection::new(settings.to_string());
-        con.connect();
-        let try_c = con.try_raw_query("select * from students where id = 0;");
-        match try_c {
-            Ok(mut cursor) => {
-                let rows = cursor.fetch_all();
-                for row in rows {
-                    print_row(row)
-                }
-            },
-            Err(e) =>{
-                println!("{}",e)
-            }
-        }
+        con.connect().unwrap();
+        let mut  try_c = con.raw_query("select * from students where id = 0;");
+        let rows = try_c.fetch_all();
+        print_row_vec(rows);
+    }
 
+    #[test]
+    fn demo_mysql() {
+        let settings = "mysql://edwardg:a9Tn3423123!@tutorial-db.datajoint.io:3306/edwardg_tutorial";
+        let mut con = Connection::new(settings.to_string());
+        con.connect().unwrap();
+
+        let mut curse = con.raw_query("SELECT * FROM `edwardg_tutorial`.`mouse`");
+        let rows = curse.fetch_all();
+        let r= rows.len();
+        print!("{}",r);
+        print_row_vec(rows);
 
     }
 }

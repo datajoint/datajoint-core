@@ -1,59 +1,69 @@
-use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
 use crate::results::TableRow;
 use futures::stream::StreamExt;
 use futures_core::stream::BoxStream;
 
+type SqlxExecutor = sqlx::AnyPool;
 type SqlxCursor<'c> = BoxStream<'c, Result<sqlx::any::AnyRow, sqlx::Error>>;
 
-/// An object used to iterate over a set of rows.
+/// An object used to interact with a database by executing queries.
+///
+/// Instances of `Cursor` should not be created manually but by calling a query method
+/// on a `Connection` instance.
 pub struct Cursor<'c> {
+    executor: &'c SqlxExecutor,
     runtime: &'c tokio::runtime::Runtime,
-    stream: SqlxCursor<'c>,
+    stream: Option<SqlxCursor<'c>>,
 }
 
 impl<'c> Cursor<'c> {
-    /// Creates a new cursor over a stream of SQLx rows.
-    pub(crate) fn new(runtime: &'c tokio::runtime::Runtime, stream: SqlxCursor<'c>) -> Self {
+    /// Creates a new cursor over the given SQLx executor.
+    pub(crate) fn new(executor: &'c SqlxExecutor, runtime: &'c tokio::runtime::Runtime) -> Self {
         Cursor {
+            executor: executor,
             runtime: runtime,
-            stream: stream,
+            stream: None,
         }
     }
 
-    /// Fetches the next row.
-    ///
-    /// Panics on error.
-    pub fn next(&mut self) -> TableRow {
-        self.try_next().unwrap()
+    /// Executes the given query over the connection.
+    pub fn execute(&mut self, query: &'c str) {
+        self.stream = Some(sqlx::query(query).fetch(self.executor));
+
     }
 
-    /// Fetches the next row.
-    pub fn try_next(&mut self) -> Result<TableRow, Error> {
-        match self.runtime.block_on(self.stream.next()) {
-            None => Err(DataJointError::new("no more rows", ErrorCode::NoMoreRows)),
-            Some(result) => match result {
-                Err(err) => Err(SqlxError::new(err)),
-                Ok(row) => Ok(TableRow::new(row)),
+    /// Fetches the next row from the previous query.
+    ///
+    /// Panics on error.
+    pub fn fetch_one(&mut self) -> TableRow {
+        self.try_fetch_one().unwrap()
+    }
+
+    /// Fetches the next row from the previous query.
+    pub fn try_fetch_one(&mut self) -> Result<TableRow, &str> {
+        match &mut self.stream {
+            None => Err("error in fetch_one 1"),
+            Some(ref mut stream) => match self.runtime.block_on(stream.next()) {
+                None => Err("error in fetch_one 2"),
+                Some(result) => match result {
+                    Err(_) => Err("error in fetch_one 3"),
+                    Ok(row) => Ok(TableRow::new(row)),
+                },
             },
         }
     }
 
-    /// Fetches all remaining rows.
+    /// Fetches all remaining rows from the previous query.
     ///
     /// Panics on error.
-    pub fn rest(&mut self) -> Vec<TableRow> {
-        self.try_rest().unwrap()
+    pub fn fetch_all(&mut self) -> Vec<TableRow> {
+        self.try_fetch_all().unwrap()
     }
 
-    /// Fetches all remaining rows.
-    pub fn try_rest(&mut self) -> Result<Vec<TableRow>, Error> {
+    /// Fetches all remaining rows from the previous query.
+    pub fn try_fetch_all(&mut self) -> Result<Vec<TableRow>, &str> {
         let mut rows = vec![];
-        loop {
-            match self.try_next() {
-                Ok(row) => rows.push(row),
-                Err(err) if err.code() == ErrorCode::NoMoreRows => break,
-                Err(err) => return Err(err),
-            }
+        while let Ok(row) = self.try_fetch_one() {
+            rows.push(row);
         }
 
         Ok(rows)
