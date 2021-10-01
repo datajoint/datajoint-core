@@ -28,6 +28,7 @@ impl<'c> Cursor<'c> {
     /// Executes the given query over the connection.
     pub fn execute(&mut self, query: &'c str) {
         self.stream = Some(sqlx::query(query).fetch(self.executor));
+
     }
 
     /// Fetches the next row from the previous query.
