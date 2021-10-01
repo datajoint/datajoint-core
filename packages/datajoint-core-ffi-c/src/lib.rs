@@ -1,4 +1,3 @@
-
 extern crate datajoint_core;
 
 use datajoint_core::connection::Connection;
@@ -6,35 +5,15 @@ use libc::c_char;
 use std::ffi::CStr;
 
 #[no_mangle]
-pub extern "C" fn connection_new(
-    host: *const c_char,
-    user: *const c_char,
-    password: *const c_char,
-    reset: bool,
-    use_tls: bool) -> *mut Connection {
-
-    let host = unsafe {
-        assert!(!host.is_null());
-        CStr::from_ptr(host)
+pub extern "C" fn connection_new(uri: *const c_char) -> *mut Connection {
+    let uri = unsafe {
+        assert!(!uri.is_null());
+        CStr::from_ptr(uri)
     };
 
-    let host_str = host.to_str().unwrap();
+    let uri_str = uri.to_str().unwrap();
 
-    let user = unsafe {
-        assert!(!user.is_null());
-        CStr::from_ptr(user)
-    };
-
-    let user_str = user.to_str().unwrap();
-
-    let password = unsafe {
-        assert!(!password.is_null());
-        CStr::from_ptr(password)
-    };
-
-    let password_str = password.to_str().unwrap();
-
-    Box::into_raw(Box::new(Connection::new(host_str, user_str, password_str, reset, use_tls)))
+    Box::into_raw(Box::new(Connection::new(uri_str.to_string())))
 }
 
 #[no_mangle]
@@ -57,10 +36,8 @@ pub extern "C" fn connection_connect(ptr: *mut Connection) {
 }
 
 #[no_mangle]
-pub extern "C" fn connection_raw_query(
-    ptr: *const Connection,
-    query: *const c_char,) -> u32 {
-    let database = unsafe {
+pub extern "C" fn connection_raw_query(ptr: *const Connection, query: *const c_char) -> usize {
+    let database: &Connection = unsafe {
         assert!(!ptr.is_null());
         &*ptr
     };
@@ -68,6 +45,6 @@ pub extern "C" fn connection_raw_query(
         assert!(!query.is_null());
         CStr::from_ptr(query)
     };
-    let query_str = query.to_str().unwrap();
-    database.raw_query(query_str)
+    let query_str: &str = query.to_str().unwrap();
+    database.raw_query(query_str).fetch_all().len()
 }
