@@ -22,7 +22,7 @@ mod tests {
 
     #[test]
     fn demo_mysql() {
-        let settings = "mysql://edwardg:a9Tn3423123!@tutorial-db.datajoint.io:3306/edwardg_tutorial";
+        let settings = "mysql://username:password@tutorial-db.datajoint.io:3306/username_tutorial";
         let mut con = Connection::new(settings.to_string());
         con.connect().unwrap();
 
