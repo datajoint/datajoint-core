@@ -7,6 +7,8 @@ use sqlx::Executor as SqlxExecutor;
 /// Instances of `Executor` should not be created manually but by calling
 /// `executor()` on a `Connection` instance.
 pub struct Executor<'c> {
+    // TODO(jackson-nestelroad): Somehow wrap sqlx::AnyExecutor so that pools,
+    // connections, and transactions can all use this API.
     executor: &'c sqlx::AnyPool,
     runtime: &'c tokio::runtime::Runtime,
 }
