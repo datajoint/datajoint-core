@@ -74,27 +74,4 @@ impl Connection {
             Some(pool) => Ok(Cursor::new(pool, &self.runtime)),
         }
     }
-
-    /// Creates a cursor for a raw query, given as a string, to execute over the connection.
-    ///
-    /// Panics on error.
-    pub fn raw_query<'c>(&'c self, query: &'c str) -> Cursor<'c> {
-        self.try_raw_query(query).unwrap()
-    }
-
-    // Creates a cursor for a raw query, given as a string, to execute over the connection.
-    pub fn try_raw_query<'c>(&'c self, query: &'c str) -> Result<Cursor<'c>, &str> {
-        self.runtime.block_on(self.raw_query_async(query))
-    }
-
-    async fn raw_query_async<'c>(&'c self, query: &'c str) -> Result<Cursor<'c>, &str> {
-        match &self.pool {
-            None => Err("error in query_async"),
-            Some(pool) => {
-                let mut cursor = Cursor::new(pool, &self.runtime);
-                cursor.execute(query);
-                Ok(cursor)
-            }
-        }
-    }
 }
