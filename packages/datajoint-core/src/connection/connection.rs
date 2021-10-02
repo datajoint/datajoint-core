@@ -1,4 +1,4 @@
-use crate::connection::cursor::Cursor;
+use crate::connection::{Cursor, Executor};
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
@@ -60,18 +60,51 @@ impl Connection {
         }
     }
 
-    /// Creates a cursor to interact with the database over this connection.
+    /// Creates a executor to interact with the database over this connection.
     ///
     /// Panics on error.
-    pub fn cursor<'c>(&'c self) -> Cursor<'c> {
-        self.try_cursor().unwrap()
+    pub fn executor<'c>(&'c self) -> Executor<'c> {
+        self.try_executor().unwrap()
     }
 
     /// Creates a cursor to interact with the database over this connection.
-    pub fn try_cursor<'c>(&'c self) -> Result<Cursor<'c>, &str> {
+    pub fn try_executor<'c>(&'c self) -> Result<Executor<'c>, &str> {
         match &self.pool {
             None => Err("error in cursor"),
-            Some(pool) => Ok(Cursor::new(pool, &self.runtime)),
+            Some(pool) => Ok(Executor::new(pool, &self.runtime)),
+        }
+    }
+
+    /// Executes the given non-returning query, returning the number of rows affected.
+    ///
+    /// Panics on error.
+    pub fn execute_query(&self, query: &str) -> u64 {
+        self.try_execute_query(query).unwrap()
+    }
+
+    /// Executes the given non-returning query, returning the number of rows affected.
+    pub fn try_execute_query(&self, query: &str) -> Result<u64, &str> {
+        match self.try_executor() {
+            Err(_) => Err("error in try_execute_query 1"),
+            Ok(executor) => match executor.try_execute(query) {
+                Err(_) => Err("error in try_execute_query 2"),
+                Ok(rows_affected) => Ok(rows_affected),
+            },
+        }
+    }
+
+    /// Creates a cursor for iterating over the results of the given returning query.
+    ///
+    /// Panics on error.
+    pub fn fetch_query<'c>(&'c self, query: &'c str) -> Cursor {
+        self.try_fetch_query(query).unwrap()
+    }
+
+    /// Creates a cursor for iterating over the results of the given returning query.
+    pub fn try_fetch_query<'c>(&'c self, query: &'c str) -> Result<Cursor, &str> {
+        match self.try_executor() {
+            Err(_) => Err("error in try_fetch_query 1"),
+            Ok(executor) => Ok(executor.cursor(query)),
         }
     }
 }
