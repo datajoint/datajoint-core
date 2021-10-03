@@ -1,9 +1,10 @@
 use crate::connection::cursor::Cursor;
+use crate::connection::settings::ConnectionSettings;
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
-    // TODO(jonathanschroeter): Replace with settings object, and use to build URI.
-    settings: String,
+   //changed to ConnectionSettings object
+    settings: ConnectionSettings,
     pool: Option<sqlx::AnyPool>,
     runtime: tokio::runtime::Runtime,
 }
@@ -13,9 +14,10 @@ impl Connection {
     ///
     /// The connection is not actually established until [.connect()][Connection::connect]
     /// is called.
-    pub fn new(settings: String) -> Self {
+    pub fn new(settings: ConnectionSettings) -> Self {
         Connection {
-            settings: settings,
+            //setting settings to the past in instance
+            settings,
             pool: None,
             runtime: tokio::runtime::Builder::new_current_thread()
                 .enable_all()
@@ -23,12 +25,14 @@ impl Connection {
                 .ok()
                 .unwrap(),
         }
+
     }
 
     /// Starts the connection to the SQL database according to settings the object was
     /// initialized with.
     pub fn connect(&mut self) -> Result<(), &str> {
-        self.pool = Some(Connection::get_pool(&self.runtime, &*self.settings)?);
+        //using settings.uri to get the uri connection string
+        self.pool = Some(Connection::get_pool(&self.runtime, &*self.settings.uri())?);
         return Ok(());
     }
 
