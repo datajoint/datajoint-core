@@ -60,14 +60,14 @@ impl Connection {
         }
     }
 
-    /// Creates a executor to interact with the database over this connection.
+    /// Creates an executor to interact with the database over this connection.
     ///
     /// Panics on error.
     pub fn executor<'c>(&'c self) -> Executor<'c> {
         self.try_executor().unwrap()
     }
 
-    /// Creates a cursor to interact with the database over this connection.
+    /// Creates an executor to interact with the database over this connection.
     pub fn try_executor<'c>(&'c self) -> Result<Executor<'c>, &str> {
         match &self.pool {
             None => Err("error in cursor"),
