@@ -3,7 +3,6 @@ use crate::connection::settings::ConnectionSettings;
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
-   //changed to ConnectionSettings object
     settings: ConnectionSettings,
     pool: Option<sqlx::AnyPool>,
     runtime: tokio::runtime::Runtime,
@@ -16,7 +15,6 @@ impl Connection {
     /// is called.
     pub fn new(settings: ConnectionSettings) -> Self {
         Connection {
-            //setting settings to the past in instance
             settings,
             pool: None,
             runtime: tokio::runtime::Builder::new_current_thread()
@@ -31,7 +29,6 @@ impl Connection {
     /// Starts the connection to the SQL database according to settings the object was
     /// initialized with.
     pub fn connect(&mut self) -> Result<(), &str> {
-        //using settings.uri to get the uri connection string
         self.pool = Some(Connection::get_pool(&self.runtime, &*self.settings.uri())?);
         return Ok(());
     }
