@@ -1,6 +1,7 @@
 extern crate datajoint_core;
 
 use datajoint_core::connection::Connection;
+use datajoint_core::results::TableRow;
 use libc::c_char;
 use std::ffi::CStr;
 
@@ -47,4 +48,23 @@ pub extern "C" fn connection_raw_query(ptr: *const Connection, query: *const c_c
     };
     let query_str: &str = query.to_str().unwrap();
     database.raw_query(query_str).fetch_all().len()
+}
+
+#[no_mangle]
+pub extern "C" fn table_row_free(ptr: *mut TableRow) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn table_row_column_count(ptr: *const TableRow) -> usize {
+    let row: &TableRow = unsafe {
+        assert!(!ptr.is_null());
+        &*ptr
+    };
+    row.column_count()
 }
