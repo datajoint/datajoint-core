@@ -7,9 +7,9 @@ pub struct TableRowVector {
 }
 impl TableRowVector {
     /// Creates a new table row vector
-    pub fn new() -> Self {
+    pub fn new(table_rows: Vec<TableRow>) -> Self {
         return TableRowVector { 
-            rows: Vec::new()
+            rows: table_rows
         };
     }
 
