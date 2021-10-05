@@ -3,7 +3,7 @@ extern crate datajoint_core;
 use datajoint_core::connection::Connection;
 use datajoint_core::results::TableRow;
 use libc::c_char;
-use std::ffi::CStr;
+use std::ffi::{CString, CStr};
 
 #[no_mangle]
 pub extern "C" fn connection_new(uri: *const c_char) -> *mut Connection {
@@ -68,3 +68,36 @@ pub extern "C" fn table_row_column_count(ptr: *const TableRow) -> usize {
     };
     row.column_count()
 }
+
+macro_rules! build_table_row_get {
+    ($func_name:ident, $data_type:ty) => {
+        #[no_mangle] pub extern "C" fn $func_name(ptr: *const TableRow, column_name: *const c_char, mut _out: $data_type) -> i8 {
+            let row: &TableRow = unsafe {
+                if (ptr.is_null()) {
+                    return -1;
+                }
+                &*ptr
+            };
+
+            let col_name = unsafe {
+                if (column_name.is_null()) {
+                    return -1;
+                }
+                CStr::from_ptr(column_name)
+            };
+
+            let col_name = col_name.to_str();
+            let col_name : &str = match col_name {
+                Ok(name) => name,
+                Err(_) => return -1
+            };
+
+            let res_str: &str = row.get(col_name);
+            _out = CString::new(res_str).unwrap().into_raw();
+            0
+        }
+    }
+}
+
+build_table_row_get!(table_row_get_char_n, *mut c_char);
+build_table_row_get!(table_row_get_date, *mut c_char);
