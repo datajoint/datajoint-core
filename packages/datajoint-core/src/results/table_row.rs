@@ -7,11 +7,13 @@ use sqlx::Row;
 pub trait ValueDecodable<'r>:
     sqlx::Decode<'r, sqlx::any::Any> + sqlx::Type<sqlx::any::Any>
 {
+
 }
 
 impl<'r, T> ValueDecodable<'r> for T where
     T: sqlx::Decode<'r, sqlx::any::Any> + sqlx::Type<sqlx::any::Any>
 {
+
 }
 
 /// A single row in a database table or query result that is used to

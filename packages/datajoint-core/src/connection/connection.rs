@@ -1,4 +1,12 @@
 use crate::connection::{Cursor, Executor};
+use sqlx::Execute;
+
+
+pub enum PhArg {
+    String(String),
+    Int(i32)
+}
+
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
@@ -69,25 +77,47 @@ impl Connection {
 
     /// Creates an executor to interact with the database over this connection.
     pub fn try_executor<'c>(&'c self) -> Result<Executor<'c>, &str> {
+        
+        
         match &self.pool {
             None => Err("error in cursor"),
             Some(pool) => Ok(Executor::new(pool, &self.runtime)),
         }
     }
+    
+    
 
     /// Executes the given non-returning query, returning the number of rows affected.
     ///
     /// Panics on error.
     pub fn execute_query(&self, query: &str) -> u64 {
+        
         self.try_execute_query(query).unwrap()
     }
+
 
     /// Executes the given non-returning query, returning the number of rows affected.
     pub fn try_execute_query(&self, query: &str) -> Result<u64, &str> {
         match self.try_executor() {
             Err(_) => Err("error in try_execute_query 1"),
             Ok(executor) => match executor.try_execute(query) {
-                Err(_) => Err("error in try_execute_query 2"),
+                Err(_) => Err("error in try_exezcute_query 2"),
+                Ok(rows_affected) => Ok(rows_affected),
+            },
+        }
+    }
+
+
+    pub fn ph_execute_query(&self, query: &str, args : Vec<PhArg>) -> u64 {
+
+        self.ph_try_execute_query(query, args).unwrap()
+    }
+
+    pub fn ph_try_execute_query(&self, query: &str, args : Vec<PhArg>) -> Result<u64, &str> {
+        match self.try_executor() {
+            Err(_) => Err("error in try_execute_query 1"),
+            Ok(executor) => match executor.ph_try_execute(query, args) {
+                Err(_) => Err("error in try_exezcute_query 2"),
                 Ok(rows_affected) => Ok(rows_affected),
             },
         }
@@ -100,6 +130,11 @@ impl Connection {
         self.try_fetch_query(query).unwrap()
     }
 
+    pub fn ph_fetch_query<'c>(&'c self, query: &'c str , args : Vec<PhArg>) -> Cursor {
+        self.ph_try_fetch_query(query, args).unwrap()
+    }
+
+
     /// Creates a cursor for iterating over the results of the given returning query.
     pub fn try_fetch_query<'c>(&'c self, query: &'c str) -> Result<Cursor, &str> {
         match self.try_executor() {
@@ -107,4 +142,12 @@ impl Connection {
             Ok(executor) => Ok(executor.cursor(query)),
         }
     }
+
+    pub fn ph_try_fetch_query<'c>(&'c self, query: &'c str, args : Vec<PhArg>) -> Result<Cursor, &str> {
+        match self.try_executor() {
+            Err(_) => Err("error in try_fetch_query 1"),
+            Ok(executor) => Ok(executor.ph_cursor(query,args))
+        }
+    }
+
 }

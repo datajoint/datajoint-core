@@ -1,6 +1,10 @@
 use crate::connection::Cursor;
 use crate::results::TableRow;
-use sqlx::Executor as SqlxExecutor;
+use sqlx::{Executor as SqlxExecutor, Any};
+use crate::connection::connection::PhArg;
+use sqlx::query::Query;
+use sqlx::database::HasArguments;
+use crate::utils::prepare;
 
 /// An object used to interact with a database by executing queries.
 ///
@@ -37,6 +41,14 @@ impl<'c> Executor<'c> {
         }
     }
 
+    pub fn ph_try_execute(&self, query: &str, args : Vec<PhArg>) -> Result<u64, &str> {
+        let qu = prepare(query,args);
+        match self.runtime.block_on(qu.execute(self.executor)) {
+            Err(_) => Err("error in try_execute"),
+            Ok(result) => Ok(result.rows_affected()),
+        }
+    }
+
     /// Fetches one row using the given query.
     ///
     /// Panics on error.
@@ -67,8 +79,13 @@ impl<'c> Executor<'c> {
         }
     }
 
-    // Creates a cursor for the given query.
+    /// Creates a cursor for the given query.
     pub fn cursor(&self, query: &'c str) -> Cursor<'c> {
-        Cursor::new(self.runtime, sqlx::query(query).fetch(self.executor))
+        Cursor::new(self.runtime, sqlx::query(query).bind(0).fetch(self.executor))
+    }
+
+    pub fn ph_cursor(&self, query: &'c str, args : Vec<PhArg>) -> Cursor<'c> {
+        let mut qu = prepare(query, args);
+        Cursor::new(self.runtime, qu.fetch(self.executor))
     }
 }
