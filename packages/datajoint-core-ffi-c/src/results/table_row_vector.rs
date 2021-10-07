@@ -1,5 +1,6 @@
 extern crate datajoint_core;
 use datajoint_core::results::TableRow;
+use libc::c_int;
 
 /// Creates a vector of TableRows
 pub struct TableRowVector {
@@ -38,4 +39,32 @@ impl TableRowVector {
     pub fn insert(&mut self, row: TableRow) {
         self.rows.push(row);
     }
+}
+
+#[no_mangle]
+pub extern "C" fn table_row_vector_free(ptr: *mut TableRowVector) {
+    if ptr.is_null() {
+        return;
+    }
+    unsafe {
+        Box::from_raw(ptr);
+    }
+}
+#[no_mangle]
+pub extern "C" fn table_row_vector_row_count(ptr: *const TableRowVector) -> usize {
+    let table_rows: &TableRowVector = unsafe {
+        assert!(!ptr.is_null());
+        &*ptr
+    };
+    table_rows.row_count()
+}
+
+/// Should this return a reference or copy the pointer contents...
+#[no_mangle]
+pub extern "C" fn table_row_vector_get<'a>(ptr: *const TableRowVector, index: usize) -> &'a TableRow  {
+    let table_rows: &TableRowVector = unsafe {
+        assert!(!ptr.is_null());
+        &*ptr
+    };
+    table_rows.get(index)
 }
