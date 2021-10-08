@@ -3,7 +3,7 @@ use crate::connection::settings::ConnectionSettings;
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
-    settings: ConnectionSettings,
+    pub settings: ConnectionSettings,
     pool: Option<sqlx::AnyPool>,
     runtime: tokio::runtime::Runtime,
 }
