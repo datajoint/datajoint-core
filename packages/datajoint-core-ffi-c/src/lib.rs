@@ -1,3 +1,4 @@
+mod results;
 extern crate datajoint_core;
 
 use datajoint_core::connection::Connection;
@@ -48,77 +49,4 @@ pub extern "C" fn connection_raw_query(ptr: *const Connection, query: *const c_c
     };
     let query_str: &str = query.to_str().unwrap();
     database.raw_query(query_str).fetch_all().len()
-}
-
-#[no_mangle]
-pub extern "C" fn table_row_free(ptr: *mut TableRow) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
-        Box::from_raw(ptr);
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn table_row_column_count(ptr: *const TableRow) -> usize {
-    let row: &TableRow = unsafe {
-        assert!(!ptr.is_null());
-        &*ptr
-    };
-    row.column_count()
-}
-
-#[no_mangle] 
-pub extern "C" fn table_row_get_char_n(ptr: *const TableRow, column_name: *const c_char, mut _out: *mut c_char) -> i8 {
-    let row: &TableRow = unsafe {
-        if ptr.is_null() {
-            return -1;
-        }
-        &*ptr
-    };
-
-    let col_name = unsafe {
-        if column_name.is_null() {
-            return -1;
-        }
-        CStr::from_ptr(column_name)
-    };
-
-    let col_name = col_name.to_str();
-    let col_name : &str = match col_name {
-        Ok(name) => name,
-        Err(_) => return -1
-    };
-
-    let res_str: &str = row.get(col_name);
-    _out = CString::new(res_str).unwrap().into_raw();
-    0
-}
-
-#[no_mangle] 
-pub extern "C" fn table_row_get_date(ptr: *const TableRow, column_name: *const c_char, mut _out: *mut c_char) -> i8 {
-    let row: &TableRow = unsafe {
-        if ptr.is_null() {
-            return -1;
-        }
-        &*ptr
-    };
-
-    let col_name = unsafe {
-        if column_name.is_null() {
-            return -1;
-        }
-        CStr::from_ptr(column_name)
-    };
-
-    let col_name = col_name.to_str();
-    let col_name : &str = match col_name {
-        Ok(name) => name,
-        Err(_) => return -1
-    };
-
-    let res_str: &str = row.get(col_name);
-    _out = CString::new(res_str).unwrap().into_raw();
-    0
 }
