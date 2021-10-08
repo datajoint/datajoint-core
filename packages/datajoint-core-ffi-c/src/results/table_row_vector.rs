@@ -59,9 +59,8 @@ pub extern "C" fn table_row_vector_row_count(ptr: *const TableRowVector) -> usiz
     table_rows.row_count()
 }
 
-/// Should this return a reference or copy the pointer contents...
 #[no_mangle]
-pub extern "C" fn table_row_vector_get<'a>(ptr: *const TableRowVector, index: usize) -> &'a TableRow  {
+pub extern "C" fn table_row_vector_get(ptr: *const TableRowVector, index: usize) -> *const TableRow  {
     let table_rows: &TableRowVector = unsafe {
         assert!(!ptr.is_null());
         &*ptr
