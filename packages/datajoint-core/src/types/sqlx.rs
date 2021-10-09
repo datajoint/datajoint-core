@@ -39,8 +39,7 @@ impl DataJointType {
             "TEXT" => VarCharN,
             "FLOAT4" => Float,
             "FLOAT8" => Double,
-            "TIMESTAMPTZ" => DateTime,
-            "TIMETZ" => Time,
+            "TIMESTAMPTZ" => Timestamp,
 
             &_ => Unknown,
         }
