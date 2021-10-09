@@ -22,6 +22,8 @@ impl DataJointType {
             "DATE" => Date,
             "TIME" => Time,
             "DATETIME" => DateTime,
+            // MySQL considers timestamps to have a timezone, Postgres does not.
+            // This is a major problem.
             "TIMESTAMP" => Timestamp,
             "CHAR" => CharN,
             "VARCHAR" => VarCharN,
