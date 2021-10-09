@@ -57,12 +57,10 @@ impl TableRow {
             )),
             // Need to look at https://docs.rs/sqlx/0.5.9/sqlx/types/index.html closer
             // for these types.
-            Date | Time | DateTime | Timestamp | Decimal | Attach | FilepathStore => {
-                Err(DataJointError::new(
-                    "supported column type, but no decoder implemented",
-                    ErrorCode::ColumnDecodeError,
-                ))
-            }
+            Decimal | Attach | FilepathStore => Err(DataJointError::new(
+                "supported column type, but no decoder implemented",
+                ErrorCode::ColumnDecodeError,
+            )),
             TinyInt => Ok(DecodeResult::Int8(self.try_get::<i32, usize>(index)? as i8)),
             TinyIntUnsigned => Ok(DecodeResult::UInt8(self.try_get::<i32, usize>(index)? as u8)),
             SmallInt => Ok(DecodeResult::Int16(
@@ -78,6 +76,24 @@ impl TableRow {
             Enum | CharN | VarCharN => {
                 Ok(DecodeResult::String(self.try_get::<String, usize>(index)?))
             }
+            Date => Ok(DecodeResult::String(
+                self.try_get::<sqlx::types::chrono::NaiveDate, usize>(index)?
+                    .to_string(),
+            )),
+            Time => Ok(DecodeResult::String(
+                self.try_get::<sqlx::types::chrono::NaiveTime, usize>(index)?
+                    .to_string(),
+            )),
+            DateTime => Ok(DecodeResult::String(
+                self.try_get::<sqlx::types::chrono::NaiveDateTime, usize>(index)?
+                    .to_string(),
+            )),
+            Timestamp => Ok(DecodeResult::String(
+                self.try_get::<sqlx::types::chrono::DateTime<sqlx::types::chrono::Utc>, usize>(
+                    index,
+                )?
+                .to_string(),
+            )),
             Float => Ok(DecodeResult::Float32(self.try_get::<f32, usize>(index)?)),
             Double => Ok(DecodeResult::Float64(self.try_get::<f64, usize>(index)?)),
             TinyBlob | MediumBlob | Blob | LongBlob => {
