@@ -42,7 +42,7 @@ impl DataJointType {
             "TIMESTAMPTZ" => DateTime,
             "TIMETZ" => Time,
 
-            &_ => DataJointType::Unknown,
+            &_ => Unknown,
         }
     }
 }
