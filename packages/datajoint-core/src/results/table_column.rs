@@ -16,6 +16,7 @@ pub struct TableColumn {
 /// A reference to data about a table column.
 ///
 /// Wraps `sqlx::any::AnyColumn`.
+#[derive(Copy, Clone)]
 pub struct TableColumnRef<'r> {
     column: &'r sqlx::any::AnyColumn,
 }
