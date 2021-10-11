@@ -1,3 +1,4 @@
+<<<<<<< cffi-settings
 extern crate datajoint_core;
 use libc::{c_char};
 use std::ffi::{CString, CStr};
