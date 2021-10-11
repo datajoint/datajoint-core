@@ -48,8 +48,12 @@ impl<'c> Cursor<'c> {
     /// Fetches all remaining rows.
     pub fn try_rest(&mut self) -> Result<Vec<TableRow>, Error> {
         let mut rows = vec![];
-        while let Ok(row) = self.try_next() {
-            rows.push(row);
+        loop {
+            match self.try_next() {
+                Ok(row) => rows.push(row),
+                Err(err) if err.code() == ErrorCode::NoMoreRows => break,
+                Err(err) => return Err(err),
+            }
         }
 
         Ok(rows)
