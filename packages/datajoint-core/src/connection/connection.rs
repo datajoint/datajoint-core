@@ -1,5 +1,4 @@
-use crate::connection::{Cursor, Executor};
-use crate::connection::settings::ConnectionSettings;
+use crate::connection::{ConnectionSettings, Cursor, Executor};
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
