@@ -8,10 +8,10 @@ use std::fmt::{Display, Formatter, Result};
 /// the actual numeric value of the error may change at any time until
 /// a numbering system is standardized.
 #[repr(i32)]
+#[non_exhaustive]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ErrorCode {
     Success = 0,
-    Unknown,
 
     ConfigurationError,
     UnknownDatabaseError,
