@@ -68,7 +68,7 @@ macro_rules! generate_literal_buffer_decode {
 /// The caller is responsible for moving data out of the buffer and handling
 /// the deallocation of the buffer itself.
 #[no_mangle]
-pub unsafe extern "C" fn table_row_decode_to_buffer(
+pub extern "C" fn table_row_decode_to_buffer(
     this: *const TableRow,
     column: *const TableColumnRef,
     buffer: *mut c_void,
@@ -81,7 +81,7 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
     }
     match (*this).try_decode(*column) {
         Err(err) => err.code() as i32,
-        Ok(result) => {
+        Ok(result) => unsafe {
             generate_literal_buffer_decode!(result, buffer, buffer_size, output_size, output_type,
                 Int8 => i8,
                 UInt8 => u8,
