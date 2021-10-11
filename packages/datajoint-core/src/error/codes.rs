@@ -27,6 +27,7 @@ pub enum ErrorCode {
     PoolTimedOut,
     PoolClosed,
     WorkerCrashed,
+    UnknownSqlxError,
 
     NotConnected,
     NoMoreRows,

@@ -73,7 +73,7 @@ impl LibraryError for SqlxError {
             sqlx::Error::PoolTimedOut => ErrorCode::PoolTimedOut,
             sqlx::Error::PoolClosed => ErrorCode::PoolClosed,
             sqlx::Error::WorkerCrashed => ErrorCode::WorkerCrashed,
-            _ => ErrorCode::Unknown,
+            _ => ErrorCode::UnknownSqlxError,
         }
     }
 
