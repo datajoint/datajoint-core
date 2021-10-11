@@ -1,3 +1,4 @@
+use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
 use crate::results::TableRow;
 use futures::stream::StreamExt;
 use futures_core::stream::BoxStream;
@@ -27,11 +28,11 @@ impl<'c> Cursor<'c> {
     }
 
     /// Fetches the next row.
-    pub fn try_next(&mut self) -> Result<TableRow, &str> {
+    pub fn try_next(&mut self) -> Result<TableRow, Error> {
         match self.runtime.block_on(self.stream.next()) {
-            None => Err("error in try_next 2"),
+            None => Err(DataJointError::new("no more rows", ErrorCode::NoMoreRows)),
             Some(result) => match result {
-                Err(_) => Err("error in try_next 3"),
+                Err(err) => Err(SqlxError::new(err)),
                 Ok(row) => Ok(TableRow::new(row)),
             },
         }
@@ -45,10 +46,14 @@ impl<'c> Cursor<'c> {
     }
 
     /// Fetches all remaining rows.
-    pub fn try_rest(&mut self) -> Result<Vec<TableRow>, &str> {
+    pub fn try_rest(&mut self) -> Result<Vec<TableRow>, Error> {
         let mut rows = vec![];
-        while let Ok(row) = self.try_next() {
-            rows.push(row);
+        loop {
+            match self.try_next() {
+                Ok(row) => rows.push(row),
+                Err(err) if err.code() == ErrorCode::NoMoreRows => break,
+                Err(err) => return Err(err),
+            }
         }
 
         Ok(rows)

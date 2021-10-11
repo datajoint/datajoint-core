@@ -1,4 +1,5 @@
 use crate::connection::Cursor;
+use crate::error::{Error, SqlxError};
 use crate::results::TableRow;
 use sqlx::Executor as SqlxExecutor;
 
@@ -30,9 +31,9 @@ impl<'c> Executor<'c> {
     }
 
     /// Executes the given query over the connection.
-    pub fn try_execute(&self, query: &str) -> Result<u64, &str> {
+    pub fn try_execute(&self, query: &str) -> Result<u64, Error> {
         match self.runtime.block_on(self.executor.execute(query)) {
-            Err(_) => Err("error in try_execute"),
+            Err(err) => Err(SqlxError::new(err)),
             Ok(result) => Ok(result.rows_affected()),
         }
     }
@@ -45,9 +46,9 @@ impl<'c> Executor<'c> {
     }
 
     /// Fetches one row using the given query.
-    pub fn try_fetch_one(&self, query: &str) -> Result<TableRow, &str> {
+    pub fn try_fetch_one(&self, query: &str) -> Result<TableRow, Error> {
         match self.runtime.block_on(self.executor.fetch_one(query)) {
-            Err(_) => Err("error in try_fetch_one"),
+            Err(err) => Err(SqlxError::new(err)),
             Ok(row) => Ok(TableRow::new(row)),
         }
     }
@@ -60,9 +61,9 @@ impl<'c> Executor<'c> {
     }
 
     /// Fetches multiple rows using the given query.
-    pub fn try_fetch_all(&self, query: &str) -> Result<Vec<TableRow>, &str> {
+    pub fn try_fetch_all(&self, query: &str) -> Result<Vec<TableRow>, Error> {
         match self.runtime.block_on(self.executor.fetch_all(query)) {
-            Err(_) => Err("error in try_fetch_all"),
+            Err(err) => Err(SqlxError::new(err)),
             Ok(rows) => Ok(rows.into_iter().map(TableRow::new).collect()),
         }
     }

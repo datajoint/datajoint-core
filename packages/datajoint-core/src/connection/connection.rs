@@ -1,4 +1,5 @@
 use crate::connection::{ConnectionSettings, Cursor, Executor};
+use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
@@ -27,7 +28,7 @@ impl Connection {
 
     /// Starts the connection to the SQL database according to settings the object was
     /// initialized with.
-    pub fn connect(&mut self) -> Result<(), &str> {
+    pub fn connect(&mut self) -> Result<(), Error> {
         self.pool = Some(Connection::get_pool(&self.runtime, &*self.settings.uri())?);
         return Ok(());
     }
@@ -41,21 +42,18 @@ impl Connection {
         return Ok(());
     }
 
-    fn get_pool(
-        runtime: &tokio::runtime::Runtime,
-        uri: &str,
-    ) -> Result<sqlx::AnyPool, &'static str> {
+    fn get_pool(runtime: &tokio::runtime::Runtime, uri: &str) -> Result<sqlx::AnyPool, Error> {
         runtime.block_on(Connection::get_pool_async(uri))
     }
 
-    async fn get_pool_async(uri: &str) -> Result<sqlx::AnyPool, &'static str> {
+    async fn get_pool_async(uri: &str) -> Result<sqlx::AnyPool, Error> {
         match sqlx::any::AnyPoolOptions::new()
             // TODO(jnestelroad): Allow more than one connection in settings?
             .max_connections(1)
             .connect(uri)
             .await
         {
-            Err(_) => Err("failed to get_pool_async"),
+            Err(err) => Err(SqlxError::new(err)),
             Ok(pool) => Ok(pool),
         }
     }
@@ -68,9 +66,12 @@ impl Connection {
     }
 
     /// Creates an executor to interact with the database over this connection.
-    pub fn try_executor<'c>(&'c self) -> Result<Executor<'c>, &str> {
+    pub fn try_executor<'c>(&'c self) -> Result<Executor<'c>, Error> {
         match &self.pool {
-            None => Err("error in cursor"),
+            None => Err(DataJointError::new(
+                "not connected",
+                ErrorCode::NotConnected,
+            )),
             Some(pool) => Ok(Executor::new(pool, &self.runtime)),
         }
     }
@@ -83,14 +84,8 @@ impl Connection {
     }
 
     /// Executes the given non-returning query, returning the number of rows affected.
-    pub fn try_execute_query(&self, query: &str) -> Result<u64, &str> {
-        match self.try_executor() {
-            Err(_) => Err("error in try_execute_query 1"),
-            Ok(executor) => match executor.try_execute(query) {
-                Err(_) => Err("error in try_execute_query 2"),
-                Ok(rows_affected) => Ok(rows_affected),
-            },
-        }
+    pub fn try_execute_query(&self, query: &str) -> Result<u64, Error> {
+        Ok(self.try_executor()?.try_execute(query)?)
     }
 
     /// Creates a cursor for iterating over the results of the given returning query.
@@ -101,10 +96,7 @@ impl Connection {
     }
 
     /// Creates a cursor for iterating over the results of the given returning query.
-    pub fn try_fetch_query<'c>(&'c self, query: &'c str) -> Result<Cursor, &str> {
-        match self.try_executor() {
-            Err(_) => Err("error in try_fetch_query 1"),
-            Ok(executor) => Ok(executor.cursor(query)),
-        }
+    pub fn try_fetch_query<'c>(&'c self, query: &'c str) -> Result<Cursor, Error> {
+        Ok(self.try_executor()?.cursor(query))
     }
 }
