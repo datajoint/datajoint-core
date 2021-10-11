@@ -1,5 +1,5 @@
 extern crate datajoint_core;
-
+mod connection;
 use datajoint_core::connection::Connection;
 use libc::c_char;
 use std::ffi::CStr;
@@ -15,6 +15,7 @@ pub extern "C" fn connection_new(uri: *const c_char) -> *mut Connection {
 
     Box::into_raw(Box::new(Connection::new(uri_str.to_string())))
 }
+
 
 #[no_mangle]
 pub extern "C" fn connection_free(ptr: *mut Connection) {

@@ -1,4 +1,5 @@
 #[derive(Eq, PartialEq)]
+#[repr(C)]
 pub enum DatabaseType {
     MySql,
     Postgres,
