@@ -1,20 +1,21 @@
 #[derive(Eq, PartialEq)]
-enum DatabaseType {
+pub enum DatabaseType {
     MySql,
     Postgres,
 }
-struct ConnectionSettings {
-    database_type: DatabaseType,
-    username: String,
-    password: String,
-    hostname: String,
-    port: u16,
-    database_name: String,
-    use_tls: Option<bool>,
+
+pub struct ConnectionSettings {
+    pub database_type: DatabaseType,
+    pub username: String,
+    pub password: String,
+    pub hostname: String,
+    pub port: u16,
+    pub database_name: String,
+    pub use_tls: Option<bool>,
 }
 
 impl ConnectionSettings{
-    pub fn new() -> ConnectionSettings{
+    pub fn new() -> Self {
         ConnectionSettings{
             database_type: DatabaseType::MySql,
             username: "".to_string(),
