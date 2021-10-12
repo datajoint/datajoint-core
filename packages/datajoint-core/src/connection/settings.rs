@@ -1,5 +1,5 @@
 #[derive(Eq, PartialEq)]
-#[repr(C)]
+#[repr(i32)]
 pub enum DatabaseType {
     MySql,
     Postgres,
