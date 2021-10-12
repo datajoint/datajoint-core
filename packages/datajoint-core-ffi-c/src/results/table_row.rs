@@ -16,9 +16,11 @@ pub extern "C" fn table_row_free(ptr: *mut TableRow) {
 }
 
 #[no_mangle]
-pub extern "C" fn table_row_column_count(ptr: *const TableRow) -> usize {
+pub extern "C" fn table_row_column_count(ptr: *const TableRow) -> isize {
     let row: &TableRow = unsafe {
-        assert!(!ptr.is_null());
+        if ptr.is_null() {
+            return -1;
+        }
         &*ptr
     };
     row.column_count()
