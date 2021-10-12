@@ -23,46 +23,6 @@ pub enum NativeDecodedType {
     Bytes,
 }
 
-/// Macro for generating buffer decoding code for literal types.
-macro_rules! generate_literal_buffer_decode {
-    (
-        $result:ident,
-        $buffer:ident,
-        $buffer_size:ident,
-        $output_size:ident,
-        $output_type:ident,
-        $($type_name:ident => $native_type:tt,)+
-        ||
-        _ => $default_case:expr
-    ) => (
-        match $result {
-            $(
-                DecodeResult::$type_name(value) => {
-                    // Check that buffer is large enough.
-                    if $buffer_size < std::mem::size_of::<$native_type>() {
-                        return ErrorCode::BufferNotEnough as i32;
-                    }
-
-                    // Move the data into the buffer.
-                    *($buffer as *mut $native_type) = value;
-
-                    // Set output variables if allowed.
-                    if !$output_size.is_null() {
-                        *$output_size = std::mem::size_of::<$native_type>();
-                    }
-                    if !$output_type.is_null() {
-                        *$output_type = NativeDecodedType::$type_name;
-                    }
-                    ErrorCode::Success as i32
-                }
-            )+
-            _ => {
-                $default_case
-            }
-        }
-    )
-}
-
 /// Decodes a single table row value to a caller-allocated buffer.DecodeResult
 ///
 /// The caller is responsible for moving data out of the buffer and handling
@@ -81,63 +41,194 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
     }
     match (*this).try_decode(*column) {
         Err(err) => err.code() as i32,
-        Ok(result) => {
-            generate_literal_buffer_decode!(result, buffer, buffer_size, output_size, output_type,
-                Int8 => i8,
-                UInt8 => u8,
-                Int16 => i16,
-                UInt16 => u16,
-                Int32 => i32,
-                UInt32 => u32,
-                Float32 => f32,
-                Float64 => f64,
-                ||
-                _ => match result {
-                    DecodeResult::String(string) => {
-                        if buffer_size == 0 {
-                            return ErrorCode::BufferNotEnough as i32;
-                        }
-
-                        // Can write at most buffer_size - 1 chars to assure the trailing null
-                        // char is also placed in the buffer.
-                        let write_size = std::cmp::min(string.len(), buffer_size - 1);
-
-                        // Copy string bytes to buffer bytes.
-                        let buffer_bytes = std::slice::from_raw_parts_mut(buffer as *mut u8, buffer_size);
-                        buffer_bytes[..write_size].copy_from_slice(string[..write_size].as_bytes());
-
-                        // Trailing null character.
-                        buffer_bytes[write_size] = 0;
-
-                        if !output_size.is_null() {
-                            // Trailing null is NOT accounted for in output size.
-                            *output_size = write_size;
-                        }
-                        if !output_type.is_null() {
-                            *output_type = NativeDecodedType::String;
-                        }
-                        ErrorCode::Success as i32
-                    }
-                    DecodeResult::Bytes(bytes) => {
-                        if buffer_size == 0 {
-                            return ErrorCode::BufferNotEnough as i32;
-                        }
-
-                        let write_size = std::cmp::min(bytes.len(), buffer_size);
-                        let buffer_bytes = std::slice::from_raw_parts_mut(buffer as *mut u8, buffer_size);
-                        buffer_bytes[..write_size].copy_from_slice(&bytes[..write_size]);
-
-                        if !output_size.is_null() {
-                            *output_size = write_size;
-                        }
-                        if !output_type.is_null() {
-                            *output_type = NativeDecodedType::Bytes;
-                        }
-                        ErrorCode::Success as i32
-                    }
-                    _ => ErrorCode::ColumnDecodeError as i32
+        Ok(result) => match result {
+            // No macro for generating these because of cbindgen limitations.
+            DecodeResult::Int8(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<i8>() {
+                    return ErrorCode::BufferNotEnough as i32;
                 }
-            )
+
+                // Move the data into the buffer.
+                *(buffer as *mut i8) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<i8>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::Int8;
+                }
+                ErrorCode::Success as i32
+            }
+            DecodeResult::UInt8(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<u8>() {
+                    return ErrorCode::BufferNotEnough as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut u8) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<u8>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::UInt8;
+                }
+                ErrorCode::Success as i32
+            }
+            DecodeResult::Int16(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<i16>() {
+                    return ErrorCode::BufferNotEnough as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut i16) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<i16>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::Int16;
+                }
+                ErrorCode::Success as i32
+            }
+            DecodeResult::UInt16(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<u16>() {
+                    return ErrorCode::BufferNotEnough as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut u16) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<u16>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::UInt16;
+                }
+                ErrorCode::Success as i32
+            }
+            DecodeResult::Int32(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<i32>() {
+                    return ErrorCode::BufferNotEnough as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut i32) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<i32>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::Int32;
+                }
+                ErrorCode::Success as i32
+            }
+            DecodeResult::UInt32(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<u32>() {
+                    return ErrorCode::BufferNotEnough as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut u32) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<u32>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::UInt32;
+                }
+                ErrorCode::Success as i32
+            }
+            DecodeResult::Float32(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<f32>() {
+                    return ErrorCode::BufferNotEnough as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut f32) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<f32>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::Float32;
+                }
+                ErrorCode::Success as i32
+            }
+            DecodeResult::Float64(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<f64>() {
+                    return ErrorCode::BufferNotEnough as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut f64) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<f64>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::Float64;
+                }
+                ErrorCode::Success as i32
+            }
+            DecodeResult::String(string) => {
+                if buffer_size == 0 {
+                    return ErrorCode::BufferNotEnough as i32;
+                }
+
+                // Can write at most buffer_size - 1 chars to assure the trailing null
+                // char is also placed in the buffer.
+                let write_size = std::cmp::min(string.len(), buffer_size - 1);
+
+                // Copy string bytes to buffer bytes.
+                let buffer_bytes = std::slice::from_raw_parts_mut(buffer as *mut u8, buffer_size);
+                buffer_bytes[..write_size].copy_from_slice(string[..write_size].as_bytes());
+
+                // Trailing null character.
+                buffer_bytes[write_size] = 0;
+
+                if !output_size.is_null() {
+                    // Trailing null is NOT accounted for in output size.
+                    *output_size = write_size;
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::String;
+                }
+                ErrorCode::Success as i32
+            }
+            DecodeResult::Bytes(bytes) => {
+                if buffer_size == 0 {
+                    return ErrorCode::BufferNotEnough as i32;
+                }
+
+                let write_size = std::cmp::min(bytes.len(), buffer_size);
+                let buffer_bytes = std::slice::from_raw_parts_mut(buffer as *mut u8, buffer_size);
+                buffer_bytes[..write_size].copy_from_slice(&bytes[..write_size]);
+
+                if !output_size.is_null() {
+                    *output_size = write_size;
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeDecodedType::Bytes;
+                }
+                ErrorCode::Success as i32
+            }
         }
     }
 }
@@ -249,31 +340,6 @@ pub unsafe extern "C" fn allocated_decoded_value_free(this: *mut AllocatedDecode
     Box::from_raw(this);
 }
 
-/// Macro for generating allocation decoding code for literal types.
-macro_rules! generate_literal_allocation_decode {
-    (
-        $result:ident,
-        $value:ident,
-        $($type_name:ident => $native_type:tt,)+
-        ||
-        _ => $default_case:expr
-    ) => (
-        match $result {
-            $(
-                DecodeResult::$type_name(value) => {
-                    (*$value).data = Box::into_raw(Box::new(value)) as *mut c_void;
-                    (*$value).size = std::mem::size_of::<$native_type>();
-                    (*$value).type_name = NativeDecodedType::$type_name;
-                    ErrorCode::Success as i32
-                }
-            )+
-            _ => {
-                $default_case
-            }
-        }
-    )
-}
-
 #[no_mangle]
 pub extern "C" fn table_row_decode_to_allocation(
     this: *const TableRow,
@@ -288,37 +354,74 @@ pub extern "C" fn table_row_decode_to_allocation(
         (*value).reset();
         match (*this).try_decode(*column) {
             Err(err) => err.code() as i32,
-            Ok(res) => generate_literal_allocation_decode!(res, value,
-                Int8 => i8,
-                UInt8 => u8,
-                Int16 => i16,
-                UInt16 => u16,
-                Int32 => i32,
-                UInt32 => u32,
-                Float32 => f32,
-                Float64 => f64,
-                ||
-                _ => match res {
-                    DecodeResult::String(string) => {
-                        (*value).size = string.len();
-                        (*value).type_name = NativeDecodedType::String;
-                        match CString::new(string) {
-                            Err(_) => ErrorCode::ColumnDecodeError as i32,
-                            Ok(cstr) => {
-                                (*value).data = cstr.into_raw() as *const c_void;
-                                ErrorCode::Success as i32
-                            }
+            Ok(res) => match res {
+                // No macro for generating these because of cbindgen limitations.
+                DecodeResult::Int8(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<i8>();
+                    (*value).type_name = NativeDecodedType::Int8;
+                    ErrorCode::Success as i32
+                }
+                DecodeResult::UInt8(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<u8>();
+                    (*value).type_name = NativeDecodedType::UInt8;
+                    ErrorCode::Success as i32
+                }
+                DecodeResult::Int16(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<i16>();
+                    (*value).type_name = NativeDecodedType::Int16;
+                    ErrorCode::Success as i32
+                }
+                DecodeResult::UInt16(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<u16>();
+                    (*value).type_name = NativeDecodedType::UInt16;
+                    ErrorCode::Success as i32
+                }
+                DecodeResult::Int32(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<i32>();
+                    (*value).type_name = NativeDecodedType::Int32;
+                    ErrorCode::Success as i32
+                }
+                DecodeResult::UInt32(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<u32>();
+                    (*value).type_name = NativeDecodedType::UInt32;
+                    ErrorCode::Success as i32
+                }
+                DecodeResult::Float32(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<f32>();
+                    (*value).type_name = NativeDecodedType::Float32;
+                    ErrorCode::Success as i32
+                }
+                DecodeResult::Float64(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<f64>();
+                    (*value).type_name = NativeDecodedType::Float64;
+                    ErrorCode::Success as i32
+                }
+                DecodeResult::String(string) => {
+                    (*value).size = string.len();
+                    (*value).type_name = NativeDecodedType::String;
+                    match CString::new(string) {
+                        Err(_) => ErrorCode::ColumnDecodeError as i32,
+                        Ok(cstr) => {
+                            (*value).data = cstr.into_raw() as *const c_void;
+                            ErrorCode::Success as i32
                         }
                     }
-                    DecodeResult::Bytes(bytes) => {
-                        (*value).size = bytes.len();
-                        (*value).type_name = NativeDecodedType::Bytes;
-                        (*value).data = Box::into_raw(Box::new(bytes)) as *const c_void;
-                        ErrorCode::Success as i32
-                    }
-                    _ => ErrorCode::ColumnDecodeError as i32
                 }
-            ),
+                DecodeResult::Bytes(bytes) => {
+                    (*value).size = bytes.len();
+                    (*value).type_name = NativeDecodedType::Bytes;
+                    (*value).data = Box::into_raw(Box::new(bytes)) as *const c_void;
+                    ErrorCode::Success as i32
+                }
+            }   
         }
     }
 }
