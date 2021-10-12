@@ -5,6 +5,7 @@ pub enum DatabaseType {
     Postgres,
 }
 
+
 pub struct ConnectionSettings {
     pub database_type: DatabaseType,
     pub username: String,
