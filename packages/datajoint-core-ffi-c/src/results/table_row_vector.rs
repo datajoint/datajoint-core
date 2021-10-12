@@ -1,6 +1,7 @@
 extern crate datajoint_core;
+
 use datajoint_core::results::TableRow;
-use libc::c_int;
+use std::ptr;
 
 /// Creates a vector of TableRows
 pub struct TableRowVector {
@@ -53,7 +54,9 @@ pub extern "C" fn table_row_vector_free(ptr: *mut TableRowVector) {
 #[no_mangle]
 pub extern "C" fn table_row_vector_row_count(ptr: *const TableRowVector) -> usize {
     let table_rows: &TableRowVector = unsafe {
-        assert!(!ptr.is_null());
+        if ptr.is_null() {
+            return 0;
+        }
         &*ptr
     };
     table_rows.row_count()
@@ -62,7 +65,9 @@ pub extern "C" fn table_row_vector_row_count(ptr: *const TableRowVector) -> usiz
 #[no_mangle]
 pub extern "C" fn table_row_vector_get(ptr: *const TableRowVector, index: usize) -> *const TableRow  {
     let table_rows: &TableRowVector = unsafe {
-        assert!(!ptr.is_null());
+        if ptr.is_null() {
+            return ptr::null();
+        }
         &*ptr
     };
     table_rows.get(index)
