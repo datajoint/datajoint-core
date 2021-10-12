@@ -1,45 +1,46 @@
 extern crate datajoint_core;
 use libc::{c_char};
 use std::ffi::{CString, CStr};
+use std::ptr;
 use datajoint_core::connection::{ConnectionSettings, DatabaseType};
 
 #[no_mangle]
-pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings{
+pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings {
     Box::into_raw(Box::new(ConnectionSettings::new()))
 }
 #[no_mangle]
-pub extern "C" fn connection_settings_free(ptr: *mut ConnectionSettings){
-    if ptr.is_null() {
+pub extern "C" fn connection_settings_free(pointers: *mut ConnectionSettings) {
+    if pointers.is_null() {
         return;
     }
     unsafe {
-        Box::from_raw(ptr);
+        Box::from_raw(pointers);
     }
 }
 
 // Getting a warning saying having it as databasetype is "Not FFI Safe"
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_database_type(ptr: *mut ConnectionSettings, dbtype: DatabaseType){  
-    let connection: &mut ConnectionSettings =  {
-        if ptr.is_null(){
+pub unsafe extern "C" fn connection_settings_set_database_type(pointers: *mut ConnectionSettings, dbtype: DatabaseType) {  
+    let connection: &mut ConnectionSettings = {
+        if pointers.is_null() {
             return
         }
-        &mut *ptr
+        &mut *pointers
     };
 
     connection.database_type = dbtype;
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_username(ptr: *mut ConnectionSettings, username: *const c_char){
-    let connection: &mut ConnectionSettings =  {
-        if ptr.is_null(){
+pub unsafe extern "C" fn connection_settings_set_username(pointers: *mut ConnectionSettings, username: *const c_char) {
+    let connection: &mut ConnectionSettings = {
+        if pointers.is_null() || username.is_null() {
             return
         }
-        &mut *ptr
+        &mut *pointers
     };
 
-    let user =  {
+    let user = {
         if username.is_null() {
            return  
         }
@@ -49,12 +50,12 @@ pub unsafe extern "C" fn connection_settings_set_username(ptr: *mut ConnectionSe
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_password(ptr: *mut ConnectionSettings, password: *const c_char){
+pub unsafe extern "C" fn connection_settings_set_password(pointers: *mut ConnectionSettings, password: *const c_char) {
     let connection: &mut ConnectionSettings = {
-        if ptr.is_null(){
+        if pointers.is_null() || password.is_null(){
             return
         }
-        &mut *ptr
+        &mut *pointers
     };
 
     let pass = {
@@ -67,12 +68,12 @@ pub unsafe extern "C" fn connection_settings_set_password(ptr: *mut ConnectionSe
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_hostname(ptr: *mut ConnectionSettings, hostname: *const c_char){
+pub unsafe extern "C" fn connection_settings_set_hostname(pointers: *mut ConnectionSettings, hostname: *const c_char) {
     let connection: &mut ConnectionSettings = {
-        if ptr.is_null(){
+        if pointers.is_null() || hostname.is_null() {
             return
         }
-        &mut *ptr
+        &mut *pointers
     };
 
     let host = {
@@ -85,24 +86,24 @@ pub unsafe extern "C" fn connection_settings_set_hostname(ptr: *mut ConnectionSe
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_port(ptr: *mut ConnectionSettings, port: u16){
+pub unsafe extern "C" fn connection_settings_set_port(pointers: *mut ConnectionSettings, port: u16) {
     
     let connection: &mut ConnectionSettings = {
-        if ptr.is_null(){
+        if pointers.is_null() {
             return
         }
-        &mut *ptr
+        &mut *pointers
     };
     connection.port = port;
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_databae_name(ptr: *mut ConnectionSettings, database_name: *const c_char){
+pub unsafe extern "C" fn connection_settings_set_databae_name(pointers: *mut ConnectionSettings, database_name: *const c_char) {
     let connection: &mut ConnectionSettings = {
-        if ptr.is_null(){
+        if pointers.is_null() || database_name.is_null(){
             return
         }
-        &mut *ptr
+        &mut *pointers
     };
 
     let database = {
@@ -116,26 +117,27 @@ pub unsafe extern "C" fn connection_settings_set_databae_name(ptr: *mut Connecti
 
 // Could not figure out how to make this return just connection.database_type. Nothing seemed to work
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_database_type(ptr: *mut ConnectionSettings) -> *mut DatabaseType{
+pub unsafe extern "C" fn connection_settings_get_database_type(pointers: *mut ConnectionSettings) -> DatabaseType {
     
     let connection: &mut ConnectionSettings = {
-        if ptr.is_null(){
-            // What to return?
+        if pointers.is_null() {
+            // Not sure what to return, can't return a pointer
         }
-        &mut *ptr
+        &mut *pointers
     };
     
-    let databasetype = &mut connection.database_type;
-    databasetype
+    //let databasetype = &mut connection.database_type;
+    //databasetype
+    connection.database_type
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_username(ptr: *const ConnectionSettings) -> *mut c_char{
+pub unsafe extern "C" fn connection_settings_get_username(pointers: *const ConnectionSettings) -> *mut c_char {
     let connection: &ConnectionSettings = {
-        if ptr.is_null(){
-            // What to return?
+        if pointers.is_null() {
+            return ptr::null_mut()
         }
-        &*ptr
+        &*pointers
     };
 
     let str_bytes = connection.username.as_bytes();
@@ -144,12 +146,12 @@ pub unsafe extern "C" fn connection_settings_get_username(ptr: *const Connection
 
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_password(ptr: *const ConnectionSettings) -> *mut c_char{
+pub unsafe extern "C" fn connection_settings_get_password(pointers: *const ConnectionSettings) -> *mut c_char {
     let connection: &ConnectionSettings = {
-        if ptr.is_null(){
-            // What to return?
+        if pointers.is_null() { 
+            return ptr::null_mut()
         }
-        &*ptr
+        &*pointers
     };
 
     let str_bytes = connection.password.as_bytes();
@@ -157,12 +159,12 @@ pub unsafe extern "C" fn connection_settings_get_password(ptr: *const Connection
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_hostname(ptr: *const ConnectionSettings) -> *mut c_char{
+pub unsafe extern "C" fn connection_settings_get_hostname(pointers: *const ConnectionSettings) -> *mut c_char {
     let connection: &ConnectionSettings = {
-        if ptr.is_null(){
-            // What to return?
+        if pointers.is_null() {
+            return ptr::null_mut()  
         }
-        &*ptr
+        &*pointers
     };
 
     let str_bytes = connection.hostname.as_bytes();
@@ -170,34 +172,33 @@ pub unsafe extern "C" fn connection_settings_get_hostname(ptr: *const Connection
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_port(ptr: *const ConnectionSettings) -> u16{
+pub unsafe extern "C" fn connection_settings_get_port(pointers: *const ConnectionSettings) -> u16 {
     let connection: &ConnectionSettings = {
-        if ptr.is_null(){
+        if pointers.is_null() {
             return 0
         }
-        &*ptr
+        &*pointers
     };
 
     connection.port
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_database_name(ptr: *const ConnectionSettings) -> *mut c_char{
+pub unsafe extern "C" fn connection_settings_get_database_name(pointers: *const ConnectionSettings) -> *mut c_char {
     let connection: &ConnectionSettings = {
-        if ptr.is_null(){
-            // What to return?
+        if pointers.is_null() {
+            return ptr::null_mut()    
         }
-        &*ptr
+        &*pointers
     };
 
     let str_bytes = connection.database_name.as_bytes();
     CString::new(str_bytes).unwrap().into_raw()
 }
 
-// From http://jakegoulding.com/rust-ffi-omnibus/string_return/ (Only way we could think about doing it without making a copy)
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_string_free(s: *mut c_char){
-    if s.is_null(){
+pub unsafe extern "C" fn connection_settings_string_free(s: *mut c_char) {
+    if s.is_null() {
         return
     }
     CString::from_raw(s);
