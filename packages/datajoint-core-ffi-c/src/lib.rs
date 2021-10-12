@@ -1,5 +1,6 @@
-mod results;
 extern crate datajoint_core;
+
+mod results;
 
 use datajoint_core::connection::Connection;
 use libc::c_char;
