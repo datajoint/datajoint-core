@@ -1,7 +1,7 @@
 use datajoint_core::error::{DataJointError, Error, ErrorCode};
 use datajoint_core::results::{TableColumnRef, TableRow};
 use datajoint_core::types::DecodeResult;
-use std::ffi::c_void;
+use std::ffi::{c_void, CString};
 use std::os::raw::c_char;
 
 /// Native types that row values can be decoded to.
@@ -68,7 +68,7 @@ macro_rules! generate_literal_buffer_decode {
 /// The caller is responsible for moving data out of the buffer and handling
 /// the deallocation of the buffer itself.
 #[no_mangle]
-pub extern "C" fn table_row_decode_to_buffer(
+pub unsafe extern "C" fn table_row_decode_to_buffer(
     this: *const TableRow,
     column: *const TableColumnRef,
     buffer: *mut c_void,
@@ -81,7 +81,7 @@ pub extern "C" fn table_row_decode_to_buffer(
     }
     match (*this).try_decode(*column) {
         Err(err) => err.code() as i32,
-        Ok(result) => unsafe {
+        Ok(result) => {
             generate_literal_buffer_decode!(result, buffer, buffer_size, output_size, output_type,
                 Int8 => i8,
                 UInt8 => u8,
@@ -197,7 +197,7 @@ impl AllocatedDecodedValue {
                 Box::from_raw(self.data as *mut f64);
             }
             NativeDecodedType::String => {
-                std::ffi::CString::from_raw(self.data as *mut c_char);
+                CString::from_raw(self.data as *mut c_char);
             }
             NativeDecodedType::Bytes => {
                 Box::from_raw(self.data as *mut u8);
@@ -302,7 +302,7 @@ pub extern "C" fn table_row_decode_to_allocation(
                     DecodeResult::String(string) => {
                         (*value).size = string.len();
                         (*value).type_name = NativeDecodedType::String;
-                        match std::ffi::CString::new(string) {
+                        match CString::new(string) {
                             Err(_) => ErrorCode::ColumnDecodeError as i32,
                             Ok(cstr) => {
                                 (*value).data = cstr.into_raw() as *const c_void;
