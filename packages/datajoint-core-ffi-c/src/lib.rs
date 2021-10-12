@@ -3,9 +3,8 @@ extern crate datajoint_core;
 mod results;
 
 use datajoint_core::connection::Connection;
-use datajoint_core::results::TableRow;
 use libc::c_char;
-use std::ffi::{CString, CStr};
+use std::ffi::CStr;
 
 #[no_mangle]
 pub extern "C" fn connection_new(uri: *const c_char) -> *mut Connection {
