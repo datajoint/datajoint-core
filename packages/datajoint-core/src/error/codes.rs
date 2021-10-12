@@ -13,6 +13,7 @@ use std::fmt::{Display, Formatter, Result};
 pub enum ErrorCode {
     Success = 0,
 
+    // SQLx error codes.
     ConfigurationError,
     UnknownDatabaseError,
     IoError,
@@ -29,8 +30,14 @@ pub enum ErrorCode {
     WorkerCrashed,
     UnknownSqlxError,
 
+    // DataJoint error codes.
     NotConnected,
     NoMoreRows,
+
+    // C FFI error codes.
+    NullNotAllowed,
+    BufferNotEnough,
+    InvalidNativeType,
 }
 
 impl Display for ErrorCode {
