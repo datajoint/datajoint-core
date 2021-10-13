@@ -9,121 +9,104 @@ pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings {
     Box::into_raw(Box::new(ConnectionSettings::new()))
 }
 #[no_mangle]
-pub extern "C" fn connection_settings_free(pointers: *mut ConnectionSettings) {
-    if pointers.is_null() {
+pub extern "C" fn connection_settings_free(this: *mut ConnectionSettings) {
+    if this.is_null() {
         return;
     }
     unsafe {
-        Box::from_raw(pointers);
+        Box::from_raw(this);
     }
 }
 
 // Getting a warning saying having it as databasetype is "Not FFI Safe"
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_database_type(pointers: *mut ConnectionSettings, dbtype: DatabaseType) {  
+pub unsafe extern "C" fn connection_settings_set_database_type(this: *mut ConnectionSettings, dbtype: DatabaseType) {  
     let connection: &mut ConnectionSettings = {
-        if pointers.is_null() {
+        if this.is_null() {
             return
         }
-        &mut *pointers
+        &mut *this
     };
 
     connection.database_type = dbtype;
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_username(pointers: *mut ConnectionSettings, username: *const c_char) {
+pub unsafe extern "C" fn connection_settings_set_username(this: *mut ConnectionSettings, username: *const c_char) {
     let connection: &mut ConnectionSettings = {
-        if pointers.is_null() || username.is_null() {
+        if this.is_null() || username.is_null() {
             return
         }
-        &mut *pointers
+        &mut *this
     };
 
-    let user = {
-        if username.is_null() {
-           return  
-        }
-        CStr::from_ptr(username).to_string_lossy().to_owned()
-    };
+    let user =  CStr::from_ptr(username).to_string_lossy().to_owned();
+
     connection.username = user.to_string();
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_password(pointers: *mut ConnectionSettings, password: *const c_char) {
+pub unsafe extern "C" fn connection_settings_set_password(this: *mut ConnectionSettings, password: *const c_char) {
     let connection: &mut ConnectionSettings = {
-        if pointers.is_null() || password.is_null(){
+        if this.is_null() || password.is_null(){
             return
         }
-        &mut *pointers
+        &mut *this
     };
 
-    let pass = {
-        if password.is_null() {
-            return 
-        }
-        CStr::from_ptr(password).to_string_lossy().to_owned()
-    };
+    let pass =  CStr::from_ptr(password).to_string_lossy().to_owned();
     connection.password = pass.to_string();
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_hostname(pointers: *mut ConnectionSettings, hostname: *const c_char) {
+pub unsafe extern "C" fn connection_settings_set_hostname(this: *mut ConnectionSettings, hostname: *const c_char) {
     let connection: &mut ConnectionSettings = {
-        if pointers.is_null() || hostname.is_null() {
+        if this.is_null() || hostname.is_null() {
             return
         }
-        &mut *pointers
+        &mut *this
     };
 
-    let host = {
-        if hostname.is_null() {
+    let host = CStr::from_ptr(hostname).to_string_lossy().to_owned();
 
-        }
-        CStr::from_ptr(hostname).to_string_lossy().to_owned()
-    };
     connection.hostname = host.to_string();
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_port(pointers: *mut ConnectionSettings, port: u16) {
+pub unsafe extern "C" fn connection_settings_set_port(this: *mut ConnectionSettings, port: u16) {
     
     let connection: &mut ConnectionSettings = {
-        if pointers.is_null() {
+        if this.is_null() {
             return
         }
-        &mut *pointers
+        &mut *this
     };
     connection.port = port;
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_databae_name(pointers: *mut ConnectionSettings, database_name: *const c_char) {
+pub unsafe extern "C" fn connection_settings_set_databae_name(this: *mut ConnectionSettings, database_name: *const c_char) {
     let connection: &mut ConnectionSettings = {
-        if pointers.is_null() || database_name.is_null(){
+        if this.is_null() || database_name.is_null(){
             return
         }
-        &mut *pointers
+        &mut *this
     };
 
-    let database = {
-        if database_name.is_null() {
+    let database = CStr::from_ptr(database_name).to_string_lossy().to_owned();
 
-        }
-        CStr::from_ptr(database_name).to_string_lossy().to_owned()
-    };
     connection.database_name = database.to_string();
 }
 
 // Could not figure out how to make this return just connection.database_type. Nothing seemed to work
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_database_type(pointers: *mut ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_database_type(this: *mut ConnectionSettings) -> *mut c_char {
     
     let connection: &mut ConnectionSettings = {
-        if pointers.is_null() {
+        if this.is_null() {
             return ptr::null_mut()
         }
-        &mut *pointers
+        &mut *this
     };
 
     let mut st: String = "mysql".to_string();
@@ -136,26 +119,25 @@ pub unsafe extern "C" fn connection_settings_get_database_type(pointers: *mut Co
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_username(pointers: *const ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_username(this: *const ConnectionSettings) -> *mut c_char {
     let connection: &ConnectionSettings = {
-        if pointers.is_null() {
+        if this.is_null() {
             return ptr::null_mut()
         }
-        &*pointers
+        &*this
     };
 
     let str_bytes = connection.username.as_bytes();
     CString::new(str_bytes).unwrap().into_raw()
 }
 
-
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_password(pointers: *const ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_password(this: *const ConnectionSettings) -> *mut c_char {
     let connection: &ConnectionSettings = {
-        if pointers.is_null() { 
+        if this.is_null() { 
             return ptr::null_mut()
         }
-        &*pointers
+        &*this
     };
 
     let str_bytes = connection.password.as_bytes();
@@ -163,12 +145,12 @@ pub unsafe extern "C" fn connection_settings_get_password(pointers: *const Conne
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_hostname(pointers: *const ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_hostname(this: *const ConnectionSettings) -> *mut c_char {
     let connection: &ConnectionSettings = {
-        if pointers.is_null() {
+        if this.is_null() {
             return ptr::null_mut()  
         }
-        &*pointers
+        &*this
     };
 
     let str_bytes = connection.hostname.as_bytes();
@@ -176,24 +158,24 @@ pub unsafe extern "C" fn connection_settings_get_hostname(pointers: *const Conne
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_port(pointers: *const ConnectionSettings) -> u16 {
+pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSettings) -> u16 {
     let connection: &ConnectionSettings = {
-        if pointers.is_null() {
+        if this.is_null() {
             return 0
         }
-        &*pointers
+        &*this
     };
 
     connection.port
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_database_name(pointers: *const ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_database_name(this: *const ConnectionSettings) -> *mut c_char {
     let connection: &ConnectionSettings = {
-        if pointers.is_null() {
+        if this.is_null() {
             return ptr::null_mut()    
         }
-        &*pointers
+        &*this
     };
 
     let str_bytes = connection.database_name.as_bytes();
@@ -207,5 +189,3 @@ pub unsafe extern "C" fn connection_settings_string_free(s: *mut c_char) {
     }
     CString::from_raw(s);
 }
-
-// Not sure if any "free" function needs to be added for database_type or u16
