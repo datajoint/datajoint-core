@@ -9,7 +9,7 @@ with open(header_file, 'r') as f:
     headers = f.read()
     ffi.cdef(headers)
 
-ffi.set_source(dirname + "_datajoint_core", None)
+ffi.set_source("datajoint._datajoint_core", None)
 
 if __name__ == "__main__":
     ffi.compile()
