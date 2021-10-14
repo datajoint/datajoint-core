@@ -15,6 +15,12 @@ impl TableRowVector {
         };
     }
 
+    pub fn new_cffi() -> Self {
+        return TableRowVector { 
+            rows: Vec::new()
+        };
+    }
+
     /// Returns the number of rows
     pub fn row_count(&self) -> usize {
         self.rows.len()
@@ -43,6 +49,11 @@ impl TableRowVector {
 }
 
 #[no_mangle]
+pub extern "C" fn table_row_vector_new() ->  *mut TableRowVector {
+    Box::into_raw(Box::new(TableRowVector::new_cffi()))
+}
+
+#[no_mangle]
 pub extern "C" fn table_row_vector_free(ptr: *mut TableRowVector) {
     if ptr.is_null() {
         return;
@@ -51,6 +62,7 @@ pub extern "C" fn table_row_vector_free(ptr: *mut TableRowVector) {
         Box::from_raw(ptr);
     }
 }
+
 #[no_mangle]
 pub extern "C" fn table_row_vector_row_count(ptr: *const TableRowVector) -> usize {
     let table_rows: &TableRowVector = unsafe {
