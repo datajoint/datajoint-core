@@ -18,13 +18,13 @@ pub struct TableColumn {
 /// Wraps `sqlx::any::AnyColumn`.
 #[derive(Copy, Clone)]
 pub struct TableColumnRef<'r> {
-    column: &'r sqlx::any::AnyColumn,
+    pub column: &'r sqlx::any::AnyColumn,
 }
 
 impl<'r> TableColumnRef<'r> {
     /// Creates a new table column around a SQLx column.
     pub fn new(column: &'r sqlx::any::AnyColumn) -> Self {
-        TableColumnRef { column: column }
+        TableColumnRef { column }
     }
 
     /// Returns the integer ordinal of the column, which can be used to
