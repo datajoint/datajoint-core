@@ -1,3 +1,4 @@
+use crate::error::{Error, SqlxError};
 use crate::results::table_column::{ColumnIndex, TableColumnRef};
 use sqlx::Row;
 
@@ -58,12 +59,12 @@ impl TableRow {
     }
 
     /// Returns a reference to the table column for the given index.
-    pub fn try_column<I>(&self, index: I) -> Result<TableColumnRef, &str>
+    pub fn try_column<I>(&self, index: I) -> Result<TableColumnRef, Error>
     where
         I: ColumnIndex,
     {
         match self.row.try_column(index) {
-            Err(_) => Err("error in column"),
+            Err(err) => Err(SqlxError::new(err)),
             Ok(column) => Ok(TableColumnRef::new(column)),
         }
     }
@@ -80,14 +81,14 @@ impl TableRow {
     }
 
     /// Gets a reference to the value stored at the given column in the row.
-    pub fn try_get<'r, T, I>(&'r self, index: I) -> Result<T, &str>
+    pub fn try_get<'r, T, I>(&'r self, index: I) -> Result<T, Error>
     where
         T: ValueDecodable<'r>,
         I: ColumnIndex,
     {
         let result: Result<T, sqlx::Error> = self.row.try_get(index);
         match result {
-            Err(_) => Err("error in get"),
+            Err(err) => Err(SqlxError::new(err)),
             Ok(value) => Ok(value),
         }
     }

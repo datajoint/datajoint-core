@@ -1,10 +1,9 @@
-use crate::connection::Cursor;
+use crate::connection::{Cursor};
+use crate::error::{Error, SqlxError};
 use crate::results::TableRow;
-use sqlx::{Executor as SqlxExecutor, Any};
-use crate::connection::connection::PhArg;
-use sqlx::query::Query;
-use sqlx::database::HasArguments;
-use crate::utils::prepare;
+use sqlx::Executor as SqlxExecutor;
+use std::borrow::Borrow;
+use crate::placeholders::{PhArg, PlaceHolderArgumentVector};
 
 /// An object used to interact with a database by executing queries.
 ///
@@ -34,17 +33,23 @@ impl<'c> Executor<'c> {
     }
 
     /// Executes the given query over the connection.
-    pub fn try_execute(&self, query: &str) -> Result<u64, &str> {
+    pub fn try_execute(&self, query: &str) -> Result<u64, Error> {
         match self.runtime.block_on(self.executor.execute(query)) {
-            Err(_) => Err("error in try_execute"),
+            Err(err) => Err(SqlxError::new(err)),
             Ok(result) => Ok(result.rows_affected()),
         }
     }
 
-    pub fn ph_try_execute(&self, query: &str, args : Vec<PhArg>) -> Result<u64, &str> {
-        let qu = prepare(query,args);
-        match self.runtime.block_on(qu.execute(self.executor)) {
-            Err(_) => Err("error in try_execute"),
+    /// executes the given query over the connection
+    pub fn ph_execute(&self, query: &str, args : PlaceHolderArgumentVector) -> u64 {
+        self.ph_try_execute(query, args).unwrap()
+    }
+
+    /// Executes the given query over the connection.
+    pub fn ph_try_execute(&self, query: &str, args : PlaceHolderArgumentVector) -> Result<u64, Error> {
+        let qu = args.prepare(query);
+        match self.runtime.block_on(qu.execute(self.executor)  ) {
+            Err(err) => Err(SqlxError::new(err)),
             Ok(result) => Ok(result.rows_affected()),
         }
     }
@@ -57,9 +62,9 @@ impl<'c> Executor<'c> {
     }
 
     /// Fetches one row using the given query.
-    pub fn try_fetch_one(&self, query: &str) -> Result<TableRow, &str> {
+    pub fn try_fetch_one(&self, query: &str) -> Result<TableRow, Error> {
         match self.runtime.block_on(self.executor.fetch_one(query)) {
-            Err(_) => Err("error in try_fetch_one"),
+            Err(err) => Err(SqlxError::new(err)),
             Ok(row) => Ok(TableRow::new(row)),
         }
     }
@@ -72,20 +77,20 @@ impl<'c> Executor<'c> {
     }
 
     /// Fetches multiple rows using the given query.
-    pub fn try_fetch_all(&self, query: &str) -> Result<Vec<TableRow>, &str> {
+    pub fn try_fetch_all(&self, query: &str) -> Result<Vec<TableRow>, Error> {
         match self.runtime.block_on(self.executor.fetch_all(query)) {
-            Err(_) => Err("error in try_fetch_all"),
+            Err(err) => Err(SqlxError::new(err)),
             Ok(rows) => Ok(rows.into_iter().map(TableRow::new).collect()),
         }
     }
 
-    /// Creates a cursor for the given query.
+    // Creates a cursor for the given query.
     pub fn cursor(&self, query: &'c str) -> Cursor<'c> {
-        Cursor::new(self.runtime, sqlx::query(query).bind(0).fetch(self.executor))
+        Cursor::new(self.runtime, sqlx::query(query).fetch(self.executor))
     }
 
-    pub fn ph_cursor(&self, query: &'c str, args : Vec<PhArg>) -> Cursor<'c> {
-        let mut qu = prepare(query, args);
+    pub fn ph_cursor(&self, query: &'c str, args: PlaceHolderArgumentVector) -> Cursor<'c> {
+        let qu = args.prepare(query);
         Cursor::new(self.runtime, qu.fetch(self.executor))
     }
 }

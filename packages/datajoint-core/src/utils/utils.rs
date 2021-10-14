@@ -1,7 +1,6 @@
 
 use crate::results::TableRow;
-use sqlx::{TypeInfo, Any};
-use crate::connection::PhArg;
+use sqlx::{TypeInfo, Any, Column};
 use sqlx::query::Query;
 use sqlx::database::HasArguments;
 
@@ -9,8 +8,7 @@ pub fn format_row(row : TableRow) -> String {
     let cols = row.columns();
     let mut form = "".to_string();
     for col in cols {
-       
-        match col.to_owned().type_data.name() {
+        match col.column.type_info().name() {
            "VARCHAR" => {
                let str : &str = row.get(col.name());
                form += &*format!("{}, ", str);
@@ -19,7 +17,7 @@ pub fn format_row(row : TableRow) -> String {
                let i: i32 = row.get(col.name());
                form += &*format!("{}, ", i);
             }
-            &_ => { println!("{}, {}", col.name(), col.to_owned().type_data.name() ) }
+            &_ => { println!("{}, {}", col.name(), col.column.type_info().name() ) }
         }
     }
     format!("({})",form).to_string()
@@ -36,13 +34,4 @@ pub fn print_row_vec(row_vec: Vec<TableRow>){
 }
 
 
-pub fn prepare(query : &str, args: Vec<PhArg>) -> Query<Any, <Any as HasArguments>::Arguments> {
-    let mut qu = sqlx::query(query);
-    for arg in args {
-        match arg {
-            PhArg::String(s) => qu = qu.bind(s),
-            PhArg::Int(i) => qu = qu.bind(i)
-        };
-    };
-    qu
-}
+
