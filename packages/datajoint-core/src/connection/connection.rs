@@ -35,10 +35,11 @@ impl Connection {
     /// Disconnects from the SQL database.
     ///
     /// The connection can be restarted if desired.
-    pub fn disconnect(&mut self) -> Result<(), &str> {
-        // TODO(jnestelroad): Implement with self.pool.close() async.
-        self.pool = None;
-        return Ok(());
+    pub fn disconnect(& self) {
+        match &self.pool {
+            Some(p) => self.runtime.block_on(p.close()),
+            _ => {}
+        }
     }
 
     fn get_pool(
