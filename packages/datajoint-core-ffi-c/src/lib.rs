@@ -1,3 +1,5 @@
+mod placeholders;
+
 extern crate datajoint_core;
 
 use datajoint_core::connection::Connection;

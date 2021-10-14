@@ -28,3 +28,4 @@ pub enum DataJointType {
     Attach,
     FilepathStore,
 }
+
