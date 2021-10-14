@@ -1,4 +1,4 @@
-use datajoint_core::error::{DataJointError, Error, ErrorCode};
+use datajoint_core::error::ErrorCode;
 use datajoint_core::results::{TableColumnRef, TableRow};
 use datajoint_core::types::DecodeResult;
 use std::ffi::{c_void, CString};
