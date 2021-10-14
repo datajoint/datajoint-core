@@ -1,5 +1,5 @@
 from ._datajoint_core import ffi
-from .config import library_file
+from .cffi_config import library_file
 
 C = ffi.dlopen(library_file)
 class Connection:

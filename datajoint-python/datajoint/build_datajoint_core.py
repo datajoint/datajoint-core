@@ -1,5 +1,5 @@
 from cffi import FFI
-from config import header_file
+from cffi_config import header_file
 from os import path
 
 dirname = path.dirname(__file__).replace('\\', '.')
