@@ -1,5 +1,5 @@
 /// Generalized types supported by DataJoint.
-#[repr(C)]
+#[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum DataJointType {
     Unknown,
