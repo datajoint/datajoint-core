@@ -100,22 +100,16 @@ pub unsafe extern "C" fn connection_settings_set_databae_name(this: *mut Connect
 
 // Could not figure out how to make this return just connection.database_type. Nothing seemed to work
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_database_type(this: *mut ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_database_type(this: *mut ConnectionSettings) -> DatabaseType {
     
-    let connection: &mut ConnectionSettings = {
+    let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut()
+            //Leaving blank, cannot figure out what needs to be returned here.
         }
-        &mut *this
+        &*this
     };
 
-    let mut st: String = "mysql".to_string();
-    if connection.database_type == DatabaseType::Postgres {
-        st = "postgres".to_string();
-    }
-    
-    let str_bytes = st.as_bytes();
-    CString::new(str_bytes).unwrap().into_raw()
+    connection.database_type
 }
 
 #[no_mangle]
