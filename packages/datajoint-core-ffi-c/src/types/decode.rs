@@ -23,7 +23,7 @@ pub enum NativeDecodedType {
     Bytes,
 }
 
-/// Decodes a single table row value to a caller-allocated buffer.DecodeResult
+/// Decodes a single table row value to a caller-allocated buffer.
 ///
 /// The caller is responsible for moving data out of the buffer and handling
 /// the deallocation of the buffer itself.
@@ -340,6 +340,12 @@ pub unsafe extern "C" fn allocated_decoded_value_free(this: *mut AllocatedDecode
     Box::from_raw(this);
 }
 
+/// Decodes a single table row value to a Rust-allocated buffer stored in a
+/// caller-allocated wrapper value.
+///
+/// The caller is responsible for moving data out of the buffer and handling
+/// the deallocation of the wrapper. When the wrapper is deallocated, the
+/// data inside is properly deallocated depending on the type.
 #[no_mangle]
 pub extern "C" fn table_row_decode_to_allocation(
     this: *const TableRow,
