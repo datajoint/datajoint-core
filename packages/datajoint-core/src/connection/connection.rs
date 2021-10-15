@@ -84,8 +84,6 @@ impl Connection {
             Some(pool) => Ok(Executor::new(pool, &self.runtime)),
         }
     }
-    
-    
 
     /// Executes the given non-returning query, returning the number of rows affected.
     ///
