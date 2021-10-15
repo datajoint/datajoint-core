@@ -2,7 +2,6 @@ from cffi import FFI
 from cffi_config import header_file
 from os import path
 
-dirname = path.dirname(__file__).replace('\\', '.')
 ffi = FFI()
 
 with open(header_file, 'r') as f:

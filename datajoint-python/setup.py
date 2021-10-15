@@ -5,10 +5,15 @@ import sys
 
 min_py_version = (3, 6)
 
-if sys.version_info <  min_py_version:
-    sys.exit('DataJoint is only supported for Python {}.{} or higher'.format(*min_py_version))
+
+if sys.version_info < min_py_version:
+    sys.exit('DataJoint is only supported for Python {}.{} or higher'.format(
+        *min_py_version))
 
 here = path.abspath(path.dirname(__file__))
+
+sys.path.insert(0, path.abspath(path.join(path.dirname(
+    __file__), 'datajoint'))) or sys.path.insert(0, (path.join(here, 'datajoint')))
 
 long_description = "A relational data framework for scientific data pipelines with MySQL backend."
 
@@ -18,7 +23,6 @@ with open(path.join(here, 'datajoint', 'version.py')) as f:
 
 with open(path.join(here, 'requirements.txt'), encoding='utf8') as f:
     requirements = f.read().split()
-
 
 
 setup(
