@@ -2,10 +2,10 @@
 extern crate num_derive;
 pub mod connection;
 pub mod results;
-pub mod utils;
 pub mod error;
 pub mod types;
 pub mod placeholders;
+pub mod util;
 
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@ pub mod placeholders;
 #[cfg(test)]
 mod tests {
     use crate::connection::{Connection};
-    use crate::utils::print_row_vec;
+    use crate::util::print_row_vec;
     use crate::placeholders::{PlaceHolderArgumentVector, PhArg, PlaceHolderArgument};
     use crate::types::DecodeResult;
 
