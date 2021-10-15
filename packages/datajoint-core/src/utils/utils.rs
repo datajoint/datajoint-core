@@ -1,22 +1,40 @@
 
 use crate::results::TableRow;
 use sqlx::TypeInfo;
+use crate::types::DataJointType;
 
 pub fn format_row(row : TableRow) -> String {
     let cols = row.columns();
     let mut form = "".to_string();
     for col in cols {
-       
-        match col.to_owned().type_data.name() {
-           "VARCHAR" => {
-               let str : &str = row.get(col.name());
-               form += &*format!("{}, ", str);
-           },
-           "INT4" =>{
-               let i: i32 = row.get(col.name());
-               form += &*format!("{}, ", i);
-            }
-            &_ => { println!("{}, {}", col.name(), col.to_owned().type_data.name() ) }
+
+        // TODO implement type decoding here
+        match col.type_name() {
+            DataJointType::Unknown => {}
+            DataJointType::TinyInt => {}
+            DataJointType::TinyIntUnsigned => {}
+            DataJointType::SmallInt => {}
+            DataJointType::SmallIntUnsigned => {}
+            DataJointType::MediumInt => {}
+            DataJointType::MediumIntUnsigned => {}
+            DataJointType::Int => {}
+            DataJointType::IntUnsigned => {}
+            DataJointType::Enum => {}
+            DataJointType::Date => {}
+            DataJointType::Time => {}
+            DataJointType::DateTime => {}
+            DataJointType::Timestamp => {}
+            DataJointType::CharN => {}
+            DataJointType::VarCharN => {}
+            DataJointType::Float => {}
+            DataJointType::Double => {}
+            DataJointType::Decimal => {}
+            DataJointType::TinyBlob => {}
+            DataJointType::MediumBlob => {}
+            DataJointType::Blob => {}
+            DataJointType::LongBlob => {}
+            DataJointType::Attach => {}
+            DataJointType::FilepathStore => {}
         }
     }
     format!("({})",form).to_string()

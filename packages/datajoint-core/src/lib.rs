@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate num_derive;
 pub mod connection;
 pub mod results;
 pub mod utils;

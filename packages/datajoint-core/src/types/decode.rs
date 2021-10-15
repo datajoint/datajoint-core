@@ -92,7 +92,7 @@ impl TableRow {
                 self.try_get::<sqlx::types::chrono::DateTime<sqlx::types::chrono::Utc>, usize>(
                     index,
                 )?
-                .to_string(),
+                    .to_string(),
             )),
             Float => Ok(DecodeResult::Float32(self.try_get::<f32, usize>(index)?)),
             Double => Ok(DecodeResult::Float64(self.try_get::<f64, usize>(index)?)),
