@@ -1,8 +1,8 @@
 extern crate datajoint_core;
-use libc::{c_char};
-use std::ffi::{CString, CStr};
-use std::ptr;
 use datajoint_core::connection::{ConnectionSettings, DatabaseType};
+use libc::c_char;
+use std::ffi::{CStr, CString};
+use std::ptr;
 
 #[no_mangle]
 pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings {
@@ -18,12 +18,14 @@ pub extern "C" fn connection_settings_free(this: *mut ConnectionSettings) {
     }
 }
 
-// Getting a warning saying having it as databasetype is "Not FFI Safe"
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_database_type(this: *mut ConnectionSettings, dbtype: DatabaseType) {  
+pub unsafe extern "C" fn connection_settings_set_database_type(
+    this: *mut ConnectionSettings,
+    dbtype: DatabaseType,
+) {
     let connection: &mut ConnectionSettings = {
         if this.is_null() {
-            return
+            return;
         }
         &mut *this
     };
@@ -32,52 +34,58 @@ pub unsafe extern "C" fn connection_settings_set_database_type(this: *mut Connec
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_username(this: *mut ConnectionSettings, username: *const c_char) {
+pub unsafe extern "C" fn connection_settings_set_username(
+    this: *mut ConnectionSettings,
+    username: *const c_char,
+) {
     let connection: &mut ConnectionSettings = {
         if this.is_null() || username.is_null() {
-            return
+            return;
         }
         &mut *this
     };
 
-    let user =  CStr::from_ptr(username).to_string_lossy().to_owned();
-
+    let user = CStr::from_ptr(username).to_string_lossy().to_owned();
     connection.username = user.to_string();
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_password(this: *mut ConnectionSettings, password: *const c_char) {
+pub unsafe extern "C" fn connection_settings_set_password(
+    this: *mut ConnectionSettings,
+    password: *const c_char,
+) {
     let connection: &mut ConnectionSettings = {
-        if this.is_null() || password.is_null(){
-            return
+        if this.is_null() || password.is_null() {
+            return;
         }
         &mut *this
     };
 
-    let pass =  CStr::from_ptr(password).to_string_lossy().to_owned();
+    let pass = CStr::from_ptr(password).to_string_lossy().to_owned();
     connection.password = pass.to_string();
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_hostname(this: *mut ConnectionSettings, hostname: *const c_char) {
+pub unsafe extern "C" fn connection_settings_set_hostname(
+    this: *mut ConnectionSettings,
+    hostname: *const c_char,
+) {
     let connection: &mut ConnectionSettings = {
         if this.is_null() || hostname.is_null() {
-            return
+            return;
         }
         &mut *this
     };
 
     let host = CStr::from_ptr(hostname).to_string_lossy().to_owned();
-
     connection.hostname = host.to_string();
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_port(this: *mut ConnectionSettings, port: u16) {
-    
     let connection: &mut ConnectionSettings = {
         if this.is_null() {
-            return
+            return;
         }
         &mut *this
     };
@@ -85,26 +93,29 @@ pub unsafe extern "C" fn connection_settings_set_port(this: *mut ConnectionSetti
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_databae_name(this: *mut ConnectionSettings, database_name: *const c_char) {
+pub unsafe extern "C" fn connection_settings_set_databae_name(
+    this: *mut ConnectionSettings,
+    database_name: *const c_char,
+) {
     let connection: &mut ConnectionSettings = {
-        if this.is_null() || database_name.is_null(){
-            return
+        if this.is_null() || database_name.is_null() {
+            return;
         }
         &mut *this
     };
 
     let database = CStr::from_ptr(database_name).to_string_lossy().to_owned();
-
     connection.database_name = database.to_string();
 }
 
-// Could not figure out how to make this return just connection.database_type. Nothing seemed to work
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_database_type(this: *mut ConnectionSettings) -> DatabaseType {
-    
+pub unsafe extern "C" fn connection_settings_get_database_type(
+    this: *mut ConnectionSettings,
+) -> DatabaseType {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            //Leaving blank, cannot figure out what needs to be returned here.
+            // TODO: Return a different default value?
+            return DatabaseType::MySql;
         }
         &*this
     };
@@ -113,10 +124,12 @@ pub unsafe extern "C" fn connection_settings_get_database_type(this: *mut Connec
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_username(this: *const ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_username(
+    this: *const ConnectionSettings,
+) -> *mut c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut()
+            return ptr::null_mut();
         }
         &*this
     };
@@ -126,10 +139,12 @@ pub unsafe extern "C" fn connection_settings_get_username(this: *const Connectio
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_password(this: *const ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_password(
+    this: *const ConnectionSettings,
+) -> *mut c_char {
     let connection: &ConnectionSettings = {
-        if this.is_null() { 
-            return ptr::null_mut()
+        if this.is_null() {
+            return ptr::null_mut();
         }
         &*this
     };
@@ -139,10 +154,12 @@ pub unsafe extern "C" fn connection_settings_get_password(this: *const Connectio
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_hostname(this: *const ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_hostname(
+    this: *const ConnectionSettings,
+) -> *mut c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut()  
+            return ptr::null_mut();
         }
         &*this
     };
@@ -155,7 +172,7 @@ pub unsafe extern "C" fn connection_settings_get_hostname(this: *const Connectio
 pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSettings) -> u16 {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return 0
+            return 0;
         }
         &*this
     };
@@ -164,22 +181,16 @@ pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSet
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_get_database_name(this: *const ConnectionSettings) -> *mut c_char {
+pub unsafe extern "C" fn connection_settings_get_database_name(
+    this: *const ConnectionSettings,
+) -> *mut c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut()    
+            return ptr::null_mut();
         }
         &*this
     };
 
     let str_bytes = connection.database_name.as_bytes();
     CString::new(str_bytes).unwrap().into_raw()
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn connection_settings_string_free(s: *mut c_char) {
-    if s.is_null() {
-        return
-    }
-    CString::from_raw(s);
 }
