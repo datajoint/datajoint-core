@@ -12,7 +12,7 @@ pub struct PlaceHolderArgumentVector {
 
 impl PlaceHolderArgumentVector {
 
-    pub fn new( vec : Vec<PhArg>) -> Self{
+    pub fn new( vec : Vec<PlaceHolderArgument>) -> Self{
         PlaceHolderArgumentVector{
             vec: vec![],
         }
