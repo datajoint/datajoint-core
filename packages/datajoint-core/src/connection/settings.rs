@@ -1,4 +1,5 @@
-#[derive(Eq, PartialEq, Clone, Copy)]
+/// Enum type for representing the type of SQL database to connect to.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, FromPrimitive)]
 #[repr(i32)]
 pub enum DatabaseType {
     MySql,
