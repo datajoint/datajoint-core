@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import datajoint as dj
 
 connection = dj.conn("example@email.com", "Username123", "secretPassword", reset=False, use_tls=True)

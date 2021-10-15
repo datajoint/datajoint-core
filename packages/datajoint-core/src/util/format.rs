@@ -9,13 +9,13 @@ pub fn format_row(row : TableRow) -> String {
     let mut form = "".to_string();
     for col in cols {
         match col.column.type_info().name() {
-           "VARCHAR" => {
-               let str : &str = row.get(col.name());
-               form += &*format!("{}, ", str);
-           },
-           "INT4" =>{
-               let i: i32 = row.get(col.name());
-               form += &*format!("{}, ", i);
+            "VARCHAR" => {
+                let str : &str = row.get(col.name());
+                form += &*format!("{}, ", str);
+            },
+            "INT4" =>{
+                let i: i32 = row.get(col.name());
+                form += &*format!("{}, ", i);
             }
             &_ => { println!("{}, {}", col.name(), col.column.type_info().name() ) }
         }

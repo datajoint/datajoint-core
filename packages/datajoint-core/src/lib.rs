@@ -1,10 +1,11 @@
+#[macro_use]
+extern crate num_derive;
 pub mod connection;
 pub mod results;
-pub mod utils;
 pub mod error;
 pub mod types;
 pub mod placeholders;
-
+pub mod util;
 
 //////////////////////////////////////////////////////////////////////////////////
 //  Tests
@@ -12,7 +13,7 @@ pub mod placeholders;
 #[cfg(test)]
 mod tests {
     use crate::connection::{Connection};
-    use crate::utils::print_row_vec;
+    use crate::util::print_row_vec;
     use crate::placeholders::{PlaceHolderArgumentVector, PhArg, PlaceHolderArgument};
     use crate::types::DecodeResult;
 
@@ -22,7 +23,7 @@ mod tests {
         let settings = "postgres://postgres:password@localhost/datajoint";
         let mut con = Connection::new(settings.to_string());
         con.connect().unwrap();
-        let id = 1003;
+        let id = 1004;
         let mut args = PlaceHolderArgumentVector::new(vec![]);
         args.add(PlaceHolderArgument::new(DecodeResult::String("Temoc".to_string())));
         args.add(PlaceHolderArgument::new(DecodeResult::String("enarc".to_string())));

@@ -2,6 +2,10 @@ mod placeholders;
 
 extern crate datajoint_core;
 
+mod connection;
+mod results;
+mod util;
+
 use datajoint_core::connection::Connection;
 use libc::c_char;
 use std::ffi::CStr;

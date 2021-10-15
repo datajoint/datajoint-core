@@ -1,6 +1,6 @@
 /// Generalized types supported by DataJoint.
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[repr(i32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, FromPrimitive)]
 pub enum DataJointType {
     Unknown,
     TinyInt,
@@ -28,4 +28,3 @@ pub enum DataJointType {
     Attach,
     FilepathStore,
 }
-

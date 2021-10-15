@@ -27,7 +27,7 @@ impl DataJointType {
             // providing the database type stored in ConnectionSettings to
             // TableColumnRef::from_sqlx_type_name.
             //
-            // For now, Timestamp is broken in MySQL.
+            // For now, TIMESTAMP is broken in Postgres, but TIMESTAMPTZ is not.
             "TIMESTAMP" => Timestamp,
             "CHAR" => CharN,
             "VARCHAR" => VarCharN,

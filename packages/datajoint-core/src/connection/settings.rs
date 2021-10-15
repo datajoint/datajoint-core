@@ -1,4 +1,6 @@
-#[derive(Eq, PartialEq)]
+/// Enum type for representing the type of SQL database to connect to.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, FromPrimitive)]
+#[repr(i32)]
 pub enum DatabaseType {
     MySql,
     Postgres,
@@ -14,9 +16,9 @@ pub struct ConnectionSettings {
     pub use_tls: Option<bool>,
 }
 
-impl ConnectionSettings{
+impl ConnectionSettings {
     pub fn new() -> Self {
-        ConnectionSettings{
+        ConnectionSettings {
             database_type: DatabaseType::MySql,
             username: "".to_string(),
             password: "".to_string(),
@@ -32,6 +34,14 @@ impl ConnectionSettings{
         if self.database_type == DatabaseType::Postgres {
             protocol = "postgres".to_string();
         }
-        return format!("{}://{}:{}@{}:{}/{}",protocol,self.username,self.password,self.hostname,self.port.to_string(),self.database_name);
+        return format!(
+            "{}://{}:{}@{}:{}/{}",
+            protocol,
+            self.username,
+            self.password,
+            self.hostname,
+            self.port.to_string(),
+            self.database_name
+        );
     }
 }
