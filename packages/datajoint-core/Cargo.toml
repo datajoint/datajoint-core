@@ -8,4 +8,4 @@ repository = "https://github.com/datajoint/datajoint-core"
 futures = { version = "0.3.1" }
 futures-core = { version = "0.3.1" }
 tokio = { version = "1.11.0", features = ["full"] }
-sqlx = { version = "0.5", features = ["runtime-async-std-native-tls", "postgres", "mysql", "tls", "any"]}
+sqlx = { version = "0.5", features = ["runtime-async-std-native-tls", "postgres", "mysql", "tls", "any", "chrono"]}
