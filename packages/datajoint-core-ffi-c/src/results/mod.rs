@@ -1,2 +1,2 @@
+mod table_column;
 mod table_row_vector;
-pub use table_row_vector::TableRowVector;
