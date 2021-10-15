@@ -14,35 +14,31 @@ pub mod util;
 //////////////////////////////////////////////////////////////////////////////////
 #[cfg(test)]
 mod tests {
-    use crate::connection::{Connection, ConnectionSettings};
+    use crate::connection::{Connection, ConnectionSettings, DatabaseType};
     use crate::util::print_row_vec;
     use crate::placeholders::{PlaceHolderArgumentVector, PhArg, PlaceHolderArgument};
     use crate::types::DecodeResult;
 
     #[test]
     fn demo_postgres() {
-        // let settings = "postgres://postgres:password@localhost/datajoint";
+
         let mut settings = ConnectionSettings::new();
         settings.password = "password".to_string();
         settings.database_name = "datajoint".to_string();
         settings.hostname = "localhost".to_string();
         settings.username = "postgres".to_string();
-        let mut con = Connection::new(settings.uri());
+        settings.database_type = DatabaseType::Postgres;
+        settings.port = 5432;
+        settings.use_tls = Some(true);
+
+        let mut con = Connection::new(settings);
         con.connect().unwrap();
-        let id = 1004;
+        let id = 1005;
         let mut args = PlaceHolderArgumentVector::new(vec![]);
         args.add(PlaceHolderArgument::new(DecodeResult::String("Temoc".to_string())));
         args.add(PlaceHolderArgument::new(DecodeResult::String("enarc".to_string())));
         args.add(PlaceHolderArgument::new(DecodeResult::Int32(id)));
         con.ph_execute_query("insert into students values ($1,$2,$3)", args);
-        let mut args = PlaceHolderArgumentVector::new(vec![]);
-        args.add(PlaceHolderArgument::new(DecodeResult::Int32(id)));
-        let mut  try_c = con.ph_fetch_query("select * from students where id = $1;", args);
-        let rows = try_c.rest();
-        print_row_vec(rows);
-        con.disconnect();
-
-        // this should fail now that the connection is closed
         let mut args = PlaceHolderArgumentVector::new(vec![]);
         args.add(PlaceHolderArgument::new(DecodeResult::Int32(id)));
         let mut  try_c = con.ph_fetch_query("select * from students where id = $1;", args);
