@@ -3,6 +3,7 @@ use libc::c_char;
 use std::ffi::{CStr, CString};
 use std::ptr;
 
+
 #[no_mangle]
 pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings {
     Box::into_raw(Box::new(ConnectionSettings::new()))
