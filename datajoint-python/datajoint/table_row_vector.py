@@ -1,19 +1,5 @@
-import os
-import sys
-from cffi import FFI
-ffi = FFI()
-
-prefix = {'win32': ''}.get(sys.platform, 'lib')
-extension = {'darwin': '.dylib', 'win32': '.dll'}.get(sys.platform, '.so')
-dirname = os.path.dirname(__file__)
-library_file = os.path.join(
-    dirname + '/../../target/debug/' + prefix + 'corelib' + extension)
-header_file = os.path.join(
-    dirname + '/../../packages/datajoint-core-ffi-c/datajoint-core-ffi-c.h')
-
-with open(header_file, 'r') as f:
-    headers = f.read()
-    ffi.cdef(headers)
+from ._datajoint_core import ffi
+from .cffi_config import library_file
 
 lib = ffi.dlopen(library_file)
 
