@@ -1,5 +1,3 @@
-extern crate datajoint_core;
-
 use datajoint_core::results::TableRow;
 use std::ptr;
 
