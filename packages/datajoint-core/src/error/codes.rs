@@ -9,7 +9,7 @@ use std::fmt::{Display, Formatter, Result};
 /// a numbering system is standardized.
 #[repr(i32)]
 #[non_exhaustive]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, FromPrimitive)]
 pub enum ErrorCode {
     Success = 0,
 
