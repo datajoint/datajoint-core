@@ -1,4 +1,3 @@
-extern crate datajoint_core;
 use datajoint_core::connection::{ConnectionSettings, DatabaseType};
 use libc::c_char;
 use std::ffi::{CStr, CString};
