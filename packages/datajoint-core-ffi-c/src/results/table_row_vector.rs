@@ -1,18 +1,15 @@
-extern crate datajoint_core;
-
 use datajoint_core::results::TableRow;
 use std::ptr;
 
 /// Creates a vector of TableRows
 pub struct TableRowVector {
-    rows: Vec<TableRow>
+    rows: Vec<TableRow>,
 }
+#[allow(dead_code)]
 impl TableRowVector {
     /// Creates a new table row vector
     pub fn new(table_rows: Vec<TableRow>) -> Self {
-        return TableRowVector { 
-            rows: table_rows
-        };
+        return TableRowVector { rows: table_rows };
     }
 
     /// Returns the number of rows
@@ -21,7 +18,7 @@ impl TableRowVector {
     }
 
     /// Returns a reference to a TableRow at the given index
-    /// 
+    ///
     /// Panics on error
     pub fn get(&self, index: usize) -> &TableRow {
         self.try_get(index).unwrap()
@@ -43,16 +40,22 @@ impl TableRowVector {
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn table_row_vector_new() -> *mut TableRowVector {
+    libc::malloc(std::mem::size_of::<TableRowVector> as libc::size_t) as *mut TableRowVector
+}
+
+#[no_mangle]
 pub extern "C" fn table_row_vector_free(ptr: *mut TableRowVector) {
     if ptr.is_null() {
         return;
     }
     unsafe {
-        Box::from_raw(ptr);
+        libc::free(ptr as *mut libc::c_void);
     }
 }
+
 #[no_mangle]
-pub extern "C" fn table_row_vector_row_count(ptr: *const TableRowVector) -> usize {
+pub extern "C" fn table_row_vector_size(ptr: *const TableRowVector) -> usize {
     let table_rows: &TableRowVector = unsafe {
         if ptr.is_null() {
             return 0;
@@ -63,7 +66,10 @@ pub extern "C" fn table_row_vector_row_count(ptr: *const TableRowVector) -> usiz
 }
 
 #[no_mangle]
-pub extern "C" fn table_row_vector_get(ptr: *const TableRowVector, index: usize) -> *const TableRow  {
+pub extern "C" fn table_row_vector_get(
+    ptr: *const TableRowVector,
+    index: usize,
+) -> *const TableRow {
     let table_rows: &TableRowVector = unsafe {
         if ptr.is_null() {
             return ptr::null();
