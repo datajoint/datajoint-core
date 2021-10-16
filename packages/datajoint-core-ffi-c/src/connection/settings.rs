@@ -3,7 +3,6 @@ use libc::c_char;
 use std::ffi::{CStr, CString};
 use std::ptr;
 
-
 #[no_mangle]
 pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings {
     Box::into_raw(Box::new(ConnectionSettings::new()))
@@ -129,7 +128,7 @@ pub unsafe extern "C" fn connection_settings_get_username(
 ) -> *const c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut();
+            return ptr::null();
         }
         &*this
     };
@@ -147,7 +146,7 @@ pub unsafe extern "C" fn connection_settings_get_password(
 ) -> *const c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut();
+            return ptr::null();
         }
         &*this
     };
@@ -165,7 +164,7 @@ pub unsafe extern "C" fn connection_settings_get_hostname(
 ) -> *const c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut();
+            return ptr::null();
         }
         &*this
     };
@@ -195,7 +194,7 @@ pub unsafe extern "C" fn connection_settings_get_database_name(
 ) -> *const c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut();
+            return ptr::null();
         }
         &*this
     };
