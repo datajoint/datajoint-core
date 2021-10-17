@@ -38,7 +38,7 @@ pub unsafe extern "C" fn table_row_column_count(this: *const TableRow) -> usize 
 #[no_mangle]
 pub unsafe extern "C" fn table_row_columns(
     this: *const TableRow,
-    mut _out_columns: *mut TableColumnRef,
+    out_columns: *mut *const TableColumnRef,
     columns_size: *mut usize,
 ) -> i32 {
     if this.is_null() {
@@ -46,18 +46,20 @@ pub unsafe extern "C" fn table_row_columns(
     }
     let mut cols = (&*this).columns();
     cols.shrink_to_fit();
-    *(columns_size) = cols.len();
-    _out_columns = cols.as_mut_ptr();
+    *columns_size = cols.len();
+    *out_columns = cols.as_mut_ptr();
     std::mem::forget(cols);
     ErrorCode::Success as i32
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn table_row_columns_free(
-    _this: *const TableRow,
     out_columns: *mut TableColumnRef,
     columns_size: usize,
 ) {
+    if out_columns.is_null() {
+        return;
+    }
     drop(Vec::from_raw_parts(out_columns, columns_size, columns_size));
 }
 
@@ -79,11 +81,9 @@ pub unsafe extern "C" fn table_row_get_column_with_name(
     let result = (&*this).try_column(column_name_str);
     let col_ref: TableColumnRef = match result {
         Err(_err) => return ErrorCode::ColumnDecodeError as i32,
-        Ok(value) => value
+        Ok(value) => value,
     };
-    
     *(_out) = col_ref;
-    
     ErrorCode::Success as i32
 }
 
@@ -100,7 +100,7 @@ pub unsafe extern "C" fn table_row_get_column_with_ordinal(
     let result = (&*this).try_column(ordinal);
     let col_ref: TableColumnRef = match result {
         Err(_err) => return ErrorCode::ColumnDecodeError as i32,
-        Ok(value) => value
+        Ok(value) => value,
     };
 
     *(_out) = col_ref;
