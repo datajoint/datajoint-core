@@ -125,46 +125,55 @@ pub unsafe extern "C" fn connection_settings_get_database_type(
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_username(
     this: *const ConnectionSettings,
-) -> *mut c_char {
+) -> *const c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut();
+            return ptr::null();
         }
         &*this
     };
 
     let str_bytes = connection.username.as_bytes();
-    CString::new(str_bytes).unwrap().into_raw()
+    match CString::new(str_bytes) {
+        Err(_) => std::ptr::null(),
+        Ok(str_bytes) => str_bytes.into_raw(),
+    }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_password(
     this: *const ConnectionSettings,
-) -> *mut c_char {
+) -> *const c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut();
+            return ptr::null();
         }
         &*this
     };
 
     let str_bytes = connection.password.as_bytes();
-    CString::new(str_bytes).unwrap().into_raw()
+    match CString::new(str_bytes) {
+        Err(_) => std::ptr::null(),
+        Ok(str_bytes) => str_bytes.into_raw(),
+    }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_hostname(
     this: *const ConnectionSettings,
-) -> *mut c_char {
+) -> *const c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut();
+            return ptr::null();
         }
         &*this
     };
 
     let str_bytes = connection.hostname.as_bytes();
-    CString::new(str_bytes).unwrap().into_raw()
+    match CString::new(str_bytes) {
+        Err(_) => std::ptr::null(),
+        Ok(str_bytes) => str_bytes.into_raw(),
+    }
 }
 
 #[no_mangle]
@@ -182,14 +191,17 @@ pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSet
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_database_name(
     this: *const ConnectionSettings,
-) -> *mut c_char {
+) -> *const c_char {
     let connection: &ConnectionSettings = {
         if this.is_null() {
-            return ptr::null_mut();
+            return ptr::null();
         }
         &*this
     };
 
     let str_bytes = connection.database_name.as_bytes();
-    CString::new(str_bytes).unwrap().into_raw()
+    match CString::new(str_bytes) {
+        Err(_) => std::ptr::null(),
+        Ok(str_bytes) => str_bytes.into_raw(),
+    }
 }
