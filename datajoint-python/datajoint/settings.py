@@ -1,57 +1,54 @@
-from ._datajoint_core import ffi
-from .cffi_config import library_file
-C = ffi.dlopen(library_file)
+from .datajoint_core_lib import dj_core
 
-from .errors import check_error
 
 class Config:
 
-  setters = {
-    'database_type': C.connection_settings_set_database_type,
-    'username': C.connection_settings_set_username,
-    'password': C.connection_settings_set_password,
-    'hostname': C.connection_settings_set_hostname,
-    'port': C.connection_settings_set_port,
-    'database_name': C.connection_settings_set_database_name
-  }
+    setters = {
+        'database_type': dj_core.connection_settings_set_database_type,
+        'username': dj_core.connection_settings_set_username,
+        'password': dj_core.connection_settings_set_password,
+        'hostname': dj_core.connection_settings_set_hostname,
+        'port': dj_core.connection_settings_set_port,
+        'database_name': dj_core.connection_settings_set_database_name
+    }
 
-  getters = {
-    'database_type': C.connection_settings_get_database_type,
-    'username': C.connection_settings_get_username,
-    'password': C.connection_settings_get_password,
-    'hostname': C.connection_settings_get_hostname,
-    'port': C.connection_settings_get_port,
-    'database_name': C.connection_settings_get_database_name
-  }
+    getters = {
+        'database_type': dj_core.connection_settings_get_database_type,
+        'username': dj_core.connection_settings_get_username,
+        'password': dj_core.connection_settings_get_password,
+        'hostname': dj_core.connection_settings_get_hostname,
+        'port': dj_core.connection_settings_get_port,
+        'database_name': dj_core.connection_settings_get_database_name
+    }
 
-  def __init__(self):
-    self._config = C.connection_settings_new()
+    def __init__(self):
+        self._config = dj_core.connection_settings_new()
 
-  def __enter__(self):
-    return self
+    def __enter__(self):
+        return self
 
-  def __exit__(self):
-    C.connection_free(self._config)
+    def __exit__(self):
+        dj_core.connection_settings_free(self._config)
 
-  def update(self, setting, value):
-    if not setting.lower() in self.setters.keys():
-      print(f"ERROR: could not update value for {setting} because it does not exist")
-      return -1
-    if type(value) == str:
-      value = value.encode('utf-8')
-    self.setters[setting](self._config, value)
+    def __setitem__(self, setting, value):
+        print(f'Setting attribute {setting} to value {value}')
+        if setting.lower() in self.setters:
+            if type(value) == str:
+                value = value.encode("utf-8")
+            self.setters[setting](self._config, value)
+        else:
+            raise Exception(f"No setting found with key: {setting}")
 
-  def get(self, setting):
-    if not setting.lower() in self.getters.keys():
-      print(f"ERROR: could not update value for {setting} because it does not exist")
-      return -1
-    return self.getters[setting](self._config)
-
+    def __getitem__(self, setting):
+        if setting.lower() in self.getters:
+            return self.getters[setting](self._config)
+        else:
+            raise Exception(f"No setting found with key: {setting}")
 
 
 config = Config()
-config.update('hostname', 'ENV_HOSTNAME')
-config.update('username', 'ENV_USERNAME')
-config.update('password', 'ENV_PASSWORD')
-config.update('port', 3306)
-config.update('database_name', 'ENV_DATABASE_NAME')
+config["hostname"] = "ENV_HOSTNAME"
+config["username"] = "ENV_USERNAME"
+config["password"] = "ENV_PASSWORD"
+config["port"] = 3306
+config["database_name"] = "ENV_DATABASE_NAME"
