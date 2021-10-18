@@ -38,6 +38,7 @@ pub enum ErrorCode {
     NullNotAllowed,
     BufferNotEnough,
     InvalidNativeType,
+    InvalidCString
 }
 
 impl Display for ErrorCode {
