@@ -13,7 +13,7 @@ pub struct ConnectionSettings {
     pub hostname: String,
     pub port: u16,
     pub database_name: String,
-    pub use_tls: Option<bool>,
+    pub use_tls: bool, //Changed from Option<bool> since having a none in the uri would break it
 }
 
 impl ConnectionSettings {
@@ -25,23 +25,30 @@ impl ConnectionSettings {
             hostname: "localhost".to_string(),
             port: 3306,
             database_name: "".to_string(),
-            use_tls: None,
+            use_tls: false, 
         }
     }
     pub fn uri(&self) -> String {
         // Hardcode in the username, password, and databasename, ect whatever is needed since those are not defaults.
         let mut protocol = "mysql".to_string();
+        let mut tls_ssl = "tls".to_string();
+
         if self.database_type == DatabaseType::Postgres {
             protocol = "postgres".to_string();
+            tls_ssl = "ssl".to_string();
         }
+        //postgres://user:pass@host:port/database?ssl=true
+        //mysql://user:pass@host:port/database?tls=true
         return format!(
-            "{}://{}:{}@{}:{}/{}",
+            "{}://{}:{}@{}:{}/{}?{}={}",
             protocol,
             self.username,
             self.password,
             self.hostname,
             self.port.to_string(),
-            self.database_name
+            self.database_name,
+            tls_ssl,
+            self.use_tls
         );
     }
 }
