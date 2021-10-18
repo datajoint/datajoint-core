@@ -3,12 +3,6 @@ use datajoint_core::error::ErrorCode;
 use libc::c_char;
 use std::ffi::CStr;
 
-// #[no_mangle]
-// pub extern "C" fn test() -> ErrorCode {
-//     let x = ErrorCode::Success;
-//     return x;
-// }
-
 #[no_mangle]
 pub extern "C" fn connection_new(this: *mut ConnectionSettings) -> *mut Connection {
     if this.is_null() {

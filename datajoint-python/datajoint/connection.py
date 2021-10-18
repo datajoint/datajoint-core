@@ -36,12 +36,14 @@ class Connection:
         out = out[0]
         print(f'rows found: {out}')
 
-def conn(host=None, user=None, password=None, *, init_fun=None, reset=False, use_tls=None):
+def conn(host=None, user=None, password=None, database_name=None, *, init_fun=None, reset=False, use_tls=None):
     if host is not None:
         config.update("hostname", host)
     if user is not None:
         config.update("username", user)
     if password is not None:
         config.update("password", password)
+    if database_name is not None:
+        config.update("database_name", database_name")
     conn.Connection = Connection(config._config)
     return conn.Connection
