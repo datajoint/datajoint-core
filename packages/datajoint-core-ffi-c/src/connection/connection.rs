@@ -74,10 +74,7 @@ pub extern "C" fn connection_get_settings(this: *mut Connection) -> *mut Connect
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_executor(
-    this: *mut Connection,
-    out: *mut Executor,
-) -> i32 {
+pub unsafe extern "C" fn connection_executor(this: *mut Connection, out: *mut Executor) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
