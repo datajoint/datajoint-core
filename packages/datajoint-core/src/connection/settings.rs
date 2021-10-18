@@ -13,7 +13,7 @@ pub struct ConnectionSettings {
     pub hostname: String,
     pub port: u16,
     pub database_name: String,
-    pub use_tls: bool, //Changed from Option<bool> since having a none in the uri would break it
+    pub use_tls: Option<bool>,
 }
 
 impl ConnectionSettings {
@@ -25,30 +25,60 @@ impl ConnectionSettings {
             hostname: "localhost".to_string(),
             port: 3306,
             database_name: "".to_string(),
-            use_tls: false, 
+            use_tls: None, 
         }
     }
     pub fn uri(&self) -> String {
-        // Hardcode in the username, password, and databasename, ect whatever is needed since those are not defaults.
-        let mut protocol = "mysql".to_string();
-        let mut tls_ssl = "tls".to_string();
 
-        if self.database_type == DatabaseType::Postgres {
-            protocol = "postgres".to_string();
-            tls_ssl = "ssl".to_string();
+        //getting warnings about these variables never being read before being overwritten, not sure how to avoid it here
+        let mut protocol = String::new();
+        let mut tls_ssl = String::new();
+
+        match self.database_type {
+            DatabaseType::Postgres => {
+                protocol = "postgres".to_string();
+                tls_ssl = "ssl".to_string()
+            }
+            DatabaseType::MySql => {
+                protocol = "mysql".to_string();
+                tls_ssl = "tls".to_string()
+            }
         }
         //postgres://user:pass@host:port/database?ssl=true
         //mysql://user:pass@host:port/database?tls=true
-        return format!(
-            "{}://{}:{}@{}:{}/{}?{}={}",
-            protocol,
-            self.username,
-            self.password,
-            self.hostname,
-            self.port.to_string(),
-            self.database_name,
-            tls_ssl,
-            self.use_tls
-        );
+        match self.use_tls {
+            Some(true) => 
+                return format!(
+                    "{}://{}:{}@{}:{}/{}?{}=true",
+                    protocol,
+                    self.username,
+                    self.password,
+                    self.hostname,
+                    self.port.to_string(),
+                    self.database_name,
+                    tls_ssl,
+                ),
+            Some(false) => 
+                return format!(
+                    "{}://{}:{}@{}:{}/{}?{}=false",
+                    protocol,
+                    self.username,
+                    self.password,
+                    self.hostname,
+                    self.port.to_string(),
+                    self.database_name,
+                    tls_ssl,
+                ),
+            None => 
+                return format!(
+                    "{}://{}:{}@{}:{}/{}",
+                    protocol,
+                    self.username,
+                    self.password,
+                    self.hostname,
+                    self.port.to_string(),
+                    self.database_name,
+                ),
+        } 
     }
 }
