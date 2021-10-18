@@ -13,9 +13,13 @@ fn main() {
     let mut enum_config = cbindgen::EnumConfig::default();
     enum_config.prefix_with_name = true;
 
+    let mut export_config = cbindgen::ExportConfig::default();
+    export_config.include = vec![String::from("ErrorCode")];
+
     let mut config = cbindgen::Config::default();
     config.enumeration = enum_config;
     config.parse = parse_config;
+    config.export = export_config;
     config.no_includes = true;
     config.language = Language::C;
 

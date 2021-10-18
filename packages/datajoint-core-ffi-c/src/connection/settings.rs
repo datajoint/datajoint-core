@@ -7,6 +7,7 @@ use std::ptr;
 pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings {
     Box::into_raw(Box::new(ConnectionSettings::new()))
 }
+
 #[no_mangle]
 pub extern "C" fn connection_settings_free(this: *mut ConnectionSettings) {
     if this.is_null() {
@@ -92,7 +93,7 @@ pub unsafe extern "C" fn connection_settings_set_port(this: *mut ConnectionSetti
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_settings_set_databae_name(
+pub unsafe extern "C" fn connection_settings_set_database_name(
     this: *mut ConnectionSettings,
     database_name: *const c_char,
 ) {
