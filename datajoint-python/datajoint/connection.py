@@ -7,7 +7,7 @@ from .errors import datajoint_core_assert_success
 
 class Connection:
     def __init__(self, config):
-        self.native = dj_core.connection_new(config)
+        self.native = dj_core.connection_new(config.native)
         self.connect()
 
     def __enter__(self):
@@ -53,5 +53,5 @@ def conn(host=None, user=None, password=None, database_name=None, *, init_fun=No
         config["password"] = password
     if database_name is not None:
         config["database_name"] = database_name
-    conn.Connection = Connection(config.native)
+    conn.Connection = Connection(config)
     return conn.Connection
