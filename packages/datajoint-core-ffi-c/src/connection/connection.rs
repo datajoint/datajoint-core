@@ -1,148 +1,140 @@
 use datajoint_core::connection::{Connection, ConnectionSettings, Cursor, Executor};
 use datajoint_core::error::ErrorCode;
-use std::ffi::CStr;
 use libc::c_char;
+use std::ffi::CStr;
+
+// #[no_mangle]
+// pub extern "C" fn test() -> ErrorCode {
+//     let x = ErrorCode::Success;
+//     return x;
+// }
 
 #[no_mangle]
-pub extern "C" fn connection_new(ptr: *mut ConnectionSettings) -> *mut Connection {
-    if ptr.is_null() {
+pub extern "C" fn connection_new(this: *mut ConnectionSettings) -> *mut Connection {
+    if this.is_null() {
         return std::ptr::null_mut();
     }
-    let settings = unsafe {
-        Box::from_raw(ptr)
-    };
+    let settings = unsafe { Box::from_raw(this) };
 
     Box::into_raw(Box::new(Connection::new(*settings)))
 }
 
 #[no_mangle]
-pub extern "C" fn connection_free(ptr: *mut Connection) {
-    if ptr.is_null() {
+pub extern "C" fn connection_free(this: *mut Connection) {
+    if this.is_null() {
         return;
     }
     unsafe {
-        Box::from_raw(ptr);
+        Box::from_raw(this);
     }
 }
 
 #[no_mangle]
-pub extern "C" fn connection_connect(ptr: *mut Connection) -> i32 {
-    if ptr.is_null() {
-        return 0;
+pub extern "C" fn connection_connect(this: *mut Connection) -> i32 {
+    if this.is_null() {
+        return ErrorCode::NullNotAllowed as i32;
     }
-    let database = unsafe {
-        &mut *ptr
-    };
-    match database.connect() {
+    let connection = unsafe { &mut *this };
+    match connection.connect() {
         Err(error) => error.code() as i32,
         Ok(_) => ErrorCode::Success as i32,
     }
 }
 
 #[no_mangle]
-pub extern "C" fn connection_disconnect(ptr: *mut Connection) -> i32 {
-    if ptr.is_null() {
-        return 0;
+pub extern "C" fn connection_disconnect(this: *mut Connection) -> i32 {
+    if this.is_null() {
+        return ErrorCode::NullNotAllowed as i32;
     }
-    let database = unsafe {
-        &mut *ptr
-    };
-    match database.disconnect() {
+    let connection = unsafe { &mut *this };
+    match connection.disconnect() {
         Err(_) => 1, // TODO: return error.code when disconnect is fixed.
         Ok(_) => ErrorCode::Success as i32,
     }
 }
 
 #[no_mangle]
-pub extern "C" fn connection_reconnect(ptr: *mut Connection) -> i32 {
-    if ptr.is_null() {
+pub extern "C" fn connection_reconnect(this: *mut Connection) -> i32 {
+    if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
-    let database = unsafe {
-        &mut *ptr
-    };
-    match database.disconnect() {
+    let connection = unsafe { &mut *this };
+    match connection.disconnect() {
         Err(_) => return ErrorCode::NotConnected as i32,
-        Ok(_) => ()
+        Ok(_) => (),
     };
-    match database.connect() {
+    match connection.connect() {
         Err(error) => return error.code() as i32,
-        Ok(_) => ()
+        Ok(_) => (),
     };
     ErrorCode::Success as i32
 }
 
 #[no_mangle]
-pub extern "C" fn connection_get_settings(ptr: *mut Connection) -> *mut ConnectionSettings {
-    if ptr.is_null() {
+pub extern "C" fn connection_get_settings(this: *mut Connection) -> *mut ConnectionSettings {
+    if this.is_null() {
         return std::ptr::null_mut();
     }
-    let database = unsafe {
-        &mut *ptr
-    };
-    &database.settings as *const ConnectionSettings as *mut ConnectionSettings
+    let connection = unsafe { &mut *this };
+    &connection.settings as *const ConnectionSettings as *mut ConnectionSettings
 }
 
 #[no_mangle]
-pub extern "C" fn connection_executor(ptr: *mut Connection, out: *mut Executor) -> i32 {
-    if ptr.is_null() {
+pub unsafe extern "C" fn connection_executor(
+    this: *mut Connection,
+    out: *mut Executor,
+) -> i32 {
+    if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
-    let database = unsafe {
-        &mut *ptr
-    };
-
-
-    ErrorCode::Success as i32
-}
-
-#[no_mangle]
-pub extern "C" fn connection_execute_query(ptr: *mut Connection, query: *const c_char, out: usize) -> i32 {
-    if ptr.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
-    }
-    let database = unsafe {
-        &mut *ptr
-    };
-    let query_str = unsafe {
-        CStr::from_ptr(query).to_string_lossy().to_owned()
-    };
-
-    match database.try_execute_query(&query_str.to_string()) {
+    let connection = &mut *this;
+    match connection.try_executor() {
         Err(error) => error.code() as i32,
-        Ok(_) => ErrorCode::Success as i32
+        Ok(executor) => {
+            *out = executor;
+            ErrorCode::Success as i32
+        }
     }
-
 }
 
 #[no_mangle]
-pub extern "C" fn connection_fetch_query(ptr: *mut Connection, query: *const c_char, out_cursor: *mut Cursor) -> i32 {
-    if ptr.is_null() {
+pub unsafe extern "C" fn connection_execute_query(
+    this: *mut Connection,
+    query: *const c_char,
+    out: *mut u64,
+) -> i32 {
+    if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
-    let database = unsafe {
-        &mut *ptr
-    };
-    let query_str = unsafe {
-        CStr::from_ptr(query).to_string_lossy().to_owned()
-    };
+    let connection = { &mut *this };
+    let query_str = { CStr::from_ptr(query).to_string_lossy().to_owned() };
 
-
-
-    ErrorCode::Success as i32
+    match connection.try_execute_query(&query_str.to_string()) {
+        Err(error) => error.code() as i32,
+        Ok(value) => {
+            println!("Setting out to {}", value);
+            *out = value;
+            ErrorCode::Success as i32
+        }
+    }
 }
 
 #[no_mangle]
-pub extern "C" fn connection_raw_query(ptr: *const Connection, query: *const c_char) -> usize {
-    let database: &Connection = unsafe {
-        assert!(!ptr.is_null());
-        &*ptr
-    };
-    let query = unsafe {
-        assert!(!query.is_null());
-        CStr::from_ptr(query)
-    };
-    let query_str: &str = query.to_str().unwrap();
-    // database.raw_query(query_str).fetch_all().len()
-    1
+pub unsafe extern "C" fn connection_fetch_query(
+    this: *mut Connection,
+    query: *const c_char,
+    out_cursor: *mut Cursor,
+) -> i32 {
+    if this.is_null() {
+        return ErrorCode::NullNotAllowed as i32;
+    }
+    let connection = &mut *this;
+    let query_str = CStr::from_ptr(query).to_str().unwrap();
+    match connection.try_fetch_query(&query_str) {
+        Err(error) => error.code() as i32,
+        Ok(cursor) => {
+            *out_cursor = cursor;
+            ErrorCode::Success as i32
+        }
+    }
 }
