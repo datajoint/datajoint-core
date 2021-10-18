@@ -98,12 +98,13 @@ pub unsafe extern "C" fn connection_execute_query(
         return ErrorCode::NullNotAllowed as i32;
     }
     let connection = { &mut *this };
-    let query_str = { CStr::from_ptr(query).to_string_lossy().to_owned() };
-
-    match connection.try_execute_query(&query_str.to_string()) {
+    let query_str = match CStr::from_ptr(query).to_str() {
+        Err(_) => return ErrorCode::InvalidCString as i32,
+        Ok(value) => value
+    };
+    match connection.try_execute_query(query_str) {
         Err(error) => error.code() as i32,
         Ok(value) => {
-            println!("Setting out to {}", value);
             *out = value;
             ErrorCode::Success as i32
         }
@@ -120,8 +121,11 @@ pub unsafe extern "C" fn connection_fetch_query(
         return ErrorCode::NullNotAllowed as i32;
     }
     let connection = &mut *this;
-    let query_str = CStr::from_ptr(query).to_str().unwrap();
-    match connection.try_fetch_query(&query_str) {
+    let query_str = match CStr::from_ptr(query).to_str() {
+        Err(_) => return ErrorCode::InvalidCString as i32,
+        Ok(value) => value
+    };
+    match connection.try_fetch_query(query_str) {
         Err(error) => error.code() as i32,
         Ok(cursor) => {
             *out_cursor = cursor;
