@@ -1,12 +1,11 @@
 use datajoint_core::results::TableColumnRef;
 use datajoint_core::types::DataJointType;
-use libc::c_void;
+use libc::{c_char, c_void, size_t};
 use std::ffi::CString;
-use std::os::raw::c_char;
 
 #[no_mangle]
 pub unsafe extern "C" fn table_column_ref_new<'r>() -> *mut TableColumnRef<'r> {
-    libc::malloc(std::mem::size_of::<TableColumnRef>() as usize) as *mut TableColumnRef<'r>
+    libc::malloc(std::mem::size_of::<TableColumnRef>() as size_t) as *mut TableColumnRef<'r>
 }
 
 #[no_mangle]
