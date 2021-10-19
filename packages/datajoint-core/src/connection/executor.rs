@@ -1,9 +1,8 @@
-use crate::connection::{Cursor};
+use crate::connection::Cursor;
 use crate::error::{Error, SqlxError};
+use crate::placeholders::PlaceholderArgumentVector;
 use crate::results::TableRow;
 use sqlx::Executor as SqlxExecutor;
-use std::borrow::Borrow;
-use crate::placeholders::{PhArg, PlaceHolderArgumentVector};
 
 /// An object used to interact with a database by executing queries.
 ///
@@ -40,15 +39,19 @@ impl<'c> Executor<'c> {
         }
     }
 
-    /// executes the given query over the connection
-    pub fn ph_execute(&self, query: &str, args : PlaceHolderArgumentVector) -> u64 {
+    /// Executes the given query over the connection with placeholders.
+    pub fn ph_execute(&self, query: &str, args: PlaceholderArgumentVector) -> u64 {
         self.ph_try_execute(query, args).unwrap()
     }
 
     /// Executes the given query over the connection.
-    pub fn ph_try_execute(&self, query: &str, args : PlaceHolderArgumentVector) -> Result<u64, Error> {
+    pub fn ph_try_execute(
+        &self,
+        query: &str,
+        args: PlaceholderArgumentVector,
+    ) -> Result<u64, Error> {
         let qu = args.prepare(query);
-        match self.runtime.block_on(qu.execute(self.executor)  ) {
+        match self.runtime.block_on(qu.execute(self.executor)) {
             Err(err) => Err(SqlxError::new(err)),
             Ok(result) => Ok(result.rows_affected()),
         }
@@ -89,7 +92,7 @@ impl<'c> Executor<'c> {
         Cursor::new(self.runtime, sqlx::query(query).fetch(self.executor))
     }
 
-    pub fn ph_cursor(&self, query: &'c str, args: PlaceHolderArgumentVector) -> Cursor<'c> {
+    pub fn ph_cursor(&self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor<'c> {
         let qu = args.prepare(query);
         Cursor::new(self.runtime, qu.fetch(self.executor))
     }
