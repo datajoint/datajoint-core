@@ -1,29 +1,15 @@
 use crate::types::DecodeResult;
 
-pub enum PhArg {
-    String(String),
-    Int(i32)
+pub struct PlaceholderArgument {
+    arg: DecodeResult,
 }
 
-
-pub struct PlaceHolderArgument {
-
-    arg : DecodeResult
-
-}
-
-
-impl PlaceHolderArgument {
-
-    pub fn new(arg : DecodeResult) -> Self {
-        PlaceHolderArgument {
-            arg
-        }
+impl PlaceholderArgument {
+    pub fn new(arg: DecodeResult) -> Self {
+        PlaceholderArgument { arg }
     }
 
     pub fn data(self) -> DecodeResult {
         self.arg
     }
-
 }
-

@@ -2,12 +2,11 @@
 extern crate num_derive;
 
 pub mod connection;
-pub mod results;
 pub mod error;
-pub mod types;
 pub mod placeholders;
+pub mod results;
+pub mod types;
 pub mod util;
-
 
 //////////////////////////////////////////////////////////////////////////////////
 //  Tests
@@ -15,13 +14,11 @@ pub mod util;
 #[cfg(test)]
 mod tests {
     use crate::connection::{Connection, ConnectionSettings, DatabaseType};
-    use crate::util::print_row_vec;
-    use crate::placeholders::{PlaceHolderArgumentVector, PhArg, PlaceHolderArgument};
+    use crate::placeholders::{PlaceholderArgument, PlaceholderArgumentVector};
     use crate::types::DecodeResult;
 
     #[test]
     fn demo_postgres() {
-
         let mut settings = ConnectionSettings::new();
         settings.password = "password".to_string();
         settings.database_name = "datajoint".to_string();
@@ -33,29 +30,23 @@ mod tests {
 
         let mut con = Connection::new(settings);
         con.connect().unwrap();
-        let id = 1005;
-        let mut args = PlaceHolderArgumentVector::new(vec![]);
-        args.add(PlaceHolderArgument::new(DecodeResult::String("Temoc".to_string())));
-        args.add(PlaceHolderArgument::new(DecodeResult::String("enarc".to_string())));
-        args.add(PlaceHolderArgument::new(DecodeResult::Int32(id)));
+        let id = 1010;
+        let mut args = PlaceholderArgumentVector::new(vec![]);
+        args.add(PlaceholderArgument::new(DecodeResult::String(
+            "Temoc".to_string(),
+        )));
+        args.add(PlaceholderArgument::new(DecodeResult::String(
+            "enarc".to_string(),
+        )));
+        args.add(PlaceholderArgument::new(DecodeResult::Int32(id)));
         con.ph_execute_query("insert into students values ($1,$2,$3)", args);
-        let mut args = PlaceHolderArgumentVector::new(vec![]);
-        args.add(PlaceHolderArgument::new(DecodeResult::Int32(id)));
-        let mut  try_c = con.ph_fetch_query("select * from students where id = $1;", args);
-        let rows = try_c.rest();
-        print_row_vec(rows);
+        let mut args = PlaceholderArgumentVector::new(vec![]);
+        args.add(PlaceholderArgument::new(DecodeResult::Int32(id)));
+        let mut try_c = con.ph_fetch_query("select * from students where id = $1;", args);
+        let _rows = try_c.rest();
     }
 
     #[test]
     fn demo_mysql() {
-        // let settings = "mysql://username:password@tutorial-db.datajoint.io:3306/username_tutorial";
-        // let mut con = Connection::new(settings.to_string());
-        // con.connect().unwrap();
-        //
-        // let mut curse = con.raw_query("SELECT * FROM `edwardg_tutorial`.`mouse`");
-        // let rows = curse.fetch_all();
-        // let r= rows.len();
-        // print!("{}",r);
-        // print_row_vec(rows);
     }
 }

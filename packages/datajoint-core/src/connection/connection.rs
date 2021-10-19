@@ -1,6 +1,6 @@
 use crate::connection::{ConnectionSettings, Cursor, Executor};
 use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
-use crate::placeholders::PlaceHolderArgumentVector;
+use crate::placeholders::PlaceholderArgumentVector;
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
@@ -24,7 +24,6 @@ impl Connection {
                 .ok()
                 .unwrap(),
         }
-
     }
 
     /// Starts the connection to the SQL database according to settings the object was
@@ -84,8 +83,7 @@ impl Connection {
         self.try_execute_query(query).unwrap()
     }
 
-    pub fn ph_execute_query(&self, query: &str, args : PlaceHolderArgumentVector) -> u64 {
-
+    pub fn ph_execute_query(&self, query: &str, args: PlaceholderArgumentVector) -> u64 {
         self.ph_try_execute_query(query, args).unwrap()
     }
 
@@ -93,7 +91,12 @@ impl Connection {
     pub fn try_execute_query(&self, query: &str) -> Result<u64, Error> {
         Ok(self.try_executor()?.try_execute(query)?)
     }
-    pub fn ph_try_execute_query(&self, query: &str, args : PlaceHolderArgumentVector) -> Result<u64, Error> {
+    /// Tries to exevute the query with placeholder arguments
+    pub fn ph_try_execute_query(
+        &self,
+        query: &str,
+        args: PlaceholderArgumentVector,
+    ) -> Result<u64, Error> {
         Ok(self.try_executor()?.ph_try_execute(query, args)?)
     }
 
@@ -104,7 +107,8 @@ impl Connection {
         self.try_fetch_query(query).unwrap()
     }
 
-    pub fn ph_fetch_query<'c>(&'c self, query: &'c str , args : PlaceHolderArgumentVector) -> Cursor {
+    ///Fetches the results of the query and uses placeholders
+    pub fn ph_fetch_query<'c>(&'c self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor {
         self.ph_try_fetch_query(query, args).unwrap()
     }
 
@@ -113,7 +117,11 @@ impl Connection {
         Ok(self.try_executor()?.cursor(query))
     }
 
-    pub fn ph_try_fetch_query<'c>(&'c self, query: &'c str, args : PlaceHolderArgumentVector) -> Result<Cursor, Error> {
-        Ok(self.try_executor()?.ph_cursor(query,args))
+    pub fn ph_try_fetch_query<'c>(
+        &'c self,
+        query: &'c str,
+        args: PlaceholderArgumentVector,
+    ) -> Result<Cursor, Error> {
+        Ok(self.try_executor()?.ph_cursor(query, args))
     }
 }
