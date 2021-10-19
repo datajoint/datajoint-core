@@ -1,27 +1,24 @@
-use datajoint_core::placeholders::{PlaceHolderArgument, PlaceHolderArgumentVector};
-use std::borrow::Borrow;
+use datajoint_core::placeholders::{PlaceholderArgument, PlaceholderArgumentVector};
 use std::os::raw::c_void;
 use datajoint_core::types::{DataJointType, DecodeResult};
-use std::ptr::null;
-use datajoint_core::error::{Error, ErrorCode};
 use std::ffi::CStr;
 use core::mem;
 
 // Creates a new placeholder argument vector to send to a query method.
 #[no_mangle]
-pub extern "C" fn placeholder_argument_vector_new() -> *mut PlaceHolderArgumentVector {
-    Box::into_raw(Box::new(PlaceHolderArgumentVector::new(vec!())))
+pub extern "C" fn placeholder_argument_vector_new() -> *mut PlaceholderArgumentVector {
+    Box::into_raw(Box::new(PlaceholderArgumentVector::new(vec!())))
     
 }
 
 // Frees an entire placeholder argument vector, including all argument inside.
 #[no_mangle]
-pub extern "C" fn placeholder_argument_vector_free(ptr: *mut PlaceHolderArgumentVector) {
+pub extern "C" fn placeholder_argument_vector_free(ptr: *mut PlaceholderArgumentVector) {
     if ptr.is_null(){
         return;
     }
 
-    let ph_vec: Box<PlaceHolderArgumentVector> = unsafe {
+    let ph_vec: Box<PlaceholderArgumentVector> = unsafe {
         Box::from_raw(ptr)
     };
 
@@ -39,111 +36,111 @@ pub extern "C" fn placeholder_argument_vector_free(ptr: *mut PlaceHolderArgument
 // Returns the created argument for further modification if desired.
 #[no_mangle]
 pub unsafe extern "C" fn placeholder_argument_vector_add(
-    this: *mut PlaceHolderArgumentVector,
+    this: *mut PlaceholderArgumentVector,
     data: *mut c_void,
     data_size: usize,
     data_type: DataJointType,
-) -> *mut PlaceHolderArgument{
+) -> *mut PlaceholderArgument{
     let this = &mut*this;
 
     match data_type {
 
         //TODO Add error code to deal with unsupported database types passed in.
         DataJointType::Unknown => {  
-            return Box::into_raw(Box::new(PlaceHolderArgument::new(DecodeResult::String("type not supported".to_string()))))
+            return Box::into_raw(Box::new(PlaceholderArgument::new(DecodeResult::String("type not supported".to_string()))))
         }
         DataJointType::Decimal |DataJointType::FilepathStore | DataJointType::Attach => {
-            return Box::into_raw(Box::new(PlaceHolderArgument::new(DecodeResult::String("type not supported".to_string()))))
+            return Box::into_raw(Box::new(PlaceholderArgument::new(DecodeResult::String("type not supported".to_string()))))
         }
         DataJointType::TinyInt => {
-            let arg = PlaceHolderArgument::new(DecodeResult::Int8( data as i8));
+            let arg = PlaceholderArgument::new(DecodeResult::Int8( data as i8));
             this.add_arg(arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         },
         DataJointType::TinyIntUnsigned => {
-            let arg = PlaceHolderArgument::new(DecodeResult::UInt8( data as u8));
+            let arg = PlaceholderArgument::new(DecodeResult::UInt8( data as u8));
             this.add_arg(arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         },
         DataJointType::SmallInt => {
             let arg = Box::new(
-                PlaceHolderArgument::new(DecodeResult::Int16( data as i16)));
+                PlaceholderArgument::new(DecodeResult::Int16( data as i16)));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         },
         DataJointType::SmallIntUnsigned => {
             let arg = Box::new(
-                PlaceHolderArgument::new(DecodeResult::Int16( data as i16)));
+                PlaceholderArgument::new(DecodeResult::Int16( data as i16)));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];;
         },
         DataJointType::MediumInt | DataJointType::Int => {
             let data = data as *mut i32;
             let arg = Box::new(
-                PlaceHolderArgument::new(DecodeResult::Int32(*data)));
+                PlaceholderArgument::new(DecodeResult::Int32(*data)));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         },
         DataJointType::MediumIntUnsigned | DataJointType::IntUnsigned
         => {
-            let arg = Box::new(PlaceHolderArgument::new(DecodeResult::UInt16( data as u16)));
+            let arg = Box::new(PlaceholderArgument::new(DecodeResult::UInt16( data as u16)));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         }
         DataJointType::Enum | DataJointType::CharN | DataJointType::VarCharN
         => {
             let str = CStr::from_ptr(data as *const _).to_string_lossy();
-            let arg = Box::new(PlaceHolderArgument::new(DecodeResult::String(str.to_string())));
+            let arg = Box::new(PlaceholderArgument::new(DecodeResult::String(str.to_string())));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         }
         DataJointType::Date => {
             let str = CStr::from_ptr(data as *const _).to_string_lossy();
-            let arg = Box::new(PlaceHolderArgument::new(DecodeResult::String(str.to_string())));
+            let arg = Box::new(PlaceholderArgument::new(DecodeResult::String(str.to_string())));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         }
         DataJointType::Time => {
             let str = CStr::from_ptr(data as *const _).to_string_lossy();
-            let arg = Box::new(PlaceHolderArgument::new(DecodeResult::String(str.to_string())));
+            let arg = Box::new(PlaceholderArgument::new(DecodeResult::String(str.to_string())));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         }
         DataJointType::DateTime => {
             let str = CStr::from_ptr(data as *const _).to_string_lossy();
-            let arg = Box::new(PlaceHolderArgument::new(DecodeResult::String(str.to_string())));
+            let arg = Box::new(PlaceholderArgument::new(DecodeResult::String(str.to_string())));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         }
         DataJointType::Timestamp => {
             let str = CStr::from_ptr(data as *const _).to_string_lossy();
-            let arg = Box::new(PlaceHolderArgument::new(DecodeResult::String(str.to_string())));
+            let arg = Box::new(PlaceholderArgument::new(DecodeResult::String(str.to_string())));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         }
         DataJointType::Float => {
             let arg = Box::new(
-                PlaceHolderArgument::new(DecodeResult::Float32( *data.cast::<f32>())));
+                PlaceholderArgument::new(DecodeResult::Float32( *data.cast::<f32>())));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         }
         DataJointType::Double => {
             let arg = Box::new(
-                PlaceHolderArgument::new(DecodeResult::Float64( *data.cast::<f64>())));
+                PlaceholderArgument::new(DecodeResult::Float64( *data.cast::<f64>())));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         }
         DataJointType::TinyBlob | DataJointType::MediumBlob |
@@ -160,9 +157,9 @@ pub unsafe extern "C" fn placeholder_argument_vector_add(
             }
 
             let data = DecodeResult::Bytes(v);
-            let arg = Box::new(PlaceHolderArgument::new(data));
+            let arg = Box::new(PlaceholderArgument::new(data));
             this.add_arg(*arg);
-            let last = this.vec.len();
+            let last = this.vec.len() -1;
             return &mut this.vec[last];
         }
 
@@ -172,7 +169,7 @@ pub unsafe extern "C" fn placeholder_argument_vector_add(
 
 #[no_mangle]
 pub unsafe extern "C" fn placeholder_argument_vector_print_args(
-    this: *mut PlaceHolderArgumentVector,
+    this: *mut PlaceholderArgumentVector,
 ){
     let this = &* this;
     for arg in &this.vec {

@@ -23,7 +23,7 @@ impl PlaceholderArgumentVector {
                 DecodeResult::UInt16(a) => qu = qu.bind(a as i32),
                 DecodeResult::Int32(a) => qu = qu.bind(a),
 
-                // ToDo fix potential overflow problem eventually 
+                // ToDo fix potential overflow problem eventually
                 DecodeResult::UInt32(a) => qu = qu.bind(a as i32),
                 DecodeResult::String(a) => qu = qu.bind(a),
                 DecodeResult::Float32(a) => qu = qu.bind(a),
@@ -34,7 +34,7 @@ impl PlaceholderArgumentVector {
         qu
     }
 
-    pub fn add(&mut self, arg: PlaceholderArgument) {
+    pub fn add_arg(&mut self, arg: PlaceholderArgument) {
         self.vec.push(arg)
     }
 

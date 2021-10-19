@@ -1,7 +1,7 @@
 use crate::types::DecodeResult;
 
 pub struct PlaceholderArgument {
-    arg: DecodeResult,
+    pub arg: DecodeResult,
 }
 
 impl PlaceholderArgument {
