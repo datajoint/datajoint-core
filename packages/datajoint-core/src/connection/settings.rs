@@ -29,19 +29,34 @@ impl ConnectionSettings {
         }
     }
     pub fn uri(&self) -> String {
-        // Hardcode in the username, password, and databasename, ect whatever is needed since those are not defaults.
-        let mut protocol = "mysql".to_string();
-        if self.database_type == DatabaseType::Postgres {
-            protocol = "postgres".to_string();
+        let mut protocol = String::new();
+        let mut tls_ssl = String::new();
+
+        match self.database_type {
+            DatabaseType::Postgres => {
+                protocol = "postgres".to_string();
+                tls_ssl = "ssl".to_string()
+            }
+            DatabaseType::MySql => {
+                protocol = "mysql".to_string();
+                tls_ssl = "tls".to_string()
+            }
         }
-        return format!(
+        //postgres://user:pass@host:port/database?ssl=true
+        //mysql://user:pass@host:port/database?tls=true
+        let uri = format!(
             "{}://{}:{}@{}:{}/{}",
             protocol,
             self.username,
             self.password,
             self.hostname,
             self.port.to_string(),
-            self.database_name
+            self.database_name,
         );
+        match self.use_tls {
+            Some(true) => format!("{}?{}=true", uri, tls_ssl,),
+            Some(false) => format!("{}?{}=false", uri, tls_ssl,),
+            None => uri,
+        }
     }
 }
