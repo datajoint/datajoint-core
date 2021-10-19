@@ -3,7 +3,7 @@ use std::ptr;
 
 /// Creates a vector of TableRows
 pub struct TableRowVector {
-    rows: Vec<TableRow>,
+    pub rows: Vec<TableRow>,
 }
 #[allow(dead_code)]
 impl TableRowVector {
