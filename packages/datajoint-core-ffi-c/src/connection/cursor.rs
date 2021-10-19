@@ -42,7 +42,7 @@ pub unsafe extern "C" fn cursor_rest(this: *mut Cursor, out: *mut TableRowVector
     match cursor.try_rest() {
         Err(error) => error.code() as i32,
         Ok(value) => {
-            *out = TableRowVector { rows: value };
+            *out = TableRowVector::new(value);
             ErrorCode::Success as i32
         }
     }

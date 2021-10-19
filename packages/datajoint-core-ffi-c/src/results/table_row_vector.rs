@@ -3,8 +3,9 @@ use std::ptr;
 
 /// Creates a vector of TableRows
 pub struct TableRowVector {
-    pub rows: Vec<TableRow>,
+    rows: Vec<TableRow>,
 }
+
 #[allow(dead_code)]
 impl TableRowVector {
     /// Creates a new table row vector
