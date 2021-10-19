@@ -25,11 +25,10 @@ impl ConnectionSettings {
             hostname: "localhost".to_string(),
             port: 3306,
             database_name: "".to_string(),
-            use_tls: None, 
+            use_tls: None,
         }
     }
     pub fn uri(&self) -> String {
-
         //getting warnings about these variables never being read before being overwritten, not sure how to avoid it here
         let mut protocol = String::new();
         let mut tls_ssl = String::new();
@@ -46,39 +45,19 @@ impl ConnectionSettings {
         }
         //postgres://user:pass@host:port/database?ssl=true
         //mysql://user:pass@host:port/database?tls=true
+        let uri = format!(
+            "{}://{}:{}@{}:{}/{}",
+            protocol,
+            self.username,
+            self.password,
+            self.hostname,
+            self.port.to_string(),
+            self.database_name,
+        );
         match self.use_tls {
-            Some(true) => 
-                return format!(
-                    "{}://{}:{}@{}:{}/{}?{}=true",
-                    protocol,
-                    self.username,
-                    self.password,
-                    self.hostname,
-                    self.port.to_string(),
-                    self.database_name,
-                    tls_ssl,
-                ),
-            Some(false) => 
-                return format!(
-                    "{}://{}:{}@{}:{}/{}?{}=false",
-                    protocol,
-                    self.username,
-                    self.password,
-                    self.hostname,
-                    self.port.to_string(),
-                    self.database_name,
-                    tls_ssl,
-                ),
-            None => 
-                return format!(
-                    "{}://{}:{}@{}:{}/{}",
-                    protocol,
-                    self.username,
-                    self.password,
-                    self.hostname,
-                    self.port.to_string(),
-                    self.database_name,
-                ),
-        } 
+            Some(true) => return format!("{}?{}=true", uri, tls_ssl,),
+            Some(false) => return format!("{}?{}=false", uri, tls_ssl,),
+            None => return uri,
+        }
     }
 }

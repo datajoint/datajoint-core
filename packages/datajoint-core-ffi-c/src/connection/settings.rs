@@ -108,6 +108,20 @@ pub unsafe extern "C" fn connection_settings_set_databae_name(
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn connection_settings_set_use_tls(
+    this: *mut ConnectionSettings,
+    tls_ssl: bool,
+) {
+    let connection: &mut ConnectionSettings = {
+        if this.is_null() {
+            return;
+        }
+        &mut *this
+    };
+    connection.use_tls = Some(tls_ssl);
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_database_type(
     this: *mut ConnectionSettings,
 ) -> DatabaseType {
@@ -203,5 +217,30 @@ pub unsafe extern "C" fn connection_settings_get_database_name(
     match CString::new(str_bytes) {
         Err(_) => std::ptr::null(),
         Ok(str_bytes) => str_bytes.into_raw(),
+    }
+}
+
+/*
+Issues for this method
+-Option<bool> is not FFI safe. Also forces us to return Some(false) for None
+-Bool limits us on what can be returned (only true or false)
+    -Can't return anything special to notify if ConnectionSettings is null
+-Jonathan does not want to return a string
+*/
+#[no_mangle]
+pub unsafe extern "C" fn connection_settings_get_use_tls(
+    this: *const ConnectionSettings,
+) -> Option<bool> {
+    let connection: &ConnectionSettings = {
+        if this.is_null() {
+            return None;
+        }
+        &*this
+    };
+
+    match connection.use_tls {
+        Some(true) => return connection.use_tls,
+        Some(false) => return connection.use_tls,
+        None => return Some(false),
     }
 }
