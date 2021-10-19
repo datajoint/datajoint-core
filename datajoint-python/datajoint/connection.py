@@ -1,24 +1,57 @@
+from .datajoint_core_lib import dj_core
 from ._datajoint_core import ffi
-from .cffi_config import library_file
 
-C = ffi.dlopen(library_file)
+from .settings import config
+from .errors import datajoint_core_assert_success
+
+
 class Connection:
-    def __init__(self, host, user, password, reset, use_tls):
-        self._conn = C.connection_new(host.encode('utf-8'), user.encode('utf-8'), password.encode('utf-8'), reset, use_tls)
+    def __init__(self, config):
+        self.native = dj_core.connection_new(config.native)
         self.connect()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        C.connection_free(self._conn)
+        dj_core.connection_free(self.native)
 
     def connect(self):
-        C.connection_connect(self._conn)
+        print("Attempting to make connection")
+        err = dj_core.connection_connect(self.native)
+        datajoint_core_assert_success(err)
 
-    def raw_query(self, query):
-        return C.connection_raw_query(self._conn, query.encode('utf-8'))
+    def disconnect(self):
+        err = dj_core.connection_disconnect(self.native)
+        datajoint_core_assert_success(err)
 
-def conn(host=None, user=None, password=None, *, init_fun=None, reset=False, use_tls=None):
-    conn.Connection = Connection(host, user, password, reset, use_tls)
+    def reconnect(self):
+        err = dj_core.connection_reconnect(self.native)
+        datajoint_core_assert_success(err)
+
+    def execute_query(self, query):
+        out = ffi.new("uint64_t *")
+        err = dj_core.connection_execute_query(
+            self.native, query.encode('utf-8'), out)
+        datajoint_core_assert_success(err)
+        return out[0]
+
+    def fetch_query(self, query):
+        pass
+        # out = Cursor()
+        # err = dj_core.connection_fetch_query(self.native, query.encode('utf-8'), out)
+        # datajoint_core_assert_success(err)
+        # return out
+
+
+def conn(host=None, user=None, password=None, database_name=None, *, init_fun=None, reset=False, use_tls=None):
+    if host is not None:
+        config["hostname"] = host
+    if user is not None:
+        config["username"] = user
+    if password is not None:
+        config["password"] = password
+    if database_name is not None:
+        config["database_name"] = database_name
+    conn.Connection = Connection(config)
     return conn.Connection

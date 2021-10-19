@@ -5,6 +5,7 @@ use std::ptr;
 pub struct TableRowVector {
     rows: Vec<TableRow>,
 }
+
 #[allow(dead_code)]
 impl TableRowVector {
     /// Creates a new table row vector
