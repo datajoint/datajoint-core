@@ -12,9 +12,7 @@ pub unsafe extern "C" fn table_row_new() -> *mut TableRow {
 #[no_mangle]
 pub extern "C" fn table_row_free(this: *mut TableRow) {
     if this.is_null() {
-        return;
-    }
-    unsafe {
+        drop(*this);
         libc::free(this as *mut libc::c_void);
     }
 }

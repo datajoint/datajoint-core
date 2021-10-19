@@ -11,6 +11,7 @@ pub unsafe extern "C" fn table_column_ref_new<'r>() -> *mut TableColumnRef<'r> {
 #[no_mangle]
 pub unsafe extern "C" fn table_column_ref_free<'r>(this: *mut TableColumnRef<'r>) {
     if !this.is_null() {
+        drop(*this);
         libc::free(this as *mut c_void);
     }
 }

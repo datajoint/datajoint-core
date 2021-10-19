@@ -9,11 +9,9 @@ pub unsafe extern "C" fn cursor_new<'c>() -> *mut Cursor<'c> {
 }
 
 #[no_mangle]
-pub extern "C" fn cursor_free(this: *mut Cursor) {
-    if this.is_null() {
-        return;
-    }
-    unsafe {
+pub unsafe extern "C" fn cursor_free(this: *mut Cursor) {
+    if !this.is_null() {
+        drop(*this);
         free(this as *mut c_void);
     }
 }
@@ -27,7 +25,10 @@ pub unsafe extern "C" fn cursor_next(this: *mut Cursor, out: *mut TableRow) -> i
     match cursor.try_next() {
         Err(error) => error.code() as i32,
         Ok(value) => {
-            *out = value;
+            if !out.is_null() {
+                drop(*out);
+            }
+            std::ptr::write(out, value);
             ErrorCode::Success as i32
         }
     }
@@ -42,7 +43,10 @@ pub unsafe extern "C" fn cursor_rest(this: *mut Cursor, out: *mut TableRowVector
     match cursor.try_rest() {
         Err(error) => error.code() as i32,
         Ok(value) => {
-            *out = TableRowVector::new(value);
+            if !out.is_null() {
+                drop(*out);
+            }
+            std::ptr::write(out, TableRowVector::new(value));
             ErrorCode::Success as i32
         }
     }

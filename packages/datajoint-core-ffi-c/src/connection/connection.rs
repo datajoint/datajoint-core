@@ -82,7 +82,10 @@ pub unsafe extern "C" fn connection_executor(this: *mut Connection, out: *mut Ex
     match connection.try_executor() {
         Err(error) => error.code() as i32,
         Ok(executor) => {
-            *out = executor;
+            if !out.is_null() {
+                drop(*out);
+            }
+            std::ptr::write(out, executor);
             ErrorCode::Success as i32
         }
     }
@@ -100,7 +103,7 @@ pub unsafe extern "C" fn connection_execute_query(
     let connection = { &mut *this };
     let query_str = match CStr::from_ptr(query).to_str() {
         Err(_) => return ErrorCode::InvalidCString as i32,
-        Ok(value) => value
+        Ok(value) => value,
     };
     match connection.try_execute_query(query_str) {
         Err(error) => error.code() as i32,
@@ -115,7 +118,7 @@ pub unsafe extern "C" fn connection_execute_query(
 pub unsafe extern "C" fn connection_fetch_query(
     this: *mut Connection,
     query: *const c_char,
-    out_cursor: *mut Cursor,
+    out: *mut Cursor,
 ) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
@@ -123,12 +126,15 @@ pub unsafe extern "C" fn connection_fetch_query(
     let connection = &mut *this;
     let query_str = match CStr::from_ptr(query).to_str() {
         Err(_) => return ErrorCode::InvalidCString as i32,
-        Ok(value) => value
+        Ok(value) => value,
     };
     match connection.try_fetch_query(query_str) {
         Err(error) => error.code() as i32,
         Ok(cursor) => {
-            *out_cursor = cursor;
+            if !out.is_null() {
+                drop(*out);
+            }
+            std::ptr::write(out, cursor);
             ErrorCode::Success as i32
         }
     }

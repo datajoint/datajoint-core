@@ -46,36 +46,34 @@ pub unsafe extern "C" fn table_row_vector_new() -> *mut TableRowVector {
 }
 
 #[no_mangle]
-pub extern "C" fn table_row_vector_free(ptr: *mut TableRowVector) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
+pub unsafe extern "C" fn table_row_vector_free(this: *mut TableRowVector) {
+    if this.is_null() {
+        drop(*this);
         libc::free(ptr as *mut libc::c_void);
     }
 }
 
 #[no_mangle]
-pub extern "C" fn table_row_vector_size(ptr: *const TableRowVector) -> usize {
+pub extern "C" fn table_row_vector_size(this: *const TableRowVector) -> usize {
     let table_rows: &TableRowVector = unsafe {
-        if ptr.is_null() {
+        if this.is_null() {
             return 0;
         }
-        &*ptr
+        &*this
     };
     table_rows.row_count()
 }
 
 #[no_mangle]
 pub extern "C" fn table_row_vector_get(
-    ptr: *const TableRowVector,
+    this: *const TableRowVector,
     index: usize,
 ) -> *const TableRow {
     let table_rows: &TableRowVector = unsafe {
-        if ptr.is_null() {
+        if this.is_null() {
             return ptr::null();
         }
-        &*ptr
+        &*this
     };
     table_rows.get(index)
 }
