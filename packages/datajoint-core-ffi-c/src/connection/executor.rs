@@ -74,7 +74,7 @@ pub unsafe extern "C" fn executor_fetch_all(
     match executor.try_fetch_all(&query_str.to_string()) {
         Err(error) => error.code() as i32,
         Ok(rows) => {
-            *out = TableRowVector { rows };
+            *out = TableRowVector::new(rows);
             ErrorCode::Success as i32
         }
     }
