@@ -1,4 +1,4 @@
-use crate::util::boolenum::OptionalBool;
+use crate::util::OptionalBool;
 use datajoint_core::connection::{ConnectionSettings, DatabaseType};
 use libc::c_char;
 use std::ffi::{CStr, CString};
@@ -204,14 +204,13 @@ pub unsafe extern "C" fn connection_settings_get_use_tls(
     this: *const ConnectionSettings,
 ) -> OptionalBool {
     if this.is_null() {
-        // Problem is we won't be able to tell if this is null or is use_tls is actually None with this return
         return OptionalBool::None;
     }
     let connection: &ConnectionSettings = { &*this };
 
     match connection.use_tls {
-        Some(true) => return OptionalBool::True,
-        Some(false) => return OptionalBool::False,
-        None => return OptionalBool::None,
+        Some(true) => OptionalBool::True,
+        Some(false) => OptionalBool::False,
+        None => OptionalBool::None,
     }
 }

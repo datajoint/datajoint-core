@@ -29,7 +29,6 @@ impl ConnectionSettings {
         }
     }
     pub fn uri(&self) -> String {
-        //getting warnings about these variables never being read before being overwritten, not sure how to avoid it here
         let mut protocol = String::new();
         let mut tls_ssl = String::new();
 
@@ -55,9 +54,9 @@ impl ConnectionSettings {
             self.database_name,
         );
         match self.use_tls {
-            Some(true) => return format!("{}?{}=true", uri, tls_ssl,),
-            Some(false) => return format!("{}?{}=false", uri, tls_ssl,),
-            None => return uri,
+            Some(true) => format!("{}?{}=true", uri, tls_ssl,),
+            Some(false) => format!("{}?{}=false", uri, tls_ssl,),
+            None => uri,
         }
     }
 }
