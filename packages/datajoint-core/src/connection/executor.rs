@@ -40,12 +40,12 @@ impl<'c> Executor<'c> {
     }
 
     /// Executes the given query over the connection with placeholders.
-    pub fn ph_execute(&self, query: &str, args: PlaceholderArgumentVector) -> u64 {
-        self.ph_try_execute(query, args).unwrap()
+    pub fn execute_ph(&self, query: &str, args: PlaceholderArgumentVector) -> u64 {
+        self.try_execute_ph(query, args).unwrap()
     }
 
     /// Executes the given query over the connection.
-    pub fn ph_try_execute(
+    pub fn try_execute_ph(
         &self,
         query: &str,
         args: PlaceholderArgumentVector,
@@ -92,7 +92,7 @@ impl<'c> Executor<'c> {
         Cursor::new(self.runtime, sqlx::query(query).fetch(self.executor))
     }
 
-    pub fn ph_cursor(&self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor<'c> {
+    pub fn cursor_ph(&self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor<'c> {
         let qu = args.prepare(query);
         Cursor::new(self.runtime, qu.fetch(self.executor))
     }

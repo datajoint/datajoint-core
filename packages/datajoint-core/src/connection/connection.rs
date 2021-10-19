@@ -107,8 +107,8 @@ impl Connection {
         self.try_execute_query(query).unwrap()
     }
 
-    pub fn ph_execute_query(&self, query: &str, args: PlaceholderArgumentVector) -> u64 {
-        self.ph_try_execute_query(query, args).unwrap()
+    pub fn execute_query_ph(&self, query: &str, args: PlaceholderArgumentVector) -> u64 {
+        self.try_execute_query_ph(query, args).unwrap()
     }
 
     /// Executes the given non-returning query, returning the number of rows affected.
@@ -116,12 +116,12 @@ impl Connection {
         Ok(self.try_executor()?.try_execute(query)?)
     }
     /// Tries to exevute the query with placeholder arguments
-    pub fn ph_try_execute_query(
+    pub fn try_execute_query_ph(
         &self,
         query: &str,
         args: PlaceholderArgumentVector,
     ) -> Result<u64, Error> {
-        Ok(self.try_executor()?.ph_try_execute(query, args)?)
+        Ok(self.try_executor()?.try_execute_ph(query, args)?)
     }
 
     /// Creates a cursor for iterating over the results of the given returning query.
@@ -132,8 +132,8 @@ impl Connection {
     }
 
     ///Fetches the results of the query and uses placeholders
-    pub fn ph_fetch_query<'c>(&'c self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor {
-        self.ph_try_fetch_query(query, args).unwrap()
+    pub fn fetch_query_ph<'c>(&'c self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor {
+        self.try_fetch_query_ph(query, args).unwrap()
     }
 
     /// Creates a cursor for iterating over the results of the given returning query.
@@ -141,11 +141,11 @@ impl Connection {
         Ok(self.try_executor()?.cursor(query))
     }
 
-    pub fn ph_try_fetch_query<'c>(
+    pub fn try_fetch_query_ph<'c>(
         &'c self,
         query: &'c str,
         args: PlaceholderArgumentVector,
     ) -> Result<Cursor, Error> {
-        Ok(self.try_executor()?.ph_cursor(query, args))
+        Ok(self.try_executor()?.cursor_ph(query, args))
     }
 }
