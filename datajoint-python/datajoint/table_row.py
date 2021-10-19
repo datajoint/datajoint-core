@@ -37,7 +37,8 @@ class TableRow:
         finally:
             dj_core.table_row_columns_free(out_columns, columns_size)
         datajoint_core_assert_success(status)
-        return out_columns
+
+        return [out_columns[i] for i in range(0, columns_size[0])]
 
     def column_count(self):
         """
@@ -53,4 +54,4 @@ class TableRow:
         # check if index is a ordinal or name
         status = dj_core.table_row_get_column_with_name(self._table_rows, index.encode('utf-8'), out_column) if isinstance(index, str) else dj_core.table_row_get_column_with_ordinal(self._table_rows, index, out_column)
         datajoint_core_assert_success(status)
-        return out_column
+        return out_column[0]
