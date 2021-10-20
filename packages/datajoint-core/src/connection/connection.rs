@@ -50,7 +50,6 @@ impl Connection {
         }
     }
 
-
     /// Checks if the connection is still connected.
     pub fn is_connected(&self) -> bool {
         match self.get_connected_pool() {
@@ -134,8 +133,8 @@ impl Connection {
     }
 
     ///Fetches the results of the query and uses placeholders
-    pub fn ph_fetch_query<'c>(&'c self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor {
-        self.ph_try_fetch_query(query, args).unwrap()
+    pub fn fetch_query_ph<'c>(&'c self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor {
+        self.try_fetch_query_ph(query, args).unwrap()
     }
 
     /// Creates a cursor for iterating over the results of the given returning query.
@@ -143,7 +142,7 @@ impl Connection {
         Ok(self.try_executor()?.cursor(query))
     }
 
-    pub fn ph_try_fetch_query<'c>(
+    pub fn try_fetch_query_ph<'c>(
         &'c self,
         query: &'c str,
         args: PlaceholderArgumentVector,

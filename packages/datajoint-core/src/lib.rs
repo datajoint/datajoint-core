@@ -30,7 +30,7 @@ mod tests {
 
         let mut con = Connection::new(settings);
         con.connect().unwrap();
-        let id = 1010;
+        let id = 1011;
         let mut args = PlaceholderArgumentVector::new(vec![]);
         args.add_arg(PlaceholderArgument::new(DecodeResult::String(
             "Temoc".to_string(),
@@ -47,6 +47,5 @@ mod tests {
     }
 
     #[test]
-    fn demo_mysql() {
-    }
+    fn demo_mysql() {}
 }
