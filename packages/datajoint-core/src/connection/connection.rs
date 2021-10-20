@@ -61,12 +61,20 @@ impl Connection {
     /// Disconnects from the SQL database.
     ///
     /// The connection can be restarted if desired.
-    pub fn disconnect(&mut self) -> Result<(), &str> {
-        // TODO(jnestelroad): Implement with self.pool.close() async.
-        self.pool = None;
-        return Ok(());
+    /// Disconnects from the SQL database.
+    ///
+    /// If the database connection has already been disconnected, this method
+    /// is a no-op.
+    ///
+    /// The connection can be restarted if desired.
+    pub fn disconnect(&self) {
+        if let Some(pool) = &self.pool {
+            if !pool.is_closed() {
+                self.runtime.block_on(pool.close());
+            }
+        }
     }
-
+    
     fn get_pool(runtime: &tokio::runtime::Runtime, uri: &str) -> Result<sqlx::AnyPool, Error> {
         runtime.block_on(Connection::get_pool_async(uri))
     }
