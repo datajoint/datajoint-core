@@ -25,6 +25,31 @@ impl Connection {
         }
     }
 
+    fn not_connected_error() -> Error {
+        DataJointError::new("not connected", ErrorCode::NotConnected)
+    }
+
+    fn get_connected_pool(&self) -> Result<&sqlx::AnyPool, Error> {
+        match &self.pool {
+            None => Err(Connection::not_connected_error()),
+            Some(pool) => {
+                if pool.is_closed() {
+                    Err(Connection::not_connected_error())
+                } else {
+                    Ok(pool)
+                }
+            }
+        }
+    }
+
+    /// Checks if the connection is still connected.
+    pub fn is_connected(&self) -> bool {
+        match self.get_connected_pool() {
+            Err(_) => false,
+            Ok(_) => true,
+        }
+    }
+
     /// Starts the connection to the SQL database according to settings the object was
     /// initialized with.
     pub fn connect(&mut self) -> Result<(), Error> {
@@ -34,11 +59,16 @@ impl Connection {
 
     /// Disconnects from the SQL database.
     ///
+    /// If the database connection has already been disconnected, this method
+    /// is a no-op.
+    ///
     /// The connection can be restarted if desired.
-    pub fn disconnect(&mut self) -> Result<(), &str> {
-        // TODO(jnestelroad): Implement with self.pool.close() async.
-        self.pool = None;
-        return Ok(());
+    pub fn disconnect(&self) {
+        if let Some(pool) = &self.pool {
+            if !pool.is_closed() {
+                self.runtime.block_on(pool.close());
+            }
+        }
     }
 
     fn get_pool(runtime: &tokio::runtime::Runtime, uri: &str) -> Result<sqlx::AnyPool, Error> {
@@ -66,13 +96,7 @@ impl Connection {
 
     /// Creates an executor to interact with the database over this connection.
     pub fn try_executor<'c>(&'c self) -> Result<Executor<'c>, Error> {
-        match &self.pool {
-            None => Err(DataJointError::new(
-                "not connected",
-                ErrorCode::NotConnected,
-            )),
-            Some(pool) => Ok(Executor::new(pool, &self.runtime)),
-        }
+        Ok(Executor::new(self.get_connected_pool()?, &self.runtime))
     }
 
     /// Executes the given non-returning query, returning the number of rows affected.

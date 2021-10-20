@@ -22,6 +22,16 @@ pub unsafe extern "C" fn connection_free(this: *mut Connection) {
 }
 
 #[no_mangle]
+pub extern "C" fn connection_is_connected(this: *mut Connection) -> i32 {
+    if this.is_null() {
+        false as i32
+    } else {
+        let connection = unsafe { &*this };
+        connection.is_connected() as i32
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn connection_connect(this: *mut Connection) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
@@ -39,10 +49,8 @@ pub extern "C" fn connection_disconnect(this: *mut Connection) -> i32 {
         return ErrorCode::NullNotAllowed as i32;
     }
     let connection = unsafe { &mut *this };
-    match connection.disconnect() {
-        Err(_) => 1, // TODO: return error.code when disconnect is fixed.
-        Ok(_) => ErrorCode::Success as i32,
-    }
+    connection.disconnect();
+    ErrorCode::Success as i32
 }
 
 #[no_mangle]
@@ -51,15 +59,11 @@ pub extern "C" fn connection_reconnect(this: *mut Connection) -> i32 {
         return ErrorCode::NullNotAllowed as i32;
     }
     let connection = unsafe { &mut *this };
-    match connection.disconnect() {
-        Err(_) => return ErrorCode::NotConnected as i32,
-        Ok(_) => (),
-    };
+    connection.disconnect();
     match connection.connect() {
-        Err(error) => return error.code() as i32,
-        Ok(_) => (),
-    };
-    ErrorCode::Success as i32
+        Err(error) => error.code() as i32,
+        Ok(_) => ErrorCode::Success as i32,
+    }
 }
 
 #[no_mangle]
