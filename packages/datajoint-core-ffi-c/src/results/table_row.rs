@@ -1,3 +1,4 @@
+use crate::util;
 use datajoint_core::error::ErrorCode;
 use datajoint_core::results::TableColumnRef;
 use datajoint_core::results::TableRow;
@@ -5,15 +6,9 @@ use libc::c_char;
 use std::ffi::CStr;
 
 #[no_mangle]
-pub unsafe extern "C" fn table_row_new() -> *mut TableRow {
-    libc::malloc(std::mem::size_of::<TableRow> as libc::size_t) as *mut TableRow
-}
-
-#[no_mangle]
-pub extern "C" fn table_row_free(this: *mut TableRow) {
+pub unsafe extern "C" fn table_row_free(this: *mut TableRow) {
     if this.is_null() {
-        drop(*this);
-        libc::free(this as *mut libc::c_void);
+        Box::from_raw(this);
     }
 }
 
@@ -65,7 +60,7 @@ pub unsafe extern "C" fn table_row_columns_free(
 pub unsafe extern "C" fn table_row_get_column_with_name(
     this: *const TableRow,
     column_name: *const c_char,
-    mut _out: *mut TableColumnRef,
+    out: *mut *mut TableColumnRef,
 ) -> i32 {
     if this.is_null() || column_name.is_null() {
         return ErrorCode::NullNotAllowed as i32;
@@ -81,7 +76,7 @@ pub unsafe extern "C" fn table_row_get_column_with_name(
         Err(_err) => return ErrorCode::ColumnDecodeError as i32,
         Ok(value) => value,
     };
-    *(_out) = col_ref;
+    util::mem::handle_output_ptr(out, col_ref);
     ErrorCode::Success as i32
 }
 
@@ -89,7 +84,7 @@ pub unsafe extern "C" fn table_row_get_column_with_name(
 pub unsafe extern "C" fn table_row_get_column_with_ordinal(
     this: *const TableRow,
     ordinal: usize,
-    mut _out: *mut TableColumnRef,
+    out: *mut *mut TableColumnRef,
 ) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
@@ -101,7 +96,6 @@ pub unsafe extern "C" fn table_row_get_column_with_ordinal(
         Ok(value) => value,
     };
 
-    *(_out) = col_ref;
-
+    util::mem::handle_output_ptr(out, col_ref);
     ErrorCode::Success as i32
 }

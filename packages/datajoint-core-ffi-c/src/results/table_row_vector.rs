@@ -41,15 +41,9 @@ impl TableRowVector {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn table_row_vector_new() -> *mut TableRowVector {
-    libc::malloc(std::mem::size_of::<TableRowVector> as libc::size_t) as *mut TableRowVector
-}
-
-#[no_mangle]
 pub unsafe extern "C" fn table_row_vector_free(this: *mut TableRowVector) {
     if this.is_null() {
-        drop(*this);
-        libc::free(ptr as *mut libc::c_void);
+        Box::from_raw(this);
     }
 }
 

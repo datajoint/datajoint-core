@@ -1,23 +1,17 @@
 use crate::results::table_row_vector::TableRowVector;
+use crate::util;
 use datajoint_core::results::TableRow;
 use datajoint_core::{connection::Cursor, error::ErrorCode};
-use libc::{c_void, free, malloc, size_t};
-
-#[no_mangle]
-pub unsafe extern "C" fn cursor_new<'c>() -> *mut Cursor<'c> {
-    malloc(std::mem::size_of::<Cursor<'c>> as size_t) as *mut Cursor
-}
 
 #[no_mangle]
 pub unsafe extern "C" fn cursor_free(this: *mut Cursor) {
     if !this.is_null() {
-        drop(*this);
-        free(this as *mut c_void);
+        Box::from_raw(this);
     }
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn cursor_next(this: *mut Cursor, out: *mut TableRow) -> i32 {
+pub unsafe extern "C" fn cursor_next(this: *mut Cursor, out: *mut *mut TableRow) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
@@ -25,17 +19,14 @@ pub unsafe extern "C" fn cursor_next(this: *mut Cursor, out: *mut TableRow) -> i
     match cursor.try_next() {
         Err(error) => error.code() as i32,
         Ok(value) => {
-            if !out.is_null() {
-                drop(*out);
-            }
-            std::ptr::write(out, value);
+            util::mem::handle_output_ptr(out, value);
             ErrorCode::Success as i32
         }
     }
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn cursor_rest(this: *mut Cursor, out: *mut TableRowVector) -> i32 {
+pub unsafe extern "C" fn cursor_rest(this: *mut Cursor, out: *mut *mut TableRowVector) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
@@ -43,10 +34,7 @@ pub unsafe extern "C" fn cursor_rest(this: *mut Cursor, out: *mut TableRowVector
     match cursor.try_rest() {
         Err(error) => error.code() as i32,
         Ok(value) => {
-            if !out.is_null() {
-                drop(*out);
-            }
-            std::ptr::write(out, TableRowVector::new(value));
+            util::mem::handle_output_ptr(out, TableRowVector::new(value));
             ErrorCode::Success as i32
         }
     }
