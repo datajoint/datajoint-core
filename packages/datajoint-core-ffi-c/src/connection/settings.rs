@@ -10,11 +10,8 @@ pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings {
 }
 
 #[no_mangle]
-pub extern "C" fn connection_settings_free(this: *mut ConnectionSettings) {
-    if this.is_null() {
-        return;
-    }
-    unsafe {
+pub unsafe extern "C" fn connection_settings_free(this: *mut ConnectionSettings) {
+    if !this.is_null() {
         Box::from_raw(this);
     }
 }

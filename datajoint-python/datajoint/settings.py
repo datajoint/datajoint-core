@@ -24,14 +24,12 @@ class Config:
     def __init__(self):
         self.native = dj_core.connection_settings_new()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self):
+    def __del__(self):
         dj_core.connection_settings_free(self.native)
 
+    # TODO(jackson-nestelroad): Type checking here for inputs and outputs.
+
     def __setitem__(self, setting, value):
-        print(f'Setting attribute {setting} to value {value}')
         if setting.lower() in self.setters:
             if type(value) == str:
                 value = value.encode("utf-8")

@@ -1,3 +1,4 @@
+use crate::util;
 use datajoint_core::connection::{Connection, ConnectionSettings, Cursor, Executor};
 use datajoint_core::error::ErrorCode;
 use libc::c_char;
@@ -14,11 +15,8 @@ pub extern "C" fn connection_new(this: *mut ConnectionSettings) -> *mut Connecti
 }
 
 #[no_mangle]
-pub extern "C" fn connection_free(this: *mut Connection) {
-    if this.is_null() {
-        return;
-    }
-    unsafe {
+pub unsafe extern "C" fn connection_free(this: *mut Connection) {
+    if !this.is_null() {
         Box::from_raw(this);
     }
 }
@@ -78,7 +76,10 @@ pub extern "C" fn connection_get_settings(this: *mut Connection) -> *mut Connect
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn connection_executor(this: *mut Connection, out: *mut Executor) -> i32 {
+pub unsafe extern "C" fn connection_executor(
+    this: *mut Connection,
+    out: *mut *mut Executor,
+) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
@@ -86,7 +87,7 @@ pub unsafe extern "C" fn connection_executor(this: *mut Connection, out: *mut Ex
     match connection.try_executor() {
         Err(error) => error.code() as i32,
         Ok(executor) => {
-            *out = executor;
+            util::mem::handle_output_ptr(out, executor);
             ErrorCode::Success as i32
         }
     }
@@ -101,15 +102,20 @@ pub unsafe extern "C" fn connection_execute_query(
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
-    let connection = { &mut *this };
+    let connection = &mut *this;
     let query_str = match CStr::from_ptr(query).to_str() {
         Err(_) => return ErrorCode::InvalidCString as i32,
         Ok(value) => value,
     };
     match connection.try_execute_query(query_str) {
-        Err(error) => error.code() as i32,
+        Err(error) => {
+            println!("{}", error.message());
+            error.code() as i32
+        }
         Ok(value) => {
-            *out = value;
+            if !out.is_null() {
+                *out = value;
+            }
             ErrorCode::Success as i32
         }
     }
@@ -119,7 +125,7 @@ pub unsafe extern "C" fn connection_execute_query(
 pub unsafe extern "C" fn connection_fetch_query(
     this: *mut Connection,
     query: *const c_char,
-    out_cursor: *mut Cursor,
+    out: *mut *mut Cursor,
 ) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
@@ -132,7 +138,7 @@ pub unsafe extern "C" fn connection_fetch_query(
     match connection.try_fetch_query(query_str) {
         Err(error) => error.code() as i32,
         Ok(cursor) => {
-            *out_cursor = cursor;
+            util::mem::handle_output_ptr(out, cursor);
             ErrorCode::Success as i32
         }
     }
