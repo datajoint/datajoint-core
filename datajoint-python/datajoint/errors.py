@@ -1,5 +1,7 @@
 from .datajoint_core_lib import dj_core
 
+# TODO(jackson-nestelroad): Move to core library.
+
 error_codes = {
     dj_core.ErrorCode_Success: "Success",
     dj_core.ErrorCode_ConfigurationError: "Configuration Error",
@@ -29,4 +31,4 @@ error_codes = {
 def datajoint_core_assert_success(error_code):
     if error_code != dj_core.ErrorCode_Success:
         error_message = error_codes[error_code]
-        raise Exception(error_message)
+        raise AssertionError(error_message)

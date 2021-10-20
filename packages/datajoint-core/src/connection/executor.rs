@@ -1,4 +1,4 @@
-use crate::connection::Cursor;
+use crate::connection::{Cursor, NativeCursor};
 use crate::error::{Error, SqlxError};
 use crate::placeholders::PlaceholderArgumentVector;
 use crate::results::TableRow;
@@ -11,8 +11,8 @@ use sqlx::Executor as SqlxExecutor;
 pub struct Executor<'c> {
     // TODO(jackson-nestelroad): Somehow wrap sqlx::AnyExecutor so that pools,
     // connections, and transactions can all use this API.
-    executor: &'c sqlx::AnyPool,
-    runtime: &'c tokio::runtime::Runtime,
+    pub(crate) executor: &'c sqlx::AnyPool,
+    pub(crate) runtime: &'c tokio::runtime::Runtime,
 }
 
 impl<'c> Executor<'c> {
@@ -88,8 +88,8 @@ impl<'c> Executor<'c> {
     }
 
     // Creates a cursor for the given query.
-    pub fn cursor(&self, query: &'c str) -> Cursor<'c> {
-        Cursor::new(self.runtime, sqlx::query(query).fetch(self.executor))
+    pub fn cursor(&'c self, query: &str) -> Cursor<'c> {
+        NativeCursor::new_from_executor_ref(query, &self)
     }
 
     pub fn cursor_ph(&self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor<'c> {

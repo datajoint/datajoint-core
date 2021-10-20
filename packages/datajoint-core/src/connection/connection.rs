@@ -1,4 +1,4 @@
-use crate::connection::{ConnectionSettings, Cursor, Executor};
+use crate::connection::{ConnectionSettings, Cursor, Executor, NativeCursor};
 use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
 use crate::placeholders::PlaceholderArgumentVector;
 
@@ -136,7 +136,7 @@ impl Connection {
     /// Creates a cursor for iterating over the results of the given returning query.
     ///
     /// Panics on error.
-    pub fn fetch_query<'c>(&'c self, query: &'c str) -> Cursor {
+    pub fn fetch_query<'c>(&'c self, query: &str) -> Cursor<'c> {
         self.try_fetch_query(query).unwrap()
     }
 
@@ -146,8 +146,8 @@ impl Connection {
     }
 
     /// Creates a cursor for iterating over the results of the given returning query.
-    pub fn try_fetch_query<'c>(&'c self, query: &'c str) -> Result<Cursor, Error> {
-        Ok(self.try_executor()?.cursor(query))
+    pub fn try_fetch_query<'c>(&'c self, query: &str) -> Result<Cursor<'c>, Error> {
+        Ok(NativeCursor::new_from_executor(query, self.try_executor()?))
     }
 
     pub fn try_fetch_query_ph<'c>(

@@ -1,4 +1,5 @@
 use datajoint_core::results::TableRow;
+use libc::size_t;
 use std::ptr;
 
 /// Creates a vector of TableRows
@@ -14,19 +15,19 @@ impl TableRowVector {
     }
 
     /// Returns the number of rows
-    pub fn row_count(&self) -> usize {
+    pub fn row_count(&self) -> size_t {
         self.rows.len()
     }
 
     /// Returns a reference to a TableRow at the given index
     ///
     /// Panics on error
-    pub fn get(&self, index: usize) -> &TableRow {
+    pub fn get(&self, index: size_t) -> &TableRow {
         self.try_get(index).unwrap()
     }
 
     /// Returns a reference to a TableRow at the given index
-    pub fn try_get(&self, index: usize) -> Result<&TableRow, &str> {
+    pub fn try_get(&self, index: size_t) -> Result<&TableRow, &str> {
         let result = self.rows.get(index);
         match result {
             Some(value) => Ok(value),
@@ -41,41 +42,33 @@ impl TableRowVector {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn table_row_vector_new() -> *mut TableRowVector {
-    libc::malloc(std::mem::size_of::<TableRowVector> as libc::size_t) as *mut TableRowVector
-}
-
-#[no_mangle]
-pub extern "C" fn table_row_vector_free(ptr: *mut TableRowVector) {
-    if ptr.is_null() {
-        return;
-    }
-    unsafe {
-        libc::free(ptr as *mut libc::c_void);
+pub unsafe extern "C" fn table_row_vector_free(this: *mut TableRowVector) {
+    if !this.is_null() {
+        Box::from_raw(this);
     }
 }
 
 #[no_mangle]
-pub extern "C" fn table_row_vector_size(ptr: *const TableRowVector) -> usize {
+pub extern "C" fn table_row_vector_size(this: *const TableRowVector) -> size_t {
     let table_rows: &TableRowVector = unsafe {
-        if ptr.is_null() {
+        if this.is_null() {
             return 0;
         }
-        &*ptr
+        &*this
     };
     table_rows.row_count()
 }
 
 #[no_mangle]
 pub extern "C" fn table_row_vector_get(
-    ptr: *const TableRowVector,
-    index: usize,
+    this: *const TableRowVector,
+    index: size_t,
 ) -> *const TableRow {
     let table_rows: &TableRowVector = unsafe {
-        if ptr.is_null() {
+        if this.is_null() {
             return ptr::null();
         }
-        &*ptr
+        &*this
     };
     table_rows.get(index)
 }

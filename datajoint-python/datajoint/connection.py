@@ -1,24 +1,22 @@
-from .datajoint_core_lib import dj_core
 from ._datajoint_core import ffi
-
-from .settings import config
+from .cursor import Cursor
+from .datajoint_core_lib import dj_core
 from .errors import datajoint_core_assert_success
 from .ph_arg import PlaceHolderArgumentVector
+from .settings import Config, config
 
 
 class Connection:
     def __init__(self, config):
+        if not isinstance(config, Config):
+            raise TypeError("config must be a connection configuration")
         self.native = dj_core.connection_new(config.native)
-        self.connect()
+        config.native = ffi.NULL
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __del__(self):
         dj_core.connection_free(self.native)
 
     def connect(self):
-        print("Attempting to make connection")
         err = dj_core.connection_connect(self.native)
         datajoint_core_assert_success(err)
 
@@ -50,11 +48,11 @@ class Connection:
         return out[0]
 
     def fetch_query(self, query):
-        pass
-        # out = Cursor()
-        # err = dj_core.connection_fetch_query(self.native, query.encode('utf-8'), out)
-        # datajoint_core_assert_success(err)
-        # return out
+        out = Cursor()
+        err = dj_core.connection_fetch_query(
+            self.native, query.encode('utf-8'), out.native)
+        datajoint_core_assert_success(err)
+        return out
 
 
 def conn(host=None, user=None, password=None, database_name=None, *, init_fun=None, reset=False, use_tls=None):
@@ -66,5 +64,6 @@ def conn(host=None, user=None, password=None, database_name=None, *, init_fun=No
         config["password"] = password
     if database_name is not None:
         config["database_name"] = database_name
-    conn.Connection = Connection(config)
-    return conn.Connection
+    connection = Connection(config)
+    connection.connect()
+    return connection

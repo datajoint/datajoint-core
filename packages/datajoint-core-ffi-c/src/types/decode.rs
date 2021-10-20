@@ -1,6 +1,7 @@
 use datajoint_core::error::ErrorCode;
 use datajoint_core::results::{TableColumnRef, TableRow};
 use datajoint_core::types::DecodeResult;
+use libc::size_t;
 use std::ffi::{c_void, CString};
 use std::os::raw::c_char;
 
@@ -32,8 +33,8 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
     this: *const TableRow,
     column: *const TableColumnRef,
     buffer: *mut c_void,
-    buffer_size: usize,
-    output_size: *mut usize,
+    buffer_size: size_t,
+    output_size: *mut size_t,
     output_type: *mut NativeDecodedType,
 ) -> i32 {
     if this.is_null() || column.is_null() || buffer.is_null() {
@@ -229,12 +230,12 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                 }
                 ErrorCode::Success as i32
             }
-        }
+        },
     }
 }
 
 /// A single decoded value that has been allocated by the core library.
-/// 
+///
 /// This struct wraps a value allocated to be transmitted to C. It allows
 /// the value to be decoded to a native type by the caller.
 pub struct AllocatedDecodedValue {
@@ -245,7 +246,7 @@ pub struct AllocatedDecodedValue {
 
 impl AllocatedDecodedValue {
     /// Creates a new allocated decoded value.
-    /// 
+    ///
     /// Does not allocate any internal value.
     pub fn new() -> Self {
         AllocatedDecodedValue {
@@ -305,7 +306,17 @@ pub extern "C" fn allocated_decoded_value_new() -> *mut AllocatedDecodedValue {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn allocated_decoded_value_data(this: *const AllocatedDecodedValue) -> *const c_void {
+pub unsafe extern "C" fn allocated_decoded_value_free(this: *mut AllocatedDecodedValue) {
+    if !this.is_null() {
+        (*this).reset();
+        Box::from_raw(this);
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn allocated_decoded_value_data(
+    this: *const AllocatedDecodedValue,
+) -> *const c_void {
     if this.is_null() {
         std::ptr::null()
     } else {
@@ -314,7 +325,9 @@ pub unsafe extern "C" fn allocated_decoded_value_data(this: *const AllocatedDeco
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn allocated_decoded_value_size(this: *const AllocatedDecodedValue) -> usize {
+pub unsafe extern "C" fn allocated_decoded_value_size(
+    this: *const AllocatedDecodedValue,
+) -> size_t {
     if this.is_null() {
         return 0;
     } else {
@@ -323,21 +336,14 @@ pub unsafe extern "C" fn allocated_decoded_value_size(this: *const AllocatedDeco
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn allocated_decoded_value_type(this: *const AllocatedDecodedValue) -> NativeDecodedType {
+pub unsafe extern "C" fn allocated_decoded_value_type(
+    this: *const AllocatedDecodedValue,
+) -> NativeDecodedType {
     if this.is_null() {
         return NativeDecodedType::None;
     } else {
         (*this).type_name
     }
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn allocated_decoded_value_free(this: *mut AllocatedDecodedValue) {
-    if this.is_null() {
-        return;
-    }
-    (*this).reset();
-    Box::from_raw(this);
 }
 
 /// Decodes a single table row value to a Rust-allocated buffer stored in a
@@ -427,7 +433,7 @@ pub extern "C" fn table_row_decode_to_allocation(
                     (*value).data = Box::into_raw(Box::new(bytes)) as *const c_void;
                     ErrorCode::Success as i32
                 }
-            }   
+            },
         }
     }
 }
