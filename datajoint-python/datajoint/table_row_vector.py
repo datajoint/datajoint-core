@@ -1,21 +1,29 @@
 from ._datajoint_core import ffi
-from .cffi_config import library_file
-
-lib = ffi.dlopen(library_file)
+from .datajoint_core_lib import dj_core
+from .table_row import TableRow
 
 
 class TableRowVector:
-    def __init__(self):
-        self._table_rows = lib.table_row_vector_new()
+    def __init__(self, native=None, owning=True):
+        self.native = ffi.new("TableRowVector**")
+        if native is None:
+            self.native[0] = ffi.NULL
+            self.owning = True
+        elif ffi.typeof(native) is ffi.typeof("TableRowVector*"):
+            self.native[0] = native
+            self.owning = owning
+        else:
+            raise ValueError("invalid type for native pointer")
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        lib.table_row_vector_free(self._table_rows)
+    def __del__(self):
+        if self.owning:
+            dj_core.table_row_vector_free(self.native[0])
 
     def get(self, index):
-        return lib.table_row_vector_get(self._table_rows, index)
+        row = dj_core.table_row_vector_get(self.native, index)
+        if row:
+            return TableRow(native=row, owning=False)
+        return None
 
     def size(self):
-        return lib.table_row_vector_size(self._table_rows)
+        return dj_core.table_row_vector_size(self.native)
