@@ -2,12 +2,12 @@ use crate::util;
 use datajoint_core::error::ErrorCode;
 use datajoint_core::results::TableColumnRef;
 use datajoint_core::results::TableRow;
-use libc::c_char;
+use libc::{c_char, size_t};
 use std::ffi::CStr;
 
 #[no_mangle]
 pub unsafe extern "C" fn table_row_free(this: *mut TableRow) {
-    if this.is_null() {
+    if !this.is_null() {
         Box::from_raw(this);
     }
 }
@@ -21,7 +21,7 @@ pub unsafe extern "C" fn table_row_is_empty(this: *const TableRow) -> i32 {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn table_row_column_count(this: *const TableRow) -> usize {
+pub unsafe extern "C" fn table_row_column_count(this: *const TableRow) -> size_t {
     if this.is_null() {
         return 0;
     }
@@ -31,29 +31,29 @@ pub unsafe extern "C" fn table_row_column_count(this: *const TableRow) -> usize 
 #[no_mangle]
 pub unsafe extern "C" fn table_row_columns(
     this: *const TableRow,
-    out_columns: *mut *const TableColumnRef,
-    columns_size: *mut usize,
+    out_columns: *mut *mut TableColumnRef,
+    columns_size: *mut size_t,
 ) -> i32 {
-    if this.is_null() {
+    if this.is_null() || out_columns.is_null() || columns_size.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
-    let mut cols = (&*this).columns();
+
+    let mut cols = std::mem::ManuallyDrop::new((&*this).columns());
     cols.shrink_to_fit();
     *columns_size = cols.len();
     *out_columns = cols.as_mut_ptr();
-    std::mem::forget(cols);
     ErrorCode::Success as i32
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn table_row_columns_free(
     out_columns: *mut TableColumnRef,
-    columns_size: usize,
+    columns_size: size_t,
 ) {
     if out_columns.is_null() {
         return;
     }
-    drop(Vec::from_raw_parts(out_columns, columns_size, columns_size));
+    Vec::from_raw_parts(out_columns, columns_size, columns_size);
 }
 
 #[no_mangle]
@@ -83,7 +83,7 @@ pub unsafe extern "C" fn table_row_get_column_with_name(
 #[no_mangle]
 pub unsafe extern "C" fn table_row_get_column_with_ordinal(
     this: *const TableRow,
-    ordinal: usize,
+    ordinal: size_t,
     out: *mut *mut TableColumnRef,
 ) -> i32 {
     if this.is_null() {

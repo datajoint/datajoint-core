@@ -1,6 +1,7 @@
 use datajoint_core::error::ErrorCode;
 use datajoint_core::results::{TableColumnRef, TableRow};
 use datajoint_core::types::DecodeResult;
+use libc::size_t;
 use std::ffi::{c_void, CString};
 use std::os::raw::c_char;
 
@@ -32,8 +33,8 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
     this: *const TableRow,
     column: *const TableColumnRef,
     buffer: *mut c_void,
-    buffer_size: usize,
-    output_size: *mut usize,
+    buffer_size: size_t,
+    output_size: *mut size_t,
     output_type: *mut NativeDecodedType,
 ) -> i32 {
     if this.is_null() || column.is_null() || buffer.is_null() {
@@ -324,7 +325,9 @@ pub unsafe extern "C" fn allocated_decoded_value_data(
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn allocated_decoded_value_size(this: *const AllocatedDecodedValue) -> usize {
+pub unsafe extern "C" fn allocated_decoded_value_size(
+    this: *const AllocatedDecodedValue,
+) -> size_t {
     if this.is_null() {
         return 0;
     } else {

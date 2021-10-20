@@ -15,11 +15,8 @@ pub extern "C" fn connection_new(this: *mut ConnectionSettings) -> *mut Connecti
 }
 
 #[no_mangle]
-pub extern "C" fn connection_free(this: *mut Connection) {
-    if this.is_null() {
-        return;
-    }
-    unsafe {
+pub unsafe extern "C" fn connection_free(this: *mut Connection) {
+    if !this.is_null() {
         Box::from_raw(this);
     }
 }
@@ -107,7 +104,10 @@ pub unsafe extern "C" fn connection_execute_query(
         Ok(value) => value,
     };
     match connection.try_execute_query(query_str) {
-        Err(error) => error.code() as i32,
+        Err(error) => {
+            println!("{}", error.message());
+            error.code() as i32
+        }
         Ok(value) => {
             if !out.is_null() {
                 *out = value;

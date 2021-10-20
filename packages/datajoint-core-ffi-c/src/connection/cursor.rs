@@ -16,8 +16,11 @@ pub unsafe extern "C" fn cursor_next(this: *mut Cursor, out: *mut *mut TableRow)
         return ErrorCode::NullNotAllowed as i32;
     }
     let cursor = &mut *this;
-    match cursor.try_next() {
-        Err(error) => error.code() as i32,
+    match std::pin::Pin::as_mut(cursor).get_unchecked_mut().try_next() {
+        Err(error) => {
+            println!("{}", error.message());
+            error.code() as i32
+        }
         Ok(value) => {
             util::mem::handle_output_ptr(out, value);
             ErrorCode::Success as i32
@@ -31,7 +34,7 @@ pub unsafe extern "C" fn cursor_rest(this: *mut Cursor, out: *mut *mut TableRowV
         return ErrorCode::NullNotAllowed as i32;
     }
     let cursor = &mut *this;
-    match cursor.try_rest() {
+    match std::pin::Pin::as_mut(cursor).get_unchecked_mut().try_rest() {
         Err(error) => error.code() as i32,
         Ok(value) => {
             util::mem::handle_output_ptr(out, TableRowVector::new(value));
