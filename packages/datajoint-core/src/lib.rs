@@ -32,17 +32,17 @@ mod tests {
         con.connect().unwrap();
         let id = 1010;
         let mut args = PlaceholderArgumentVector::new(vec![]);
-        args.add(PlaceholderArgument::new(DecodeResult::String(
+        args.add_arg(PlaceholderArgument::new(DecodeResult::String(
             "Temoc".to_string(),
         )));
-        args.add(PlaceholderArgument::new(DecodeResult::String(
+        args.add_arg(PlaceholderArgument::new(DecodeResult::String(
             "enarc".to_string(),
         )));
-        args.add(PlaceholderArgument::new(DecodeResult::Int32(id)));
-        con.ph_execute_query("insert into students values ($1,$2,$3)", args);
+        args.add_arg(PlaceholderArgument::new(DecodeResult::Int32(id)));
+        con.execute_query_ph("insert into students values ($1,$2,$3)", args);
         let mut args = PlaceholderArgumentVector::new(vec![]);
-        args.add(PlaceholderArgument::new(DecodeResult::Int32(id)));
-        let mut try_c = con.ph_fetch_query("select * from students where id = $1;", args);
+        args.add_arg(PlaceholderArgument::new(DecodeResult::Int32(id)));
+        let mut try_c = con.fetch_query_ph("select * from students where id = $1;", args);
         let _rows = try_c.rest();
     }
 

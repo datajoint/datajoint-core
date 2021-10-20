@@ -1,5 +1,6 @@
 use datajoint_core::connection::{Connection, ConnectionSettings, Cursor, Executor};
 use datajoint_core::error::ErrorCode;
+use datajoint_core::placeholders::PlaceholderArgumentVector;
 use libc::c_char;
 use std::ffi::CStr;
 
@@ -107,6 +108,31 @@ pub unsafe extern "C" fn connection_execute_query(
         Ok(value) => value,
     };
     match connection.try_execute_query(query_str) {
+        Err(error) => error.code() as i32,
+        Ok(value) => {
+            *out = value;
+            ErrorCode::Success as i32
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn connection_execute_query_ph(
+    this: *mut Connection,
+    query: *const c_char,
+    ph_args : *mut PlaceholderArgumentVector,
+    out: *mut u64,
+) -> i32 {
+    if this.is_null()  {
+        return ErrorCode::NullNotAllowed as i32;
+    }
+    let connection = { &mut *this };
+    let args = Box::from_raw(ph_args);
+    let query_str = match CStr::from_ptr(query).to_str() {
+        Err(_) => return ErrorCode::InvalidCString as i32,
+        Ok(value) => value,
+    };
+    match connection.try_execute_query_ph(query_str,*args) {
         Err(error) => error.code() as i32,
         Ok(value) => {
             *out = value;

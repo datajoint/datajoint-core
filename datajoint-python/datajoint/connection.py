@@ -3,7 +3,7 @@ from ._datajoint_core import ffi
 
 from .settings import config
 from .errors import datajoint_core_assert_success
-
+from .ph_arg import PlaceHolderArgumentVector
 
 class Connection:
     def __init__(self, config):
@@ -35,6 +35,21 @@ class Connection:
             self.native, query.encode('utf-8'), out)
         datajoint_core_assert_success(err)
         return out[0]
+
+    def execute_query_ph(self,query, *ph):
+        out = ffi.new("uint64_t *")
+        ph_args = PlaceHolderArgumentVector() 
+        for arg in ph:
+            ph_args.add(arg)
+        ph_args.print_args()
+        
+        err = dj_core.connection_execute_query_ph(
+            self.native, 
+            query.encode('utf-8'),
+            ph_args.ph_vec,out)
+        datajoint_core_assert_success(err)
+        return out[0]
+        
 
     def fetch_query(self, query):
         pass
