@@ -14,11 +14,9 @@ pub extern "C" fn placeholder_argument_vector_new() -> *mut PlaceholderArgumentV
 /// Frees an entire placeholder argument vector, including all argument inside.
 #[no_mangle]
 pub extern "C" fn placeholder_argument_vector_free(ptr: *mut PlaceholderArgumentVector) {
-    if ptr.is_null() {
-        return;
+    if !ptr.is_null() {
+        unsafe { Box::from_raw(ptr) };
     }
-
-    unsafe { Box::from_raw(ptr) };
 }
 
 /// PlaceholderArgument* placeholder_argument_vector_add(PlaceholderArgumentVector* self, void* data, size_t data_size, DataJointType type);
@@ -168,15 +166,5 @@ pub unsafe extern "C" fn placeholder_argument_vector_add(
             let last = vector.vec.len() - 1;
             return &mut vector.vec[last];
         }
-    }
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn placeholder_argument_vector_print_args(
-    this: *mut PlaceholderArgumentVector,
-) {
-    let this = &*this;
-    for arg in &this.vec {
-        println!("{:?}", &arg.arg);
     }
 }

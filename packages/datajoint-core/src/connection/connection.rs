@@ -74,7 +74,7 @@ impl Connection {
             }
         }
     }
-    
+
     fn get_pool(runtime: &tokio::runtime::Runtime, uri: &str) -> Result<sqlx::AnyPool, Error> {
         runtime.block_on(Connection::get_pool_async(uri))
     }
@@ -155,6 +155,10 @@ impl Connection {
         query: &'c str,
         args: PlaceholderArgumentVector,
     ) -> Result<Cursor, Error> {
-        Ok(self.try_executor()?.cursor_ph(query, args))
+        Ok(NativeCursor::new_from_executor_ph(
+            query,
+            self.try_executor()?,
+            args,
+        ))
     }
 }

@@ -1,8 +1,11 @@
 use crate::connection::Executor;
 use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
+use crate::placeholders::PlaceholderArgumentVector;
 use crate::results::TableRow;
 use futures::stream::StreamExt;
 use futures_core::stream::BoxStream;
+use sqlx::query;
+use std::arch;
 use std::marker::PhantomPinned;
 use std::pin::Pin;
 use std::ptr::NonNull;
@@ -64,6 +67,29 @@ impl<'c> NativeCursor<'c> {
         // Output is the pinned cursor.
         return boxed;
     }
+
+    // Same as new_from_executor but has support for placeholder arguments
+    pub(crate) fn new_from_executor_ph(
+        query: &str,
+        executor: Executor<'c>,
+        args: PlaceholderArgumentVector,
+    ) -> Cursor<'c> {
+        let res = NativeCursor {
+            query: query.to_string(),
+            runtime: executor.runtime,
+            stream: None,
+            _pin: PhantomPinned,
+        };
+        let mut boxed = Box::pin(res);
+        let mut slice = NonNull::from(&boxed.query);
+        unsafe {
+            let query = args.prepare(slice.as_mut());
+            let unchecked_mut = Pin::get_unchecked_mut(Pin::as_mut(&mut boxed));
+            unchecked_mut.stream = Some(query.fetch(executor.executor));
+        }
+        return boxed;
+    }
+
     /// Creates a new cursor over a stream of SQLx rows.
     ///
     /// Keeps the executor reference simply by borrowing out of it.
@@ -82,6 +108,32 @@ impl<'c> NativeCursor<'c> {
             let mut_ref = Pin::as_mut(&mut boxed);
             let unchecked_mut = Pin::get_unchecked_mut(mut_ref);
             unchecked_mut.stream = Some(sqlx::query(slice.as_ref()).fetch(executor.executor));
+        }
+
+        return boxed;
+    }
+
+    /// Same as new_from_executor_ref but will also accept placeholder arguments
+    pub(crate) fn new_from_executor_ref_ph(
+        query: &str,
+        executor: &'c Executor,
+        args: PlaceholderArgumentVector,
+    ) -> Cursor<'c> {
+        // See the above function for an explanation of what this is doing and why.
+
+        let res = NativeCursor {
+            query: query.to_string(),
+            runtime: executor.runtime,
+            stream: None,
+            _pin: PhantomPinned,
+        };
+        let mut boxed = Box::pin(res);
+        let mut slice = NonNull::from(&boxed.query);
+        unsafe {
+            let query = args.prepare(slice.as_mut());
+            let mut_ref = Pin::as_mut(&mut boxed);
+            let unchecked_mut = Pin::get_unchecked_mut(mut_ref);
+            unchecked_mut.stream = Some(query.fetch(executor.executor))
         }
 
         return boxed;

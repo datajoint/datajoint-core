@@ -138,6 +138,7 @@ pub unsafe extern "C" fn connection_execute_query_ph(
         Err(_) => return ErrorCode::InvalidCString as i32,
         Ok(value) => value,
     };
+
     match connection.try_execute_query_ph(query_str, *args) {
         Err(error) => error.code() as i32,
         Ok(value) => {
@@ -164,6 +165,31 @@ pub unsafe extern "C" fn connection_fetch_query(
         Ok(value) => value,
     };
     match connection.try_fetch_query(query_str) {
+        Err(error) => error.code() as i32,
+        Ok(cursor) => {
+            util::mem::handle_output_ptr(out, cursor);
+            ErrorCode::Success as i32
+        }
+    }
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn connection_fetch_query_ph(
+    this: *mut Connection,
+    query: *const c_char,
+    args: *mut PlaceholderArgumentVector,
+    out: *mut *mut Cursor,
+) -> i32 {
+    if this.is_null() {
+        return ErrorCode::NullNotAllowed as i32;
+    }
+    let connection = &mut *this;
+    let query_str = match CStr::from_ptr(query).to_str() {
+        Err(_) => return ErrorCode::InvalidCString as i32,
+        Ok(value) => value,
+    };
+    let boxed_args = Box::from_raw(args);
+    match connection.try_fetch_query_ph(query_str, *boxed_args) {
         Err(error) => error.code() as i32,
         Ok(cursor) => {
             util::mem::handle_output_ptr(out, cursor);

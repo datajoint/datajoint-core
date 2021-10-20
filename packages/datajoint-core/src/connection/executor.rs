@@ -92,8 +92,7 @@ impl<'c> Executor<'c> {
         NativeCursor::new_from_executor_ref(query, &self)
     }
 
-    pub fn cursor_ph(&self, query: &'c str, args: PlaceholderArgumentVector) -> Cursor<'c> {
-        let qu = args.prepare(query);
-        Cursor::new(self.runtime, qu.fetch(self.executor))
+    pub fn cursor_ph(&'c self, query: &str, args: PlaceholderArgumentVector) -> Cursor<'c> {
+        NativeCursor::new_from_executor_ref_ph(query, &self, args)
     }
 }
