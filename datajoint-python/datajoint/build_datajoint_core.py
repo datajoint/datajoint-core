@@ -1,11 +1,10 @@
 from cffi import FFI
-from cffi_config import header_file
-from os import path
+import cffi_config
 
 ffi = FFI()
 
-with open(header_file, 'r') as f:
-    headers = f.read()
+with open(cffi_config.header_file, 'r') as file:
+    headers = file.read()
     ffi.cdef(headers)
 
 ffi.set_source("datajoint._datajoint_core", None)
