@@ -9,7 +9,11 @@ impl PlaceholderArgument {
         PlaceholderArgument { arg }
     }
 
-    pub fn data(self) -> DecodeResult {
+    pub fn data(&self) -> &DecodeResult {
+        &self.arg
+    }
+
+    pub fn into_data(self) -> DecodeResult {
         self.arg
     }
 }

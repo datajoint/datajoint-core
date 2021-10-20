@@ -120,10 +120,10 @@ pub unsafe extern "C" fn connection_execute_query(
 pub unsafe extern "C" fn connection_execute_query_ph(
     this: *mut Connection,
     query: *const c_char,
-    ph_args : *mut PlaceholderArgumentVector,
+    ph_args: *mut PlaceholderArgumentVector,
     out: *mut u64,
 ) -> i32 {
-    if this.is_null()  {
+    if this.is_null() || query.is_null() || ph_args.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
     let connection = { &mut *this };
@@ -132,10 +132,12 @@ pub unsafe extern "C" fn connection_execute_query_ph(
         Err(_) => return ErrorCode::InvalidCString as i32,
         Ok(value) => value,
     };
-    match connection.try_execute_query_ph(query_str,*args) {
+    match connection.try_execute_query_ph(query_str, *args) {
         Err(error) => error.code() as i32,
         Ok(value) => {
-            *out = value;
+            if out.is_null() {
+                *out = value;
+            }
             ErrorCode::Success as i32
         }
     }

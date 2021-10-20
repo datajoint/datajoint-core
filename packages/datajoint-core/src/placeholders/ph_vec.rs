@@ -16,14 +16,16 @@ impl PlaceholderArgumentVector {
     pub fn prepare(self, query: &str) -> Query<Any, <Any as HasArguments>::Arguments> {
         let mut qu = sqlx::query::<Any>(query);
         for arg in self.vec {
-            match arg.data() {
+            match arg.into_data() {
                 DecodeResult::Int8(a) => qu = qu.bind(a as i32),
                 DecodeResult::UInt8(a) => qu = qu.bind(a as i32),
                 DecodeResult::Int16(a) => qu = qu.bind(a as i32),
                 DecodeResult::UInt16(a) => qu = qu.bind(a as i32),
                 DecodeResult::Int32(a) => qu = qu.bind(a),
-
-                // ToDo fix potential overflow problem eventually
+                // TODO(EdwardGarmon): Will eventually move to using
+                // sqlx type parameters so we can encode types correctly
+                // according to database type, for now there
+                // will be a possible overflow error here
                 DecodeResult::UInt32(a) => qu = qu.bind(a as i32),
                 DecodeResult::String(a) => qu = qu.bind(a),
                 DecodeResult::Float32(a) => qu = qu.bind(a),
