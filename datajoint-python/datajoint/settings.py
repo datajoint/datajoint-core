@@ -35,7 +35,7 @@ class Config:
 
     def __del__(self):
         if self.owning:
-            dj_core.connection_settings_free(self.native)
+            dj_core.connection_settings_free(self.native[0])
 
     # TODO(jackson-nestelroad): Type checking here for inputs and outputs.
 
