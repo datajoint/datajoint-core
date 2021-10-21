@@ -1,6 +1,7 @@
 from .datajoint_core_lib import dj_core
 from ._datajoint_core import ffi
 
+
 class PlaceHolderArgumentVector:
     def __init__(self):
         self.native = dj_core.placeholder_argument_vector_new()
@@ -12,18 +13,18 @@ class PlaceHolderArgumentVector:
         if isinstance(data, bytearray) or isinstance(data, bytes):
             c_data = ffi.new('unsigned char[]', data)
             dj_core.placeholder_argument_vector_add(
-                self.native, c_data, len(data), dj_core.DataJointType_Blob)
+                self.native, c_data, len(data), dj_core.NativeDecodedType_Bytes)
         elif isinstance(data, str):
             c_data = ffi.new('char[]', data.encode())
             dj_core.placeholder_argument_vector_add(
-                self.native, c_data, len(data), dj_core.DataJointType_Date)
+                self.native, c_data, len(data), dj_core.NativeDecodedType_String)
         elif isinstance(data, float):
             p_data = ffi.new('float*', data)
             dj_core.placeholder_argument_vector_add(
-                self.native, p_data, 0, dj_core.DataJointType_Float)
+                self.native, p_data, 0, dj_core.NativeDecodedType_Float64)
         elif isinstance(data, int):
             p_data = ffi.new('int32_t*', data)
             dj_core.placeholder_argument_vector_add(
-                self.native, p_data, 0, dj_core.DataJointType_Int)
+                self.native, p_data, 0, dj_core.NativeDecodedType_Int32)
         else:
             raise TypeError("unsupported placeholder argument type")
