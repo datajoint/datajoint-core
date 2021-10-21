@@ -2,15 +2,19 @@ from ._datajoint_core import ffi
 from .cursor import Cursor
 from .datajoint_core_lib import dj_core
 from .errors import datajoint_core_assert_success
-from .settings import Config, config
+from .settings import Config, default_config
 
 
 class Connection:
-    def __init__(self, config):
-        if not isinstance(config, Config):
-            raise TypeError("config must be a connection configuration")
-        self.native = dj_core.connection_new(config.native)
-        config.native = ffi.NULL
+    def __init__(self):
+        self.native = dj_core.connection_new(dj_core.connection_settings_new())
+        self.config = Config(
+            native=dj_core.connection_get_settings(self.native), owning=False)
+
+        # TODO(jackson-nestelroad): Probably don't do this here, do it in some
+        # higher-level layer.
+        for key in default_config:
+            self.config[key] = default_config[key]
 
     def __del__(self):
         dj_core.connection_free(self.native)
@@ -43,14 +47,14 @@ class Connection:
 
 
 def conn(host=None, user=None, password=None, database_name=None, *, init_fun=None, reset=False, use_tls=None):
+    connection = Connection()
     if host is not None:
-        config["hostname"] = host
+        connection.config["hostname"] = host
     if user is not None:
-        config["username"] = user
+        connection.config["username"] = user
     if password is not None:
-        config["password"] = password
+        connection.config["password"] = password
     if database_name is not None:
-        config["database_name"] = database_name
-    connection = Connection(config)
+        connection.config["database_name"] = database_name
     connection.connect()
     return connection
