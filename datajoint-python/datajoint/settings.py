@@ -1,3 +1,4 @@
+from ._datajoint_core import ffi
 from .datajoint_core_lib import dj_core
 
 
@@ -21,11 +22,20 @@ class Config:
         'database_name': dj_core.connection_settings_get_database_name
     }
 
-    def __init__(self):
-        self.native = dj_core.connection_settings_new()
+    def __init__(self, native=None, owning=True):
+        self.native = ffi.new("ConnectionSettings**")
+        if native is None:
+            self.native[0] = ffi.NULL
+            self.owning = True
+        elif ffi.typeof(native) is ffi.typeof("ConnectionSettings*"):
+            self.native[0] = native
+            self.owning = owning
+        else:
+            raise ValueError("invalid type for native pointer")
 
     def __del__(self):
-        dj_core.connection_settings_free(self.native)
+        if self.owning:
+            dj_core.connection_settings_free(self.native)
 
     # TODO(jackson-nestelroad): Type checking here for inputs and outputs.
 
@@ -33,24 +43,24 @@ class Config:
         if setting.lower() in self.setters:
             if type(value) == str:
                 value = value.encode("utf-8")
-            self.setters[setting](self.native, value)
+            self.setters[setting](self.native[0], value)
         else:
             raise Exception(f"No setting found with key: {setting}")
 
     def __getitem__(self, setting):
         if setting.lower() in self.getters:
-            return self.getters[setting](self.native)
+            return self.getters[setting](self.native[0])
         else:
             raise Exception(f"No setting found with key: {setting}")
 
 
-config = Config()
-
 # Placeholders for setting default values into the config variable
 # In the future this would be upadated with settings from environment
 # variables similar to how it is done in 'datajoint-python/settings.py'
-config["hostname"] = "ENV_HOSTNAME"
-config["username"] = "ENV_USERNAME"
-config["password"] = "ENV_PASSWORD"
-config["port"] = 3306
-config["database_name"] = "ENV_DATABASE_NAME"
+default_config = dict({
+    "hostname": "ENV_HOSTNAME",
+    "username": "ENV_USERNAME",
+    "password": "ENV_PASSWORD",
+    "port": 3306,
+    "database_name": "ENV_DATABASE_NAME"
+})
