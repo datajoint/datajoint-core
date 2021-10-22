@@ -28,7 +28,7 @@ class TableColumnRef:
 
     def name(self):
         name = dj_core.table_column_ref_name(self.native[0])
-        return ffi.string(name) if name else None
+        return ffi.string(name).decode("utf-8") if name else None
 
     def type(self):
         return DataJointType(dj_core.table_column_ref_type(self.native[0]))
