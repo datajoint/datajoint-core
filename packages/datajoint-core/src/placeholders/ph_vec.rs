@@ -1,5 +1,5 @@
 use crate::placeholders::PlaceholderArgument;
-use crate::types::DecodeResult;
+use crate::types::NativeType;
 use sqlx::database::HasArguments;
 use sqlx::query::Query;
 use sqlx::Any;
@@ -17,20 +17,21 @@ impl PlaceholderArgumentVector {
         let mut qu = sqlx::query::<Any>(query);
         for arg in self.vec {
             match arg.into_data() {
-                DecodeResult::Int8(a) => qu = qu.bind(a as i32),
-                DecodeResult::UInt8(a) => qu = qu.bind(a as i32),
-                DecodeResult::Int16(a) => qu = qu.bind(a as i32),
-                DecodeResult::UInt16(a) => qu = qu.bind(a as i32),
-                DecodeResult::Int32(a) => qu = qu.bind(a),
+                NativeType::None => todo!(),
+                NativeType::Int8(a) => qu = qu.bind(a as i32),
+                NativeType::UInt8(a) => qu = qu.bind(a as i32),
+                NativeType::Int16(a) => qu = qu.bind(a as i32),
+                NativeType::UInt16(a) => qu = qu.bind(a as i32),
+                NativeType::Int32(a) => qu = qu.bind(a),
                 // TODO(EdwardGarmon): Will eventually move to using
                 // sqlx type parameters so we can encode types correctly
                 // according to database type, for now there
                 // will be a possible overflow error here
-                DecodeResult::UInt32(a) => qu = qu.bind(a as i32),
-                DecodeResult::String(a) => qu = qu.bind(a),
-                DecodeResult::Float32(a) => qu = qu.bind(a),
-                DecodeResult::Float64(a) => qu = qu.bind(a),
-                DecodeResult::Bytes(a) => qu = qu.bind(a),
+                NativeType::UInt32(a) => qu = qu.bind(a as i32),
+                NativeType::String(a) => qu = qu.bind(a),
+                NativeType::Float32(a) => qu = qu.bind(a),
+                NativeType::Float64(a) => qu = qu.bind(a),
+                NativeType::Bytes(a) => qu = qu.bind(a),
             };
         }
         qu

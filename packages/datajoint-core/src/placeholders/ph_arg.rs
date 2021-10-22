@@ -1,19 +1,19 @@
-use crate::types::DecodeResult;
+use crate::types::NativeType;
 
 pub struct PlaceholderArgument {
-    pub arg: DecodeResult,
+    pub arg: NativeType,
 }
 
 impl PlaceholderArgument {
-    pub fn new(arg: DecodeResult) -> Self {
+    pub fn new(arg: NativeType) -> Self {
         PlaceholderArgument { arg }
     }
 
-    pub fn data(&self) -> &DecodeResult {
+    pub fn data(&self) -> &NativeType {
         &self.arg
     }
 
-    pub fn into_data(self) -> DecodeResult {
+    pub fn into_data(self) -> NativeType {
         self.arg
     }
 }

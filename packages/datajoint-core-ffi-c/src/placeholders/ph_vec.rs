@@ -1,11 +1,9 @@
-use core::mem;
-use datajoint_core::placeholders::{PlaceholderArgument, PlaceholderArgumentVector};
-use datajoint_core::types::{DataJointType, DecodeResult};
-use std::ffi::CStr;
-use std::fmt::Error;
+use crate::types::native_type::NativeTypeEnum;
+use datajoint_core::{
+    error::ErrorCode,
+    placeholders::{PlaceholderArgument, PlaceholderArgumentVector},
+};
 use std::os::raw::c_void;
-
-use crate::types::decode::NativeDecodedType;
 
 /// Creates a new placeholder argument vector to send to a query method.
 #[no_mangle]
@@ -21,25 +19,31 @@ pub extern "C" fn placeholder_argument_vector_free(ptr: *mut PlaceholderArgument
     }
 }
 
-/// PlaceholderArgument* placeholder_argument_vector_add(PlaceholderArgumentVector* self, void* data, size_t data_size, DataJointType type);
-// Adds a new placeholder argument to the vector.
+/// Adds a new placeholder argument to the vector.
 /// Data is referenced by the void* `data` and is `data_size` bytes.
 /// The data is NOT owned and must remain alive until the placeholder arguments are bound to the query.
 /// Data is decoded in the library of type `type`, which is a supported column type for decoding.
 /// Returns the created argument for further modification if desired.
-
-//TODO add null checking to this and move placeholder argument to be a variable
 #[no_mangle]
 pub unsafe extern "C" fn placeholder_argument_vector_add(
     this: *mut PlaceholderArgumentVector,
     data: *mut c_void,
     data_size: usize,
-    data_type: NativeDecodedType,
-) -> *mut PlaceholderArgument {
+    data_type: NativeTypeEnum,
+    out: *mut *mut PlaceholderArgument,
+) -> i32 {
     let vector = &mut *this;
-    let encoded = data_type.encode(data, data_size);
-    let arg = PlaceholderArgument::new(encoded);
-    vector.add_arg(arg);
-    let last = vector.vec.len() - 1;
-    return &mut vector.vec[last];
+    let encoded = match data_type.encode(data, data_size) {
+        Err(error) => return error.code() as i32,
+        Ok(val) => val,
+    };
+
+    vector.add_arg(PlaceholderArgument::new(encoded));
+
+    if !out.is_null() {
+        let last = vector.vec.len() - 1;
+        *out = &mut vector.vec[last] as *mut PlaceholderArgument;
+    }
+
+    return ErrorCode::Success as i32;
 }
