@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+import os
 from .datajoint_core_lib import dj_core
 from ._datajoint_core import ffi
 
@@ -22,6 +24,7 @@ class Config:
         'database_name': dj_core.connection_settings_get_database_name
     }
 
+    # TODO(Jonathan Hocevar): Make this a two-way map
     database_type = {
         "MySQL": dj_core.DatabaseType_MySql,
         "Postgres": dj_core.DatabaseType_Postgres,
@@ -52,17 +55,19 @@ class Config:
                 value = value.encode("utf-8")
             self.setters[setting](self.native[0], value)
         else:
-            raise Exception(f"No setting found with key: {setting}")
+            raise Exception(f"no setting found with key: {setting}")
 
     def __getitem__(self, setting):
         if setting.lower() in self.getters:
             val = self.getters[setting](self.native[0])
             if type(val) == int:
                 return val
-            elif ffi.typeof(val) == ffi.typeof("char *"):
+            elif ffi.typeof(val) == ffi.typeof("char*"):
                 return ffi.string(val).decode("utf-8")
+            else:
+                raise Exception("unsupported type")
         else:
-            raise Exception(f"No setting found with key: {setting}")
+            raise Exception(f"no setting found with key: {setting}")
 
     def __repr__(self):
         settings = {setting: self[setting] for setting in self.getters}
@@ -83,8 +88,6 @@ class Config:
 # Placeholders for setting default values into the config variable
 # In the future this would be upadated with settings from environment
 # variables similar to how it is done in 'datajoint-python/settings.py'
-import os
-from dotenv import load_dotenv
 load_dotenv()
 
 default_config = {k: v for k, v in zip(
@@ -92,5 +95,5 @@ default_config = {k: v for k, v in zip(
      "port", "database_name",),
     map(os.getenv, ("DJ_HOST", "DJ_USER", "DJ_PASS",
                     "PORT", "DB_NAME")))
-            if v is not None}
+    if v is not None}
 default_config["port"] = int(default_config["port"])
