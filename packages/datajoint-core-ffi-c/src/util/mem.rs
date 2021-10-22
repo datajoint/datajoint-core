@@ -19,7 +19,7 @@ where
             *out_ptr = alloc(Layout::new::<T>()) as *mut T;
         } else {
             // Drop previous value, keeping allocation.
-            Box::from_raw(*out_ptr);
+            out_ptr.drop_in_place();
         }
         // Write into existing allocation.
         std::ptr::write(*out_ptr, out_value);

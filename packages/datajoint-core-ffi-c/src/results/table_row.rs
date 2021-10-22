@@ -46,6 +46,14 @@ pub unsafe extern "C" fn table_row_columns(
 }
 
 #[no_mangle]
+pub unsafe extern "C" fn table_row_columns_advance(
+    columns: *mut TableColumnRef,
+    index: size_t,
+) -> *mut TableColumnRef {
+    columns.add(index)
+}
+
+#[no_mangle]
 pub unsafe extern "C" fn table_row_columns_free(
     out_columns: *mut TableColumnRef,
     columns_size: size_t,
