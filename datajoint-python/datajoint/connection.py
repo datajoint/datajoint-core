@@ -46,7 +46,7 @@ class Connection:
         return out
 
 
-def conn(host=None, user=None, password=None, database_name=None, *, init_fun=None, reset=False, use_tls=None):
+def conn(host=None, user=None, password=None, database_name=None, database_type=None, *, init_fun=None, reset=False, use_tls=None):
     connection = Connection()
     if host is not None:
         connection.config["hostname"] = host
@@ -56,5 +56,7 @@ def conn(host=None, user=None, password=None, database_name=None, *, init_fun=No
         connection.config["password"] = password
     if database_name is not None:
         connection.config["database_name"] = database_name
+    if database_type is not None:
+        connection.config["database_type"] = database_type
     connection.connect()
     return connection
