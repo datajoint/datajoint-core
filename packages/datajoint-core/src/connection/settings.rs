@@ -32,6 +32,7 @@ impl ConnectionSettings {
         let mut protocol = String::new();
         let mut tls_ssl = String::new();
 
+
         match self.database_type {
             DatabaseType::Postgres => {
                 protocol = "postgres".to_string();
@@ -44,7 +45,7 @@ impl ConnectionSettings {
         }
         //postgres://user:pass@host:port/database?ssl=true
         //mysql://user:pass@host:port/database?tls=true
-        let uri = format!(
+        let mut uri = format!(
             "{}://{}:{}@{}:{}/{}",
             protocol,
             self.username,
@@ -53,6 +54,16 @@ impl ConnectionSettings {
             self.port.to_string(),
             self.database_name,
         );
+        if self.database_name == "".to_string() && self.database_type == DatabaseType::MySql {
+            uri = format!(
+                "{}://{}:{}@{}:{}",
+                protocol,
+                self.username,
+                self.password,
+                self.hostname,
+                self.port.to_string(),
+            )
+        }
         match self.use_tls {
             Some(true) => format!("{}?{}=true", uri, tls_ssl,),
             Some(false) => format!("{}?{}=false", uri, tls_ssl,),
