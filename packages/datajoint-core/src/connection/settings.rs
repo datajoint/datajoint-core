@@ -54,6 +54,7 @@ impl ConnectionSettings {
             self.port.to_string(),
             self.database_name,
         );
+        
         if self.database_name == "".to_string() && self.database_type == DatabaseType::MySql {
             uri = format!(
                 "{}://{}:{}@{}:{}",
@@ -63,6 +64,9 @@ impl ConnectionSettings {
                 self.hostname,
                 self.port.to_string(),
             )
+        }
+        else if self.database_name == "".to_string() && self.database_type == DatabaseType::Postgres {
+            // Return an error
         }
         match self.use_tls {
             Some(true) => format!("{}?{}=true", uri, tls_ssl,),
