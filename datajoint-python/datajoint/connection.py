@@ -32,14 +32,14 @@ class Connection:
         out = ffi.new("uint64_t*")
         if len(args) == 0:
             err = dj_core.connection_execute_query(
-                self.native, query.encode('utf-8'), out)
+                self.native, query.encode("utf-8"), ffi.NULL, out)
             datajoint_core_assert_success(err)
             return out[0]
         else:
             ph_args = PlaceholderArgumentVector()
             for arg in args:
                 ph_args.add(arg)
-            err = dj_core.connection_execute_query_ph(
+            err = dj_core.connection_execute_query(
                 self.native, query.encode("utf-8"), ph_args.native, out)
             ph_args.native = ffi.NULL
             return out[0]
@@ -48,14 +48,14 @@ class Connection:
         out = Cursor()
         if len(args) == 0:
             err = dj_core.connection_fetch_query(
-                self.native, query.encode('utf-8'), out.native)
+                self.native, query.encode("utf-8"), ffi.NULL, out.native)
             datajoint_core_assert_success(err)
             return out
         else:
             ph_args = PlaceholderArgumentVector()
             for arg in args:
                 ph_args.add(arg)
-            err = dj_core.connection_fetch_query_ph(
+            err = dj_core.connection_fetch_query(
                 self.native, query.encode("utf-8"), ph_args.native, out.native)
             datajoint_core_assert_success(err)
             ph_args.native = ffi.NULL
