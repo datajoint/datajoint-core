@@ -46,6 +46,7 @@ class Connection:
             err = dj_core.connection_execute_query(
                 self.native, query.encode("utf-8"), ph_args.native, out)
             ph_args.native = ffi.NULL
+            datajoint_core_assert_success(err)
             return out[0]
 
     def fetch_query(self, query, *args):
@@ -61,8 +62,8 @@ class Connection:
                 ph_args.add(arg)
             err = dj_core.connection_fetch_query(
                 self.native, query.encode("utf-8"), ph_args.native, out.native)
-            datajoint_core_assert_success(err)
             ph_args.native = ffi.NULL
+            datajoint_core_assert_success(err)
             return out
 
 
