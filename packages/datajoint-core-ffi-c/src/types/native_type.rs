@@ -1,6 +1,7 @@
-/// Native types that row values can be decoded to.
+/// Native types that can be decoded from a database or encoded to a query,
+/// possibly for a placeholder argument.
 ///
-/// Should be parallel to datajoint_core::types::DecodeResult.
+/// Should be parallel to `datajoint_core::types::NativeType`.
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum NativeTypeEnum {
