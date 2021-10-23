@@ -5,7 +5,7 @@ import datajoint as dj
 connection = dj.conn(host="tutorial-db.datajoint.io", user="<username>",
                      password="<password>", database_name="jonathan_tutorial", reset=False, use_tls=True)
 
-cursor = connection.fetch_query_ph(
+cursor = connection.fetch_query(
     "select * from mouse where sex = ?", 'M')
 try:
     l = list(cursor)
