@@ -3,6 +3,8 @@ use crate::results::{TableColumnRef, TableRow};
 use crate::types::DataJointType;
 use std::fmt::{self, Display, Formatter};
 
+/// Enum for a native type and its corresponding value that can be decoded
+/// from a database or encoded into a query.
 #[derive(Debug, Clone, PartialEq)]
 pub enum NativeType {
     None,
