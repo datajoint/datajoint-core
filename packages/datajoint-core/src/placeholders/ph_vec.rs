@@ -20,7 +20,7 @@ impl PlaceholderArgumentCollection for PlaceholderArgumentVector {
         let mut query = sqlx::query::<sqlx::Any>(query);
         for arg in self {
             match arg {
-                NativeType::None => todo!(),
+                NativeType::None => {}
                 NativeType::Int8(val) => query = query.bind(val as i32),
                 NativeType::UInt8(val) => query = query.bind(val as i32),
                 NativeType::Int16(val) => query = query.bind(val as i32),
