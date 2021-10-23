@@ -2,7 +2,7 @@ from .datajoint_core_lib import dj_core
 from ._datajoint_core import ffi
 
 
-class PlaceHolderArgumentVector:
+class PlaceholderArgumentVector:
     def __init__(self):
         self.native = dj_core.placeholder_argument_vector_new()
 
@@ -11,20 +11,20 @@ class PlaceHolderArgumentVector:
 
     def add(self, data):
         if isinstance(data, bytearray) or isinstance(data, bytes):
-            c_data = ffi.new('unsigned char[]', data)
+            c_data = ffi.new("unsigned char[]", data)
             dj_core.placeholder_argument_vector_add(
-                self.native, c_data, len(data), dj_core.NativeDecodedType_Bytes)
+                self.native, c_data, len(data), dj_core.NativeTypeEnum_Bytes, ffi.NULL)
         elif isinstance(data, str):
-            c_data = ffi.new('char[]', data.encode())
+            c_data = ffi.new("char[]", data.encode("utf-8"))
             dj_core.placeholder_argument_vector_add(
-                self.native, c_data, len(data), dj_core.NativeDecodedType_String)
+                self.native, c_data, len(data), dj_core.NativeTypeEnum_String, ffi.NULL)
         elif isinstance(data, float):
-            p_data = ffi.new('float*', data)
+            p_data = ffi.new("double*", data)
             dj_core.placeholder_argument_vector_add(
-                self.native, p_data, 0, dj_core.NativeDecodedType_Float64)
+                self.native, p_data, 0, dj_core.NativeTypeEnum_Float64, ffi.NULL)
         elif isinstance(data, int):
-            p_data = ffi.new('int32_t*', data)
+            p_data = ffi.new("int32_t*", data)
             dj_core.placeholder_argument_vector_add(
-                self.native, p_data, 0, dj_core.NativeDecodedType_Int32)
+                self.native, p_data, 0, dj_core.NativeTypeEnum_Int32, ffi.NULL)
         else:
             raise TypeError("unsupported placeholder argument type")
