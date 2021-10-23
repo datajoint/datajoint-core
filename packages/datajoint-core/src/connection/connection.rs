@@ -60,9 +60,6 @@ impl Connection {
 
     /// Disconnects from the SQL database.
     ///
-    /// The connection can be restarted if desired.
-    /// Disconnects from the SQL database.
-    ///
     /// If the database connection has already been disconnected, this method
     /// is a no-op.
     ///
