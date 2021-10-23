@@ -1,11 +1,9 @@
 use crate::connection::Executor;
 use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
-use crate::placeholders::PlaceholderArgumentVector;
+use crate::placeholders::PlaceholderArgumentCollection;
 use crate::results::TableRow;
 use futures::stream::StreamExt;
 use futures_core::stream::BoxStream;
-use sqlx::query;
-use std::arch;
 use std::marker::PhantomPinned;
 use std::pin::Pin;
 use std::ptr::NonNull;
@@ -68,12 +66,18 @@ impl<'c> NativeCursor<'c> {
         return boxed;
     }
 
-    // Same as new_from_executor but has support for placeholder arguments
+    /// Creates a new cursor over a stream of SQLx rows.
+    ///
+    /// Consumes the input executor.
+    ///
+    /// Uses placeholder arguments, binding them to the query prior to execution.
     pub(crate) fn new_from_executor_ph(
         query: &str,
         executor: Executor<'c>,
-        args: PlaceholderArgumentVector,
+        args: impl PlaceholderArgumentCollection,
     ) -> Cursor<'c> {
+        // See the above function for an explanation of what this is doing and why.
+
         let res = NativeCursor {
             query: query.to_string(),
             runtime: executor.runtime,
@@ -81,9 +85,9 @@ impl<'c> NativeCursor<'c> {
             _pin: PhantomPinned,
         };
         let mut boxed = Box::pin(res);
-        let mut slice = NonNull::from(&boxed.query);
+        let slice = NonNull::from(&boxed.query);
         unsafe {
-            let query = args.prepare(slice.as_mut());
+            let query = args.prepare(slice.as_ref());
             let unchecked_mut = Pin::get_unchecked_mut(Pin::as_mut(&mut boxed));
             unchecked_mut.stream = Some(query.fetch(executor.executor));
         }
@@ -94,7 +98,7 @@ impl<'c> NativeCursor<'c> {
     ///
     /// Keeps the executor reference simply by borrowing out of it.
     pub(crate) fn new_from_executor_ref(query: &str, executor: &'c Executor) -> Cursor<'c> {
-        // See the above function for an explanation of what this is doing and why.
+        // See the above functions for an explanation of what this is doing and why.
 
         let res = NativeCursor {
             query: query.to_string(),
@@ -113,13 +117,17 @@ impl<'c> NativeCursor<'c> {
         return boxed;
     }
 
-    /// Same as new_from_executor_ref but will also accept placeholder arguments
+    /// Creates a new cursor over a stream of SQLx rows.
+    ///
+    /// Keeps the executor reference simply by borrowing out of it.
+    ///
+    /// Uses placeholder arguments, binding them to the query prior to execution.
     pub(crate) fn new_from_executor_ref_ph(
         query: &str,
         executor: &'c Executor,
-        args: PlaceholderArgumentVector,
+        args: impl PlaceholderArgumentCollection,
     ) -> Cursor<'c> {
-        // See the above function for an explanation of what this is doing and why.
+        // See the above functions for an explanation of what this is doing and why.
 
         let res = NativeCursor {
             query: query.to_string(),
@@ -128,9 +136,9 @@ impl<'c> NativeCursor<'c> {
             _pin: PhantomPinned,
         };
         let mut boxed = Box::pin(res);
-        let mut slice = NonNull::from(&boxed.query);
+        let slice = NonNull::from(&boxed.query);
         unsafe {
-            let query = args.prepare(slice.as_mut());
+            let query = args.prepare(slice.as_ref());
             let mut_ref = Pin::as_mut(&mut boxed);
             let unchecked_mut = Pin::get_unchecked_mut(mut_ref);
             unchecked_mut.stream = Some(query.fetch(executor.executor))
