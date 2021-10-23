@@ -1,55 +1,42 @@
-use crate::placeholders::PlaceholderArgument;
 use crate::types::NativeType;
-use sqlx::database::HasArguments;
-use sqlx::query::Query;
-use sqlx::Any;
 
-pub struct PlaceholderArgumentVector {
-    pub vec: Vec<PlaceholderArgument>,
+/// A SQLx query bound to zero or more placeholder arguments.
+pub type SqlxQuery<'q> =
+    sqlx::query::Query<'q, sqlx::Any, <sqlx::Any as sqlx::database::HasArguments<'q>>::Arguments>;
+
+/// A type trait for binding any amount of placeholder arguments to a query.
+pub trait PlaceholderArgumentCollection {
+    fn prepare(self, query: &str) -> SqlxQuery;
 }
 
-impl PlaceholderArgumentVector {
-    pub fn new(vec: Vec<PlaceholderArgument>) -> Self {
-        PlaceholderArgumentVector { vec: vec }
-    }
+/// A single placeholder argument.
+pub type PlaceholderArgument = NativeType;
 
-    pub fn prepare(self, query: &str) -> Query<Any, <Any as HasArguments>::Arguments> {
-        let mut qu = sqlx::query::<Any>(query);
-        for arg in self.vec {
-            match arg.into_data() {
+/// A basic placeholder argument vector, which wraps several values of a supported native type.
+pub type PlaceholderArgumentVector = Vec<PlaceholderArgument>;
+
+impl PlaceholderArgumentCollection for PlaceholderArgumentVector {
+    fn prepare(self, query: &str) -> SqlxQuery {
+        let mut query = sqlx::query::<sqlx::Any>(query);
+        for arg in self {
+            match arg {
                 NativeType::None => todo!(),
-                NativeType::Int8(a) => qu = qu.bind(a as i32),
-                NativeType::UInt8(a) => qu = qu.bind(a as i32),
-                NativeType::Int16(a) => qu = qu.bind(a as i32),
-                NativeType::UInt16(a) => qu = qu.bind(a as i32),
-                NativeType::Int32(a) => qu = qu.bind(a),
+                NativeType::Int8(val) => query = query.bind(val as i32),
+                NativeType::UInt8(val) => query = query.bind(val as i32),
+                NativeType::Int16(val) => query = query.bind(val as i32),
+                NativeType::UInt16(val) => query = query.bind(val as i32),
+                NativeType::Int32(val) => query = query.bind(val),
                 // TODO(EdwardGarmon): Will eventually move to using
                 // sqlx type parameters so we can encode types correctly
                 // according to database type, for now there
-                // will be a possible overflow error here
-                NativeType::UInt32(a) => qu = qu.bind(a as i32),
-                NativeType::String(a) => qu = qu.bind(a),
-                NativeType::Float32(a) => qu = qu.bind(a),
-                NativeType::Float64(a) => qu = qu.bind(a),
-                NativeType::Bytes(a) => qu = qu.bind(a),
+                // will be a possible overflow error here.
+                NativeType::UInt32(val) => query = query.bind(val as i32),
+                NativeType::String(val) => query = query.bind(val),
+                NativeType::Float32(val) => query = query.bind(val),
+                NativeType::Float64(val) => query = query.bind(val),
+                NativeType::Bytes(val) => query = query.bind(val),
             };
         }
-        qu
-    }
-
-    pub fn add_arg(&mut self, arg: PlaceholderArgument) {
-        self.vec.push(arg)
-    }
-
-    pub fn get(&self, index: usize) -> &PlaceholderArgument {
-        &self.vec[index]
-    }
-
-    pub fn size(self) -> usize {
-        self.vec.len()
-    }
-
-    pub fn set_data(&mut self, index: usize, arg: PlaceholderArgument) {
-        self.vec.insert(index, arg)
+        query
     }
 }
