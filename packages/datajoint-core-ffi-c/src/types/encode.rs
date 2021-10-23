@@ -5,6 +5,7 @@ use libc::c_void;
 use std::ffi::CStr;
 
 impl NativeTypeEnum {
+    /// Encodes raw native type data into the proper enum variant.
     pub unsafe fn encode(&self, data: *mut c_void, data_size: usize) -> Result<NativeType, Error> {
         match self {
             NativeTypeEnum::None => Ok(NativeType::None),
