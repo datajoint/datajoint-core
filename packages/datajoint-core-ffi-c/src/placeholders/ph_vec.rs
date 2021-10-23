@@ -25,7 +25,7 @@ pub extern "C" fn placeholder_argument_vector_free(ptr: *mut PlaceholderArgument
 /// The data is NOT owned and must remain alive until the placeholder arguments are bound to the query.
 /// Data is decoded in the library of type `type`, which is a supported column type for decoding.
 ///
-/// Returns the created argument for further modification if desired.
+/// Gives the created argument through an output parameter for further modification if desired.
 #[no_mangle]
 pub unsafe extern "C" fn placeholder_argument_vector_add(
     this: *mut PlaceholderArgumentVector,
