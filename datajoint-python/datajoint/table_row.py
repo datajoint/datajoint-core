@@ -75,15 +75,19 @@ class TableRow:
                 # the assumption that all columns are numbered properly via
                 # their ordinal.
                 col = self.column(i)
+                col_name = col.name()
                 err = dj_core.table_row_decode_to_allocation(
                     self.native[0], col.native[0], value)
-                datajoint_core_assert_success(err)
+                if err != dj_core.ErrorCode_Success:
+                    # TODO(Jackson-nestelroad) clean up DECODE FAILED
+                    result[col_name] = "DECODE FAILED"
+                    continue
 
                 # `raw_data` is a void* of length `data_size` bytes.
                 raw_data = dj_core.allocated_decoded_value_data(value)
                 data_size = dj_core.allocated_decoded_value_size(value)
 
-                col_name = col.name().decode("utf-8")
+                col_name = col.name()
                 # Decode the value to a Python value.
                 dj_type = dj_core.allocated_decoded_value_type(value)
                 if dj_type == dj_core.NativeTypeEnum_None:
