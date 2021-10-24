@@ -2,6 +2,7 @@ from ._datajoint_core import ffi
 from .cursor import Cursor
 from .datajoint_core_lib import dj_core
 from .errors import datajoint_core_assert_success
+from .placeholders import PlaceholderArgumentVector
 from .settings import Config, default_config
 
 
@@ -31,19 +32,39 @@ class Connection:
         err = dj_core.connection_reconnect(self.native)
         datajoint_core_assert_success(err)
 
-    def execute_query(self, query):
+    def execute_query(self, query, *args):
         out = ffi.new("uint64_t*")
-        err = dj_core.connection_execute_query(
-            self.native, query.encode('utf-8'), out)
-        datajoint_core_assert_success(err)
-        return out[0]
+        if len(args) == 0:
+            err = dj_core.connection_execute_query(
+                self.native, query.encode("utf-8"), ffi.NULL, out)
+            datajoint_core_assert_success(err)
+            return out[0]
+        else:
+            ph_args = PlaceholderArgumentVector()
+            for arg in args:
+                ph_args.add(arg)
+            err = dj_core.connection_execute_query(
+                self.native, query.encode("utf-8"), ph_args.native, out)
+            ph_args.native = ffi.NULL
+            datajoint_core_assert_success(err)
+            return out[0]
 
-    def fetch_query(self, query):
+    def fetch_query(self, query, *args):
         out = Cursor()
-        err = dj_core.connection_fetch_query(
-            self.native, query.encode('utf-8'), out.native)
-        datajoint_core_assert_success(err)
-        return out
+        if len(args) == 0:
+            err = dj_core.connection_fetch_query(
+                self.native, query.encode("utf-8"), ffi.NULL, out.native)
+            datajoint_core_assert_success(err)
+            return out
+        else:
+            ph_args = PlaceholderArgumentVector()
+            for arg in args:
+                ph_args.add(arg)
+            err = dj_core.connection_fetch_query(
+                self.native, query.encode("utf-8"), ph_args.native, out.native)
+            ph_args.native = ffi.NULL
+            datajoint_core_assert_success(err)
+            return out
 
 
 def conn(host=None, user=None, password=None, database_name=None, database_type=None, *, init_fun=None, reset=False, use_tls=None):

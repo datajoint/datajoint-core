@@ -1,5 +1,6 @@
 use crate::connection::{Cursor, NativeCursor};
 use crate::error::{Error, SqlxError};
+use crate::placeholders::PlaceholderArgumentCollection;
 use crate::results::TableRow;
 use sqlx::Executor as SqlxExecutor;
 
@@ -31,8 +32,30 @@ impl<'c> Executor<'c> {
     }
 
     /// Executes the given query over the connection.
+    ///
+    /// Uses placeholder arguments, binding them to the query prior to execution.
+    pub fn execute_ph(&self, query: &str, args: impl PlaceholderArgumentCollection) -> u64 {
+        self.try_execute_ph(query, args).unwrap()
+    }
+
+    /// Executes the given query over the connection.
     pub fn try_execute(&self, query: &str) -> Result<u64, Error> {
         match self.runtime.block_on(self.executor.execute(query)) {
+            Err(err) => Err(SqlxError::new(err)),
+            Ok(result) => Ok(result.rows_affected()),
+        }
+    }
+
+    /// Executes the given query over the connection.
+    ///
+    /// Uses placeholder arguments, binding them to the query prior to execution.
+    pub fn try_execute_ph(
+        &self,
+        query: &str,
+        args: impl PlaceholderArgumentCollection,
+    ) -> Result<u64, Error> {
+        let qu = args.prepare(query);
+        match self.runtime.block_on(qu.execute(self.executor)) {
             Err(err) => Err(SqlxError::new(err)),
             Ok(result) => Ok(result.rows_affected()),
         }
@@ -68,8 +91,19 @@ impl<'c> Executor<'c> {
         }
     }
 
-    // Creates a cursor for the given query.
+    /// Creates a cursor for the given query.
     pub fn cursor(&'c self, query: &str) -> Cursor<'c> {
         NativeCursor::new_from_executor_ref(query, &self)
+    }
+
+    /// Creates a cursor for the given query.
+    ///
+    /// Uses placeholder arguments, binding them to the query prior to execution.
+    pub fn cursor_ph(
+        &'c self,
+        query: &str,
+        args: impl PlaceholderArgumentCollection,
+    ) -> Cursor<'c> {
+        NativeCursor::new_from_executor_ref_ph(query, &self, args)
     }
 }

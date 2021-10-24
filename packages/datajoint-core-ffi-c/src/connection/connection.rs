@@ -1,6 +1,7 @@
 use crate::util;
 use datajoint_core::connection::{Connection, ConnectionSettings, Cursor, Executor};
 use datajoint_core::error::ErrorCode;
+use datajoint_core::placeholders::PlaceholderArgumentVector;
 use libc::c_char;
 use std::ffi::CStr;
 
@@ -97,6 +98,7 @@ pub unsafe extern "C" fn connection_executor(
 pub unsafe extern "C" fn connection_execute_query(
     this: *mut Connection,
     query: *const c_char,
+    args: *mut PlaceholderArgumentVector,
     out: *mut u64,
 ) -> i32 {
     if this.is_null() {
@@ -107,7 +109,11 @@ pub unsafe extern "C" fn connection_execute_query(
         Err(_) => return ErrorCode::InvalidCString as i32,
         Ok(value) => value,
     };
-    match connection.try_execute_query(query_str) {
+    match if args.is_null() {
+        connection.try_execute_query(query_str)
+    } else {
+        connection.try_execute_query_ph(query_str, *Box::from_raw(args))
+    } {
         Err(error) => {
             println!("{}", error.message());
             error.code() as i32
@@ -125,6 +131,7 @@ pub unsafe extern "C" fn connection_execute_query(
 pub unsafe extern "C" fn connection_fetch_query(
     this: *mut Connection,
     query: *const c_char,
+    args: *mut PlaceholderArgumentVector,
     out: *mut *mut Cursor,
 ) -> i32 {
     if this.is_null() {
@@ -135,7 +142,11 @@ pub unsafe extern "C" fn connection_fetch_query(
         Err(_) => return ErrorCode::InvalidCString as i32,
         Ok(value) => value,
     };
-    match connection.try_fetch_query(query_str) {
+    match if args.is_null() {
+        connection.try_fetch_query(query_str)
+    } else {
+        connection.try_fetch_query_ph(query_str, *Box::from_raw(args))
+    } {
         Err(error) => error.code() as i32,
         Ok(cursor) => {
             util::mem::handle_output_ptr(out, cursor);

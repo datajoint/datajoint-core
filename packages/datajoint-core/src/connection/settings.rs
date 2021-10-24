@@ -6,17 +6,26 @@ pub enum DatabaseType {
     Postgres,
 }
 
+/// Settings for connecting to an arbitrary SQL database.
 pub struct ConnectionSettings {
+    /// Type of database to connect to.
     pub database_type: DatabaseType,
+    /// Username to login as.
     pub username: String,
+    /// Password to use for login.
     pub password: String,
+    /// Hostname to connect to.
     pub hostname: String,
+    /// Port to connect to.
     pub port: u16,
+    /// Name of the database to connec to.
     pub database_name: String,
+    /// Whether or not the connection should use TLS to secure the connection.
     pub use_tls: Option<bool>,
 }
 
 impl ConnectionSettings {
+    /// Creates a new settings instance, initializing the fields with default values.
     pub fn new() -> Self {
         ConnectionSettings {
             database_type: DatabaseType::MySql,
@@ -28,6 +37,8 @@ impl ConnectionSettings {
             use_tls: None,
         }
     }
+
+    /// Constructs a database connection URI for the settings object.
     pub fn uri(&self) -> String {
         let protocol: &str;
         let tls_ssl: &str;
@@ -42,8 +53,6 @@ impl ConnectionSettings {
                 tls_ssl = "tls";
             }
         }
-        //postgres://user:pass@host:port/database?ssl=true
-        //mysql://user:pass@host:port/database?tls=true
         let uri = format!(
             "{}://{}:{}@{}:{}/{}",
             protocol,

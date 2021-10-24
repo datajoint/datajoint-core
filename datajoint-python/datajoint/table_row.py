@@ -90,36 +90,36 @@ class TableRow:
                 col_name = col.name()
                 # Decode the value to a Python value.
                 dj_type = dj_core.allocated_decoded_value_type(value)
-                if dj_type == dj_core.NativeDecodedType_None:
+                if dj_type == dj_core.NativeTypeEnum_None:
                     result[col_name] = None
-                elif dj_type == dj_core.NativeDecodedType_Int8:
+                elif dj_type == dj_core.NativeTypeEnum_Int8:
                     result[col_name] = ffi.cast(
                         "int8_t*", raw_data)[0]
-                elif dj_type == dj_core.NativeDecodedType_UInt8:
+                elif dj_type == dj_core.NativeTypeEnum_UInt8:
                     result[col_name] = ffi.cast(
                         "uint8_t*", raw_data)[0]
-                elif dj_type == dj_core.NativeDecodedType_Int16:
+                elif dj_type == dj_core.NativeTypeEnum_Int16:
                     result[col_name] = ffi.cast(
                         "int16_t*", raw_data)[0]
-                elif dj_type == dj_core.NativeDecodedType_UInt16:
+                elif dj_type == dj_core.NativeTypeEnum_UInt16:
                     result[col_name] = ffi.cast(
                         "uint16_t*", raw_data)[0]
-                elif dj_type == dj_core.NativeDecodedType_Int32:
+                elif dj_type == dj_core.NativeTypeEnum_Int32:
                     result[col_name] = ffi.cast(
                         "int32_t*", raw_data)[0]
-                elif dj_type == dj_core.NativeDecodedType_UInt32:
+                elif dj_type == dj_core.NativeTypeEnum_UInt32:
                     result[col_name] = ffi.cast(
                         "uint32_t*", raw_data)[0]
-                elif dj_type == dj_core.NativeDecodedType_String:
+                elif dj_type == dj_core.NativeTypeEnum_String:
                     result[col_name] = ffi.string(
                         ffi.cast("char*", raw_data), data_size).decode('utf-8')
-                elif dj_type == dj_core.NativeDecodedType_Float32:
+                elif dj_type == dj_core.NativeTypeEnum_Float32:
                     result[col_name] = ffi.cast(
                         "float*", raw_data)[0]
-                elif dj_type == dj_core.NativeDecodedType_Float64:
+                elif dj_type == dj_core.NativeTypeEnum_Float64:
                     result[col_name] = ffi.cast(
                         "double*", raw_data)[0]
-                elif dj_type == dj_core.NativeDecodedType_Bytes:
+                elif dj_type == dj_core.NativeTypeEnum_Bytes:
                     result[col_name] = ffi.unpack(
                         ffi.cast("unsigned char*", raw_data), data_size)
                 else:

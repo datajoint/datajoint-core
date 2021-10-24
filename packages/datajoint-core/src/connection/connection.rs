@@ -1,5 +1,6 @@
 use crate::connection::{ConnectionSettings, Cursor, Executor, NativeCursor};
 use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
+use crate::placeholders::PlaceholderArgumentCollection;
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
@@ -25,6 +26,13 @@ impl Connection {
         }
     }
 
+    /// Starts the connection to the SQL database according to settings the object was
+    /// initialized with.
+    pub fn connect(&mut self) -> Result<(), Error> {
+        self.pool = Some(Connection::get_pool(&self.runtime, &*self.settings.uri())?);
+        return Ok(());
+    }
+
     fn not_connected_error() -> Error {
         DataJointError::new("not connected", ErrorCode::NotConnected)
     }
@@ -48,13 +56,6 @@ impl Connection {
             Err(_) => false,
             Ok(_) => true,
         }
-    }
-
-    /// Starts the connection to the SQL database according to settings the object was
-    /// initialized with.
-    pub fn connect(&mut self) -> Result<(), Error> {
-        self.pool = Some(Connection::get_pool(&self.runtime, &*self.settings.uri())?);
-        return Ok(());
     }
 
     /// Disconnects from the SQL database.
@@ -107,8 +108,28 @@ impl Connection {
     }
 
     /// Executes the given non-returning query, returning the number of rows affected.
+    ///
+    /// Uses placeholder arguments, binding them to the query prior to execution.
+    ///
+    /// Panics on error.
+    pub fn execute_query_ph(&self, query: &str, args: impl PlaceholderArgumentCollection) -> u64 {
+        self.try_execute_query_ph(query, args).unwrap()
+    }
+
+    /// Executes the given non-returning query, returning the number of rows affected.
     pub fn try_execute_query(&self, query: &str) -> Result<u64, Error> {
         Ok(self.try_executor()?.try_execute(query)?)
+    }
+
+    /// Executes the given non-returning query, returning the number of rows affected.
+    ///
+    /// Uses placeholder arguments, binding them to the query prior to execution.
+    pub fn try_execute_query_ph(
+        &self,
+        query: &str,
+        args: impl PlaceholderArgumentCollection,
+    ) -> Result<u64, Error> {
+        Ok(self.try_executor()?.try_execute_ph(query, args)?)
     }
 
     /// Creates a cursor for iterating over the results of the given returning query.
@@ -119,7 +140,35 @@ impl Connection {
     }
 
     /// Creates a cursor for iterating over the results of the given returning query.
+    ///
+    /// Uses placeholder arguments, binding them to the query prior to execution.
+    ///
+    /// Panics on error.
+    pub fn fetch_query_ph<'c>(
+        &'c self,
+        query: &'c str,
+        args: impl PlaceholderArgumentCollection,
+    ) -> Cursor {
+        self.try_fetch_query_ph(query, args).unwrap()
+    }
+
+    /// Creates a cursor for iterating over the results of the given returning query.
     pub fn try_fetch_query<'c>(&'c self, query: &str) -> Result<Cursor<'c>, Error> {
         Ok(NativeCursor::new_from_executor(query, self.try_executor()?))
+    }
+
+    /// Creates a cursor for iterating over the results of the given returning query.
+    ///
+    /// Uses placeholder arguments, binding them to the query prior to execution.
+    pub fn try_fetch_query_ph<'c>(
+        &'c self,
+        query: &'c str,
+        args: impl PlaceholderArgumentCollection,
+    ) -> Result<Cursor, Error> {
+        Ok(NativeCursor::new_from_executor_ph(
+            query,
+            self.try_executor()?,
+            args,
+        ))
     }
 }

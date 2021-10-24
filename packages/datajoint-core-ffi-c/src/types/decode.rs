@@ -1,28 +1,10 @@
+use crate::types::native_type::NativeTypeEnum;
 use datajoint_core::error::ErrorCode;
 use datajoint_core::results::{TableColumnRef, TableRow};
-use datajoint_core::types::DecodeResult;
+use datajoint_core::types::NativeType;
 use libc::size_t;
 use std::ffi::{c_void, CString};
 use std::os::raw::c_char;
-
-/// Native types that row values can be decoded to.
-///
-/// Should be parallel to datajoint_core::types::DecodeResult.
-#[repr(i32)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum NativeDecodedType {
-    None,
-    Int8,
-    UInt8,
-    Int16,
-    UInt16,
-    Int32,
-    UInt32,
-    String,
-    Float32,
-    Float64,
-    Bytes,
-}
 
 /// Decodes a single table row value to a caller-allocated buffer.
 ///
@@ -35,7 +17,7 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
     buffer: *mut c_void,
     buffer_size: size_t,
     output_size: *mut size_t,
-    output_type: *mut NativeDecodedType,
+    output_type: *mut NativeTypeEnum,
 ) -> i32 {
     if this.is_null() || column.is_null() || buffer.is_null() {
         return ErrorCode::NullNotAllowed as i32;
@@ -43,8 +25,9 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
     match (*this).try_decode(*column) {
         Err(err) => err.code() as i32,
         Ok(result) => match result {
+            NativeType::None => ErrorCode::ValueDecodeError as i32,
             // No macro for generating these because of cbindgen limitations.
-            DecodeResult::Int8(value) => {
+            NativeType::Int8(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<i8>() {
                     return ErrorCode::BufferNotEnough as i32;
@@ -58,11 +41,11 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = std::mem::size_of::<i8>();
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::Int8;
+                    *output_type = NativeTypeEnum::Int8;
                 }
                 ErrorCode::Success as i32
             }
-            DecodeResult::UInt8(value) => {
+            NativeType::UInt8(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<u8>() {
                     return ErrorCode::BufferNotEnough as i32;
@@ -76,11 +59,11 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = std::mem::size_of::<u8>();
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::UInt8;
+                    *output_type = NativeTypeEnum::UInt8;
                 }
                 ErrorCode::Success as i32
             }
-            DecodeResult::Int16(value) => {
+            NativeType::Int16(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<i16>() {
                     return ErrorCode::BufferNotEnough as i32;
@@ -94,11 +77,11 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = std::mem::size_of::<i16>();
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::Int16;
+                    *output_type = NativeTypeEnum::Int16;
                 }
                 ErrorCode::Success as i32
             }
-            DecodeResult::UInt16(value) => {
+            NativeType::UInt16(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<u16>() {
                     return ErrorCode::BufferNotEnough as i32;
@@ -112,11 +95,11 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = std::mem::size_of::<u16>();
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::UInt16;
+                    *output_type = NativeTypeEnum::UInt16;
                 }
                 ErrorCode::Success as i32
             }
-            DecodeResult::Int32(value) => {
+            NativeType::Int32(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<i32>() {
                     return ErrorCode::BufferNotEnough as i32;
@@ -130,11 +113,11 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = std::mem::size_of::<i32>();
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::Int32;
+                    *output_type = NativeTypeEnum::Int32;
                 }
                 ErrorCode::Success as i32
             }
-            DecodeResult::UInt32(value) => {
+            NativeType::UInt32(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<u32>() {
                     return ErrorCode::BufferNotEnough as i32;
@@ -148,11 +131,11 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = std::mem::size_of::<u32>();
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::UInt32;
+                    *output_type = NativeTypeEnum::UInt32;
                 }
                 ErrorCode::Success as i32
             }
-            DecodeResult::Float32(value) => {
+            NativeType::Float32(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<f32>() {
                     return ErrorCode::BufferNotEnough as i32;
@@ -166,11 +149,11 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = std::mem::size_of::<f32>();
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::Float32;
+                    *output_type = NativeTypeEnum::Float32;
                 }
                 ErrorCode::Success as i32
             }
-            DecodeResult::Float64(value) => {
+            NativeType::Float64(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<f64>() {
                     return ErrorCode::BufferNotEnough as i32;
@@ -184,11 +167,11 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = std::mem::size_of::<f64>();
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::Float64;
+                    *output_type = NativeTypeEnum::Float64;
                 }
                 ErrorCode::Success as i32
             }
-            DecodeResult::String(string) => {
+            NativeType::String(string) => {
                 if buffer_size == 0 {
                     return ErrorCode::BufferNotEnough as i32;
                 }
@@ -209,11 +192,11 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = write_size;
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::String;
+                    *output_type = NativeTypeEnum::String;
                 }
                 ErrorCode::Success as i32
             }
-            DecodeResult::Bytes(bytes) => {
+            NativeType::Bytes(bytes) => {
                 if buffer_size == 0 {
                     return ErrorCode::BufferNotEnough as i32;
                 }
@@ -226,7 +209,7 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                     *output_size = write_size;
                 }
                 if !output_type.is_null() {
-                    *output_type = NativeDecodedType::Bytes;
+                    *output_type = NativeTypeEnum::Bytes;
                 }
                 ErrorCode::Success as i32
             }
@@ -241,7 +224,7 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
 pub struct AllocatedDecodedValue {
     pub(crate) data: *const c_void,
     pub(crate) size: usize,
-    pub(crate) type_name: NativeDecodedType,
+    pub(crate) type_name: NativeTypeEnum,
 }
 
 impl AllocatedDecodedValue {
@@ -252,7 +235,7 @@ impl AllocatedDecodedValue {
         AllocatedDecodedValue {
             data: std::ptr::null(),
             size: 0,
-            type_name: NativeDecodedType::None,
+            type_name: NativeTypeEnum::None,
         }
     }
 
@@ -263,40 +246,40 @@ impl AllocatedDecodedValue {
         //
         // This value cannot be set, by any means, by the outside world.
         match self.type_name {
-            NativeDecodedType::None => (),
-            NativeDecodedType::Int8 => {
+            NativeTypeEnum::None => (),
+            NativeTypeEnum::Int8 => {
                 Box::from_raw(self.data as *mut i8);
             }
-            NativeDecodedType::UInt8 => {
+            NativeTypeEnum::UInt8 => {
                 Box::from_raw(self.data as *mut u8);
             }
-            NativeDecodedType::Int16 => {
+            NativeTypeEnum::Int16 => {
                 Box::from_raw(self.data as *mut i16);
             }
-            NativeDecodedType::UInt16 => {
+            NativeTypeEnum::UInt16 => {
                 Box::from_raw(self.data as *mut u16);
             }
-            NativeDecodedType::Int32 => {
+            NativeTypeEnum::Int32 => {
                 Box::from_raw(self.data as *mut i32);
             }
-            NativeDecodedType::UInt32 => {
+            NativeTypeEnum::UInt32 => {
                 Box::from_raw(self.data as *mut u32);
             }
-            NativeDecodedType::Float32 => {
+            NativeTypeEnum::Float32 => {
                 Box::from_raw(self.data as *mut f32);
             }
-            NativeDecodedType::Float64 => {
+            NativeTypeEnum::Float64 => {
                 Box::from_raw(self.data as *mut f64);
             }
-            NativeDecodedType::String => {
+            NativeTypeEnum::String => {
                 CString::from_raw(self.data as *mut c_char);
             }
-            NativeDecodedType::Bytes => {
+            NativeTypeEnum::Bytes => {
                 Box::from_raw(self.data as *mut u8);
             }
         }
         self.size = 0;
-        self.type_name = NativeDecodedType::None;
+        self.type_name = NativeTypeEnum::None;
     }
 }
 
@@ -338,9 +321,9 @@ pub unsafe extern "C" fn allocated_decoded_value_size(
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_type(
     this: *const AllocatedDecodedValue,
-) -> NativeDecodedType {
+) -> NativeTypeEnum {
     if this.is_null() {
-        return NativeDecodedType::None;
+        return NativeTypeEnum::None;
     } else {
         (*this).type_name
     }
@@ -367,58 +350,59 @@ pub extern "C" fn table_row_decode_to_allocation(
         match (*this).try_decode(*column) {
             Err(err) => err.code() as i32,
             Ok(res) => match res {
+                NativeType::None => ErrorCode::ValueDecodeError as i32,
                 // No macro for generating these because of cbindgen limitations.
-                DecodeResult::Int8(data) => {
+                NativeType::Int8(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<i8>();
-                    (*value).type_name = NativeDecodedType::Int8;
+                    (*value).type_name = NativeTypeEnum::Int8;
                     ErrorCode::Success as i32
                 }
-                DecodeResult::UInt8(data) => {
+                NativeType::UInt8(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<u8>();
-                    (*value).type_name = NativeDecodedType::UInt8;
+                    (*value).type_name = NativeTypeEnum::UInt8;
                     ErrorCode::Success as i32
                 }
-                DecodeResult::Int16(data) => {
+                NativeType::Int16(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<i16>();
-                    (*value).type_name = NativeDecodedType::Int16;
+                    (*value).type_name = NativeTypeEnum::Int16;
                     ErrorCode::Success as i32
                 }
-                DecodeResult::UInt16(data) => {
+                NativeType::UInt16(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<u16>();
-                    (*value).type_name = NativeDecodedType::UInt16;
+                    (*value).type_name = NativeTypeEnum::UInt16;
                     ErrorCode::Success as i32
                 }
-                DecodeResult::Int32(data) => {
+                NativeType::Int32(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<i32>();
-                    (*value).type_name = NativeDecodedType::Int32;
+                    (*value).type_name = NativeTypeEnum::Int32;
                     ErrorCode::Success as i32
                 }
-                DecodeResult::UInt32(data) => {
+                NativeType::UInt32(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<u32>();
-                    (*value).type_name = NativeDecodedType::UInt32;
+                    (*value).type_name = NativeTypeEnum::UInt32;
                     ErrorCode::Success as i32
                 }
-                DecodeResult::Float32(data) => {
+                NativeType::Float32(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<f32>();
-                    (*value).type_name = NativeDecodedType::Float32;
+                    (*value).type_name = NativeTypeEnum::Float32;
                     ErrorCode::Success as i32
                 }
-                DecodeResult::Float64(data) => {
+                NativeType::Float64(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<f64>();
-                    (*value).type_name = NativeDecodedType::Float64;
+                    (*value).type_name = NativeTypeEnum::Float64;
                     ErrorCode::Success as i32
                 }
-                DecodeResult::String(string) => {
+                NativeType::String(string) => {
                     (*value).size = string.len();
-                    (*value).type_name = NativeDecodedType::String;
+                    (*value).type_name = NativeTypeEnum::String;
                     match CString::new(string) {
                         Err(_) => ErrorCode::ColumnDecodeError as i32,
                         Ok(cstr) => {
@@ -427,9 +411,9 @@ pub extern "C" fn table_row_decode_to_allocation(
                         }
                     }
                 }
-                DecodeResult::Bytes(bytes) => {
+                NativeType::Bytes(bytes) => {
                     (*value).size = bytes.len();
-                    (*value).type_name = NativeDecodedType::Bytes;
+                    (*value).type_name = NativeTypeEnum::Bytes;
                     (*value).data = Box::into_raw(Box::new(bytes)) as *const c_void;
                     ErrorCode::Success as i32
                 }
