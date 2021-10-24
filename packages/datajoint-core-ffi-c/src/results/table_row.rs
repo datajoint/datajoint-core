@@ -89,7 +89,7 @@ pub unsafe extern "C" fn table_row_get_column_with_name(
     };
 
     let col_ref: TableColumnRef = match (&*this).try_column(column_name) {
-        Err(error) => return datajoint_core_set_last_error(error) as i32,
+        Err(err) => return datajoint_core_set_last_error(err) as i32,
         Ok(value) => value,
     };
     util::mem::handle_output_ptr(out, col_ref);
@@ -109,7 +109,7 @@ pub unsafe extern "C" fn table_row_get_column_with_ordinal(
 
     let result = (&*this).try_column(ordinal);
     let col_ref: TableColumnRef = match result {
-        Err(error) => return datajoint_core_set_last_error(error) as i32,
+        Err(err) => return datajoint_core_set_last_error(err) as i32,
         Ok(value) => value,
     };
 

@@ -107,11 +107,15 @@ pub unsafe extern "C" fn connection_execute_query(
     out: *mut u64,
 ) -> i32 {
     if this.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
     let connection = &mut *this;
     let query_str = match CStr::from_ptr(query).to_str() {
-        Err(_) => return ErrorCode::InvalidCString as i32,
+        Err(_) => {
+            return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidCString))
+                as i32
+        }
         Ok(value) => value,
     };
     match if args.is_null() {
@@ -119,10 +123,7 @@ pub unsafe extern "C" fn connection_execute_query(
     } else {
         connection.try_execute_query_ph(query_str, *Box::from_raw(args))
     } {
-        Err(error) => {
-            println!("{}", error.message());
-            error.code() as i32
-        }
+        Err(error) => datajoint_core_set_last_error(error) as i32,
         Ok(value) => {
             if !out.is_null() {
                 *out = value;
@@ -140,11 +141,15 @@ pub unsafe extern "C" fn connection_fetch_query(
     out: *mut *mut Cursor,
 ) -> i32 {
     if this.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
     let connection = &mut *this;
     let query_str = match CStr::from_ptr(query).to_str() {
-        Err(_) => return ErrorCode::InvalidCString as i32,
+        Err(_) => {
+            return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidCString))
+                as i32
+        }
         Ok(value) => value,
     };
     match if args.is_null() {
@@ -152,7 +157,7 @@ pub unsafe extern "C" fn connection_fetch_query(
     } else {
         connection.try_fetch_query_ph(query_str, *Box::from_raw(args))
     } {
-        Err(error) => error.code() as i32,
+        Err(error) => datajoint_core_set_last_error(error) as i32,
         Ok(cursor) => {
             util::mem::handle_output_ptr(out, cursor);
             ErrorCode::Success as i32

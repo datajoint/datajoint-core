@@ -25,7 +25,7 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
             as i32;
     }
     match (*this).try_decode(*column) {
-        Err(err) => err.code() as i32,
+        Err(err) => datajoint_core_set_last_error(err) as i32,
         Ok(result) => match result {
             NativeType::None => ErrorCode::ValueDecodeError as i32,
             // No macro for generating these because of cbindgen limitations.
@@ -364,15 +364,19 @@ pub extern "C" fn table_row_decode_to_allocation(
     value: *mut AllocatedDecodedValue,
 ) -> i32 {
     if this.is_null() || column.is_null() || value.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
 
     unsafe {
         (*value).reset();
         match (*this).try_decode(*column) {
-            Err(err) => err.code() as i32,
+            Err(err) => datajoint_core_set_last_error(err) as i32,
             Ok(res) => match res {
-                NativeType::None => ErrorCode::ValueDecodeError as i32,
+                NativeType::None => {
+                    datajoint_core_set_last_error(DataJointError::new(ErrorCode::ValueDecodeError))
+                        as i32
+                }
                 // No macro for generating these because of cbindgen limitations.
                 NativeType::Int8(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;

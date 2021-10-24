@@ -8,10 +8,7 @@ impl NativeTypeEnum {
     /// Encodes raw native type data into the proper enum variant.
     pub unsafe fn encode(&self, data: *mut c_void, data_size: usize) -> Result<NativeType, Error> {
         if data.is_null() {
-            return Err(DataJointError::new(
-                "null not allowed",
-                ErrorCode::NullNotAllowed,
-            ));
+            return Err(DataJointError::new(ErrorCode::NullNotAllowed));
         }
         match self {
             NativeTypeEnum::None => Ok(NativeType::None),
@@ -23,12 +20,7 @@ impl NativeTypeEnum {
             NativeTypeEnum::UInt32 => Ok(NativeType::UInt32(*data.cast::<u32>())),
             NativeTypeEnum::String => {
                 let str = match CStr::from_ptr(data as *const _).to_str() {
-                    Err(_) => {
-                        return Err(DataJointError::new(
-                            "invalid utf-8 string",
-                            ErrorCode::InvalidCString,
-                        ))
-                    }
+                    Err(_) => return Err(DataJointError::new(ErrorCode::InvalidCString)),
                     Ok(str) => str,
                 };
                 Ok(NativeType::String(str.to_string()))
