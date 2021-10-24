@@ -1,6 +1,7 @@
+use crate::error::datajoint_core_set_last_error;
 use crate::util;
 use datajoint_core::connection::{Connection, ConnectionSettings, Cursor, Executor};
-use datajoint_core::error::ErrorCode;
+use datajoint_core::error::{DataJointError, ErrorCode};
 use datajoint_core::placeholders::PlaceholderArgumentVector;
 use libc::c_char;
 use std::ffi::CStr;
@@ -35,11 +36,12 @@ pub extern "C" fn connection_is_connected(this: *mut Connection) -> i32 {
 #[no_mangle]
 pub extern "C" fn connection_connect(this: *mut Connection) -> i32 {
     if this.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
     let connection = unsafe { &mut *this };
     match connection.connect() {
-        Err(error) => error.code() as i32,
+        Err(error) => datajoint_core_set_last_error(error) as i32,
         Ok(_) => ErrorCode::Success as i32,
     }
 }
@@ -47,7 +49,8 @@ pub extern "C" fn connection_connect(this: *mut Connection) -> i32 {
 #[no_mangle]
 pub extern "C" fn connection_disconnect(this: *mut Connection) -> i32 {
     if this.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
     let connection = unsafe { &mut *this };
     connection.disconnect();
@@ -57,12 +60,13 @@ pub extern "C" fn connection_disconnect(this: *mut Connection) -> i32 {
 #[no_mangle]
 pub extern "C" fn connection_reconnect(this: *mut Connection) -> i32 {
     if this.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
     let connection = unsafe { &mut *this };
     connection.disconnect();
     match connection.connect() {
-        Err(error) => error.code() as i32,
+        Err(error) => datajoint_core_set_last_error(error) as i32,
         Ok(_) => ErrorCode::Success as i32,
     }
 }
@@ -82,11 +86,12 @@ pub unsafe extern "C" fn connection_executor(
     out: *mut *mut Executor,
 ) -> i32 {
     if this.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
     let connection = &mut *this;
     match connection.try_executor() {
-        Err(error) => error.code() as i32,
+        Err(error) => datajoint_core_set_last_error(error) as i32,
         Ok(executor) => {
             util::mem::handle_output_ptr(out, executor);
             ErrorCode::Success as i32
