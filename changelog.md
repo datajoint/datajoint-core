@@ -7,21 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] - 2021-10-23
+## [Beta] - 2021-10-21
 ### Added
+- Placeholder argument feature
+- Ability to Allow database backend to be dynamically configured (without need to recompile) i.e. ability to issue query to MySQL or Postgres.
+- A simple Python client example to demonstrate how we can call into datajoint-core
 
-## [0.3.0] - 2021-10-16
+## [Alpha] - 2021-09-30
 ### Added
+- Rust-based lib that has a C FFI.
+- Utility in the lib to receive a Generic SQL query and execute against a relational database server.
+- Utility in the lib to receive a Generic SQL query and execute against a relational database server.
+- Support for MySQL and Postgres database servers.
 
-## [0.3.0] - 2021-10-9
-### Added
 
-## [0.3.0] - 2021-10-2
-### Added
-
-## [0.3.0] - 2021-9-25
-### Added
-
-[Unreleased]: link
-[0.3.0]: link
-[1.0.0]: link
+[Beta]: https://github.com/datajoint/datajoint-core/milestone/2
+[Alpha]: https://github.com/datajoint/datajoint-core/milestone/1
