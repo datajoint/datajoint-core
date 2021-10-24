@@ -97,13 +97,7 @@ impl Connection {
 
     /// Creates an executor to interact with the database over this connection.
     pub fn try_executor<'c>(&'c self) -> Result<Executor<'c>, Error> {
-        match &self.pool {
-            None => Err(DataJointError::new(
-                "not connected",
-                ErrorCode::NotConnected,
-            )),
-            Some(pool) => Ok(Executor::new(pool, &self.runtime)),
-        }
+        Ok(Executor::new(self.get_connected_pool()?, &self.runtime))
     }
 
     /// Executes the given non-returning query, returning the number of rows affected.
