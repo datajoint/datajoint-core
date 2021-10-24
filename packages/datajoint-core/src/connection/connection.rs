@@ -157,7 +157,7 @@ impl Connection {
         Ok(NativeCursor::new_from_executor(query, self.try_executor()?))
     }
 
-    /// Creates a cursor for iterating over the results of the given returning query.alloc
+    /// Creates a cursor for iterating over the results of the given returning query.
     ///
     /// Uses placeholder arguments, binding them to the query prior to execution.
     pub fn try_fetch_query_ph<'c>(
