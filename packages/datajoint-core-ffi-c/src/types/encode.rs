@@ -7,6 +7,12 @@ use std::ffi::CStr;
 impl NativeTypeEnum {
     /// Encodes raw native type data into the proper enum variant.
     pub unsafe fn encode(&self, data: *mut c_void, data_size: usize) -> Result<NativeType, Error> {
+        if data.is_null() {
+            return Err(DataJointError::new(
+                "null not allowed",
+                ErrorCode::NullNotAllowed,
+            ));
+        }
         match self {
             NativeTypeEnum::None => Ok(NativeType::None),
             NativeTypeEnum::Int8 => Ok(NativeType::Int8(*data.cast::<i8>())),
