@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0-beta] - 2021-10-21
+## [1.0.0-beta] - 2021-10-21
 ### Added
 - Placeholder argument feature
 - Ability to Allow database backend to be dynamically configured (without need to recompile) i.e. ability to issue query to MySQL or Postgres.
@@ -23,4 +23,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [2.0.0-beta]: https://github.com/datajoint/datajoint-core/milestone/2
 [1.0.0-alpha]: https://github.com/datajoint/datajoint-core/milestone/1
+[1.0.0-offical]: https://github.com/datajoint/datajoint-core/milestone/3
 [Unreleased]: link
