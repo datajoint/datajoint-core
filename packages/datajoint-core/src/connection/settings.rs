@@ -69,3 +69,16 @@ impl ConnectionSettings {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::ConnectionSettings;
+
+    #[test]
+    fn test_settings_uri() {
+        let settings = ConnectionSettings::new();
+
+        assert_eq!(settings.uri(), "mysql://:@localhost:3306/");
+    }
+}
