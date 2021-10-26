@@ -51,3 +51,96 @@ impl DataJointType {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+
+    #[test]
+    fn test_from_sqlx_type_name() {
+        let dj_type = DataJointType::from_sqlx_type_name("TINYINT");
+        assert_eq!(dj_type, DataJointType::TinyInt);
+
+        let dj_type = DataJointType::from_sqlx_type_name("TINYINT UNSIGNED");
+        assert_eq!(dj_type, DataJointType::TinyIntUnsigned);
+
+        let dj_type = DataJointType::from_sqlx_type_name("SMALLINT");
+        assert_eq!(dj_type, DataJointType::SmallInt);
+
+        let dj_type = DataJointType::from_sqlx_type_name("SMALLINT UNSIGNED");
+        assert_eq!(dj_type, DataJointType::SmallIntUnsigned);
+
+        let dj_type = DataJointType::from_sqlx_type_name("MEDIUMINT");
+        assert_eq!(dj_type, DataJointType::MediumInt);
+
+        let dj_type = DataJointType::from_sqlx_type_name("MEDIUMINT UNSIGNED");
+        assert_eq!(dj_type, DataJointType::MediumIntUnsigned);
+
+        let dj_type = DataJointType::from_sqlx_type_name("INT");
+        assert_eq!(dj_type, DataJointType::Int);
+
+        let dj_type = DataJointType::from_sqlx_type_name("INT UNSIGNED");
+        assert_eq!(dj_type, DataJointType::IntUnsigned);
+
+        let dj_type = DataJointType::from_sqlx_type_name("ENUM");
+        assert_eq!(dj_type, DataJointType::Enum);
+
+        let dj_type = DataJointType::from_sqlx_type_name("DATE");
+        assert_eq!(dj_type, DataJointType::Date);
+
+        let dj_type = DataJointType::from_sqlx_type_name("TIME");
+        assert_eq!(dj_type, DataJointType::Time);
+
+        let dj_type = DataJointType::from_sqlx_type_name("DATETIME");
+        assert_eq!(dj_type, DataJointType::DateTime);
+
+        let dj_type = DataJointType::from_sqlx_type_name("TIMESTAMP");
+        assert_eq!(dj_type, DataJointType::Timestamp);
+
+        let dj_type = DataJointType::from_sqlx_type_name("CHAR");
+        assert_eq!(dj_type, DataJointType::CharN);
+
+        let dj_type = DataJointType::from_sqlx_type_name("VARCHAR");
+        assert_eq!(dj_type, DataJointType::VarCharN);
+        
+        let dj_type = DataJointType::from_sqlx_type_name("FLOAT");
+        assert_eq!(dj_type, DataJointType::Float);
+
+        let dj_type = DataJointType::from_sqlx_type_name("DOUBLE");
+        assert_eq!(dj_type, DataJointType::Double);
+
+        let dj_type = DataJointType::from_sqlx_type_name("DECIMAL");
+        assert_eq!(dj_type, DataJointType::Decimal);
+
+        let dj_type = DataJointType::from_sqlx_type_name("TINYBLOB");
+        assert_eq!(dj_type, DataJointType::TinyBlob);
+
+        let dj_type = DataJointType::from_sqlx_type_name("MEDIUMBLOB");
+        assert_eq!(dj_type, DataJointType::MediumBlob);
+
+        let dj_type = DataJointType::from_sqlx_type_name("BLOB");
+        assert_eq!(dj_type, DataJointType::Blob);
+
+        let dj_type = DataJointType::from_sqlx_type_name("LONGBLOB");
+        assert_eq!(dj_type, DataJointType::LongBlob);
+
+        let dj_type = DataJointType::from_sqlx_type_name("INT2");
+        assert_eq!(dj_type, DataJointType::SmallInt);
+
+        let dj_type = DataJointType::from_sqlx_type_name("INT4");
+        assert_eq!(dj_type, DataJointType::Int);
+
+        let dj_type = DataJointType::from_sqlx_type_name("TEXT");
+        assert_eq!(dj_type, DataJointType::VarCharN);
+
+        let dj_type = DataJointType::from_sqlx_type_name("FLOAT4");
+        assert_eq!(dj_type, DataJointType::Float);
+
+        let dj_type = DataJointType::from_sqlx_type_name("FLOAT8");
+        assert_eq!(dj_type, DataJointType::Double);
+
+        let dj_type = DataJointType::from_sqlx_type_name("TIMESTAMPTZ");
+        assert_eq!(dj_type, DataJointType::Timestamp);
+    }
+}
