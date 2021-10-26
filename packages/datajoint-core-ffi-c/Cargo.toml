@@ -1,0 +1,16 @@
+[package]
+name = "datajoint-core-ffi-c"
+version = "0.1.0"
+edition = "2018"
+repository = "https://github.com/datajoint/datajoint-core"
+
+[lib]
+crate-type = ["cdylib"]
+name="corelib"
+
+[build-dependencies]
+cbindgen = "0.20.0"
+
+[dependencies]
+datajoint-core = { path = "../datajoint-core" }
+libc = "0.2.101"
