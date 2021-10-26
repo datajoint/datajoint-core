@@ -40,28 +40,32 @@ impl ConnectionSettings {
 
     /// Constructs a database connection URI for the settings object.
     pub fn uri(&self) -> String {
-        let protocol: &str;
         let tls_ssl: &str;
+        let mut uri: String;
 
         match self.database_type {
             DatabaseType::Postgres => {
-                protocol = "postgres";
+                uri = "postgres://".to_string();
                 tls_ssl = "ssl";
             }
             DatabaseType::MySql => {
-                protocol = "mysql";
+                uri = "mysql://".to_string();
                 tls_ssl = "tls";
             }
         }
-        let uri = format!(
-            "{}://{}:{}@{}:{}/{}",
-            protocol,
-            self.username,
-            self.password,
-            self.hostname,
-            self.port.to_string(),
-            self.database_name
-        );
+        if self.username.trim().is_empty() == false {
+            uri = format!("{}{}", uri, self.username);
+            if self.password.trim().is_empty() == false {
+                uri = format!("{}:{}", uri, self.password);
+            }
+            uri = format!("{}@", uri);
+        }
+        // Based on the defaults, hostname and port will always have values
+        uri = format!("{}{}:{}", uri, self.hostname, self.port);
+        if self.database_name.trim().is_empty() == false {
+            uri = format!("{}/{}", uri, self.database_name);
+        }
+
         match self.use_tls {
             Some(true) => format!("{}?{}=true", uri, tls_ssl),
             Some(false) => format!("{}?{}=false", uri, tls_ssl),
