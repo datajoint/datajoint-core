@@ -57,15 +57,10 @@ impl TableRow {
         )
     }
 
-    /// Decodes the value at the given column depending on the type of the column.
+    /// Primary implementation of decoding a single column value in a single row.
     ///
-    /// Panics on error.
-    pub fn decode(&self, column: TableColumnRef) -> NativeType {
-        self.try_decode(column).unwrap()
-    }
-
-    /// Decodes the value at the given column depending on the type of the column.
-    pub fn try_decode(&self, column: TableColumnRef) -> Result<NativeType, Error> {
+    /// Handles null values by returning `None`.
+    fn try_decode_impl(&self, column: TableColumnRef) -> Result<Option<NativeType>, Error> {
         use DataJointType::*;
         let index = column.ordinal();
         match column.type_name() {
@@ -79,65 +74,123 @@ impl TableRow {
                 "supported column type, but no decoder implemented",
                 ErrorCode::ColumnDecodeError,
             )),
-            Boolean => Ok(NativeType::Bool(self.try_get::<bool, usize>(index)?)),
-            TinyInt => Ok(NativeType::Int8(self.try_get::<i8, usize>(index)?)),
+            Boolean => Ok(match self.try_get::<Option<bool>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::Bool(val)),
+            }),
+            TinyInt => Ok(match self.try_get::<Option<i8>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::Int8(val)),
+            }),
             TinyIntUnsigned => match self {
-                Self::MySql(row) => match row.try_get_unchecked::<u8, usize>(index) {
+                Self::MySql(row) => match row.try_get_unchecked::<Option<u8>, usize>(index) {
                     Err(err) => Err(SqlxError::new(err)),
-                    Ok(val) => Ok(NativeType::UInt8(val)),
+                    Ok(None) => Ok(None),
+                    Ok(Some(val)) => Ok(Some(NativeType::UInt8(val))),
                 },
                 Self::Postgres(_) => Err(TableRow::postgres_unsupported_unsigned_error()),
             },
-            SmallInt => Ok(NativeType::Int16(self.try_get::<i16, usize>(index)?)),
+            SmallInt => Ok(match self.try_get::<Option<i16>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::Int16(val)),
+            }),
             SmallIntUnsigned => match self {
-                Self::MySql(row) => match row.try_get_unchecked::<u16, usize>(index) {
+                Self::MySql(row) => match row.try_get_unchecked::<Option<u16>, usize>(index) {
                     Err(err) => Err(SqlxError::new(err)),
-                    Ok(val) => Ok(NativeType::UInt16(val)),
+                    Ok(None) => Ok(None),
+                    Ok(Some(val)) => Ok(Some(NativeType::UInt16(val))),
                 },
                 Self::Postgres(_) => Err(TableRow::postgres_unsupported_unsigned_error()),
             },
-            MediumInt | Int => Ok(NativeType::Int32(self.try_get::<i32, usize>(index)?)),
+            MediumInt | Int => Ok(match self.try_get::<Option<i32>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::Int32(val)),
+            }),
             MediumIntUnsigned | IntUnsigned => match self {
-                Self::MySql(row) => match row.try_get_unchecked::<u32, usize>(index) {
+                Self::MySql(row) => match row.try_get_unchecked::<Option<u32>, usize>(index) {
                     Err(err) => Err(SqlxError::new(err)),
-                    Ok(val) => Ok(NativeType::UInt32(val)),
+                    Ok(None) => Ok(None),
+                    Ok(Some(val)) => Ok(Some(NativeType::UInt32(val))),
                 },
                 Self::Postgres(_) => Err(TableRow::postgres_unsupported_unsigned_error()),
             },
-            BigInt => Ok(NativeType::Int64(self.try_get::<i64, usize>(index)?)),
+            BigInt => Ok(match self.try_get::<Option<i64>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::Int64(val)),
+            }),
             BigIntUnsigned => match self {
-                Self::MySql(row) => match row.try_get_unchecked::<u64, usize>(index) {
+                Self::MySql(row) => match row.try_get_unchecked::<Option<u64>, usize>(index) {
                     Err(err) => Err(SqlxError::new(err)),
-                    Ok(val) => Ok(NativeType::UInt64(val)),
+                    Ok(None) => Ok(None),
+                    Ok(Some(val)) => Ok(Some(NativeType::UInt64(val))),
                 },
                 Self::Postgres(_) => Err(TableRow::postgres_unsupported_unsigned_error()),
             },
-            Enum | CharN | VarCharN => {
-                Ok(NativeType::String(self.try_get::<String, usize>(index)?))
-            }
-            Date => Ok(NativeType::String(
-                self.try_get::<sqlx::types::chrono::NaiveDate, usize>(index)?
-                    .to_string(),
-            )),
-            Time => Ok(NativeType::String(
-                self.try_get::<sqlx::types::chrono::NaiveTime, usize>(index)?
-                    .to_string(),
-            )),
-            DateTime => Ok(NativeType::String(
-                self.try_get::<sqlx::types::chrono::NaiveDateTime, usize>(index)?
-                    .to_string(),
-            )),
-            Timestamp => Ok(NativeType::String(
-                self.try_get::<sqlx::types::chrono::DateTime<sqlx::types::chrono::Utc>, usize>(
-                    index,
-                )?
-                .to_string(),
-            )),
-            Float => Ok(NativeType::Float32(self.try_get::<f32, usize>(index)?)),
-            Double => Ok(NativeType::Float64(self.try_get::<f64, usize>(index)?)),
-            TinyBlob | MediumBlob | Blob | LongBlob => {
-                Ok(NativeType::Bytes(self.try_get::<Vec<u8>, usize>(index)?))
-            }
+            Enum | CharN | VarCharN => Ok(match self.try_get::<Option<String>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::String(val)),
+            }),
+            Date => Ok(match self.try_get::<Option<sqlx::types::chrono::NaiveDate>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::String(val.to_string())),
+            }),
+            Time => Ok(match self.try_get::<Option<sqlx::types::chrono::NaiveTime>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::String(val.to_string())),
+            }),
+            DateTime => Ok(match self.try_get::<Option<sqlx::types::chrono::NaiveDateTime>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::String(val.to_string())),
+            }),
+            Timestamp => Ok(match self.try_get::<Option<sqlx::types::chrono::DateTime<sqlx::types::chrono::Utc>>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::String(val.to_string())),
+            }),
+            Float => Ok(match self.try_get::<Option<f32>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::Float32(val)),
+            }),
+            Double => Ok(match self.try_get::<Option<f64>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::Float64(val)),
+            }),
+            TinyBlob | MediumBlob | Blob | LongBlob => Ok(match self.try_get::<Option<Vec<u8>>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::Bytes(val)),
+            }),
         }
+    }
+
+    /// Decodes the value at the given column depending on the type of the column,
+    /// assuming it is not null.
+    ///
+    /// Panics on error.
+    pub fn decode(&self, column: TableColumnRef) -> NativeType {
+        self.try_decode(column).unwrap()
+    }
+
+    /// Decodes the value at the given column depending on the type of the column,
+    /// assuming it is not null.
+    ///
+    /// Returns `ErrorCode::UnexpectedNullValue` on null values.
+    pub fn try_decode(&self, column: TableColumnRef) -> Result<NativeType, Error> {
+        match self.try_decode_impl(column)? {
+            None => Err(DataJointError::new(ErrorCode::UnexpectedNullValue)),
+            Some(val) => Ok(val),
+        }
+    }
+
+    /// Decodes the value at the given column depending on the type of the column.
+    /// Supports null values by returning `None`.
+    ///
+    /// Panics on error.
+    pub fn decode_optional(&self, column: TableColumnRef) -> Option<NativeType> {
+        self.try_decode_optional(column).unwrap()
+    }
+
+    /// Decodes the value at the given column depending on the type of the column.
+    /// Supports null values by returning `None`.
+    pub fn try_decode_optional(&self, column: TableColumnRef) -> Result<Option<NativeType>, Error> {
+        self.try_decode_impl(column)
     }
 }
