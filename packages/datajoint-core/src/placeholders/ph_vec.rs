@@ -58,7 +58,7 @@ impl PlaceholderArgumentCollection for PlaceholderArgumentVector {
                         | NativeType::UInt32(_)
                         | NativeType::UInt64(_) => {
                             return Err(DataJointError::new_with_message(
-                                "postgres does not supported unsigned data types",
+                                "postgres does not support unsigned data types",
                                 ErrorCode::UnsupportedNativeType,
                             ))
                         }
