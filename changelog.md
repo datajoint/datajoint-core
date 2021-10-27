@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for MySQL and Postgres database servers.
 
 
-[2.0.0-beta]: https://github.com/datajoint/datajoint-core/milestone/2
+[1.0.0-beta]: https://github.com/datajoint/datajoint-core/milestone/2
 [1.0.0-alpha]: https://github.com/datajoint/datajoint-core/milestone/1
 [1.0.0-offical]: https://github.com/datajoint/datajoint-core/milestone/3
 [Unreleased]: link
