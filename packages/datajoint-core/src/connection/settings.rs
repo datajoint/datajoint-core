@@ -53,16 +53,16 @@ impl ConnectionSettings {
                 tls_ssl = "tls";
             }
         }
-        if self.username.trim().is_empty() == false {
-            uri = format!("{}{}", uri, self.username);
-            if self.password.trim().is_empty() == false {
+        if !self.username.trim().is_empty() {
+            uri.push_str(self.username.as_str());
+            if !self.password.trim().is_empty() {
                 uri = format!("{}:{}", uri, self.password);
             }
-            uri = format!("{}@", uri);
+            uri.push('@');
         }
         // Based on the defaults, hostname and port will always have values
         uri = format!("{}{}:{}", uri, self.hostname, self.port);
-        if self.database_name.trim().is_empty() == false {
+        if !self.database_name.trim().is_empty() {
             uri = format!("{}/{}", uri, self.database_name);
         }
 
