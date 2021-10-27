@@ -1,3 +1,4 @@
+use crate::common::{DatabaseType, DatabaseTypeAgnostic};
 use crate::error::{Error, SqlxError};
 use crate::results::table_column::{ColumnIndex, TableColumnRef};
 use sqlx::Row;
@@ -25,6 +26,15 @@ impl<'r, T> ValueDecodable<'r> for T where
 pub enum TableRow {
     MySql(sqlx::mysql::MySqlRow),
     Postgres(sqlx::postgres::PgRow),
+}
+
+impl DatabaseTypeAgnostic for TableRow {
+    fn database_type(&self) -> DatabaseType {
+        match self {
+            Self::MySql(_) => DatabaseType::MySql,
+            Self::Postgres(_) => DatabaseType::Postgres,
+        }
+    }
 }
 
 impl TableRow {

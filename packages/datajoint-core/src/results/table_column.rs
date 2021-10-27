@@ -1,8 +1,10 @@
+use crate::common::{DatabaseType, DatabaseTypeAgnostic};
 use crate::types::DataJointType;
 use sqlx::{Column, TypeInfo};
 
 /// Owned data about a table column.
 pub struct TableColumn {
+    pub database_type: DatabaseType,
     pub ordinal: usize,
     pub name: String,
     pub type_name: DataJointType,
@@ -24,6 +26,15 @@ impl<T> ColumnIndex for T where
 pub enum TableColumnRef<'r> {
     MySql(&'r sqlx::mysql::MySqlColumn),
     Postgres(&'r sqlx::postgres::PgColumn),
+}
+
+impl<'r> DatabaseTypeAgnostic for TableColumnRef<'r> {
+    fn database_type(&self) -> DatabaseType {
+        match self {
+            Self::MySql(_) => DatabaseType::MySql,
+            Self::Postgres(_) => DatabaseType::Postgres,
+        }
+    }
 }
 
 /// A reference to data about a table column.
@@ -111,6 +122,7 @@ impl<'r> TableColumnRef<'r> {
     // Converts the column reference to an owned instance for storage.
     pub fn to_owned(&self) -> TableColumn {
         TableColumn {
+            database_type: self.database_type(),
             ordinal: self.ordinal(),
             name: self.name().to_string(),
             type_name: self.type_name(),

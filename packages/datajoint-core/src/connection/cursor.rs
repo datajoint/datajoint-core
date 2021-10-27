@@ -1,4 +1,4 @@
-use crate::common::DatabaseType;
+use crate::common::{DatabaseType, DatabaseTypeAgnostic};
 use crate::connection::{Executor, Pool};
 use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
 use crate::placeholders::PlaceholderArgumentCollection;
@@ -29,6 +29,15 @@ pub struct NativeCursor<'c> {
     stream: Option<SqlxCursor<'c>>,
     // Indicates to not auto-implement Unpin, which assures the memory stays pinned.
     _pin: PhantomPinned,
+}
+
+impl<'c> DatabaseTypeAgnostic for NativeCursor<'c> {
+    fn database_type(&self) -> DatabaseType {
+        match self.stream.as_ref().unwrap() {
+            SqlxCursor::MySql(_) => DatabaseType::MySql,
+            SqlxCursor::Postgres(_) => DatabaseType::Postgres,
+        }
+    }
 }
 
 impl<'c> NativeCursor<'c> {
