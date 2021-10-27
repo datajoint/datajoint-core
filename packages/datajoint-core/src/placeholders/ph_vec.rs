@@ -22,7 +22,9 @@ impl PlaceholderArgumentCollection for PlaceholderArgumentVector {
             Query::MySql(mut query) => {
                 for arg in self {
                     match arg {
-                        NativeType::None => {}
+                        NativeType::None => {
+                            return Err(DataJointError::new(ErrorCode::UnexpectedNoneType))
+                        }
                         NativeType::Bool(val) => query = query.bind(val),
                         NativeType::Int8(val) => query = query.bind(val),
                         NativeType::UInt8(val) => query = query.bind(val),
@@ -43,7 +45,9 @@ impl PlaceholderArgumentCollection for PlaceholderArgumentVector {
             Query::Postgres(mut query) => {
                 for arg in self {
                     match arg {
-                        NativeType::None => {}
+                        NativeType::None => {
+                            return Err(DataJointError::new(ErrorCode::UnexpectedNoneType))
+                        }
                         NativeType::Bool(val) => query = query.bind(val),
                         NativeType::Int8(val) => query = query.bind(val),
                         NativeType::Int16(val) => query = query.bind(val),
