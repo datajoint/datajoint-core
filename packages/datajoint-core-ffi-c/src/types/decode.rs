@@ -29,6 +29,26 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
         Ok(result) => match result {
             NativeType::None => ErrorCode::ValueDecodeError as i32,
             // No macro for generating these because of cbindgen limitations.
+            NativeType::Bool(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<bool>() {
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut bool) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<bool>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeTypeEnum::Int8;
+                }
+                ErrorCode::Success as i32
+            }
             NativeType::Int8(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<i8>() {
@@ -146,6 +166,46 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                 }
                 if !output_type.is_null() {
                     *output_type = NativeTypeEnum::UInt32;
+                }
+                ErrorCode::Success as i32
+            }
+            NativeType::Int64(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<i64>() {
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut i64) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<i64>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeTypeEnum::Int64;
+                }
+                ErrorCode::Success as i32
+            }
+            NativeType::UInt64(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<u64>() {
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut u64) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<u64>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeTypeEnum::UInt64;
                 }
                 ErrorCode::Success as i32
             }
@@ -269,6 +329,9 @@ impl AllocatedDecodedValue {
         // This value cannot be set, by any means, by the outside world.
         match self.type_name {
             NativeTypeEnum::None => (),
+            NativeTypeEnum::Bool => {
+                Box::from_raw(self.data as *mut bool);
+            }
             NativeTypeEnum::Int8 => {
                 Box::from_raw(self.data as *mut i8);
             }
@@ -286,6 +349,12 @@ impl AllocatedDecodedValue {
             }
             NativeTypeEnum::UInt32 => {
                 Box::from_raw(self.data as *mut u32);
+            }
+            NativeTypeEnum::Int64 => {
+                Box::from_raw(self.data as *mut i64);
+            }
+            NativeTypeEnum::UInt64 => {
+                Box::from_raw(self.data as *mut u64);
             }
             NativeTypeEnum::Float32 => {
                 Box::from_raw(self.data as *mut f32);
@@ -378,6 +447,12 @@ pub extern "C" fn table_row_decode_to_allocation(
                         as i32
                 }
                 // No macro for generating these because of cbindgen limitations.
+                NativeType::Bool(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<bool>();
+                    (*value).type_name = NativeTypeEnum::Bool;
+                    ErrorCode::Success as i32
+                }
                 NativeType::Int8(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<i8>();
@@ -412,6 +487,18 @@ pub extern "C" fn table_row_decode_to_allocation(
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<u32>();
                     (*value).type_name = NativeTypeEnum::UInt32;
+                    ErrorCode::Success as i32
+                }
+                NativeType::Int64(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<i64>();
+                    (*value).type_name = NativeTypeEnum::Int64;
+                    ErrorCode::Success as i32
+                }
+                NativeType::UInt64(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<u64>();
+                    (*value).type_name = NativeTypeEnum::UInt64;
                     ErrorCode::Success as i32
                 }
                 NativeType::Float32(data) => {

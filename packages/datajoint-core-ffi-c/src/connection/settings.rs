@@ -1,5 +1,6 @@
 use crate::util::OptionalBool;
-use datajoint_core::connection::{ConnectionSettings, DatabaseType};
+use datajoint_core::common::DatabaseType;
+use datajoint_core::connection::ConnectionSettings;
 use libc::c_char;
 use std::ffi::{CStr, CString};
 use std::ptr;

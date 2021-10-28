@@ -1,6 +1,8 @@
-use crate::connection::Executor;
+use crate::common::DatabaseType;
+use crate::connection::{Executor, Pool};
 use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
 use crate::placeholders::PlaceholderArgumentCollection;
+use crate::query::Query;
 use crate::results::TableRow;
 use futures::stream::StreamExt;
 use futures_core::stream::BoxStream;
@@ -8,7 +10,11 @@ use std::marker::PhantomPinned;
 use std::pin::Pin;
 use std::ptr::NonNull;
 
-type SqlxCursor<'c> = BoxStream<'c, Result<sqlx::any::AnyRow, sqlx::Error>>;
+/// A wrapper around a stream of rows from SQLx, which basically represents a cursor.
+enum SqlxCursor<'c> {
+    MySql(BoxStream<'c, Result<sqlx::mysql::MySqlRow, sqlx::Error>>),
+    Postgres(BoxStream<'c, Result<sqlx::postgres::PgRow, sqlx::Error>>),
+}
 
 /// A cursor pinned to a single place in memory for safety.
 pub type Cursor<'c> = Pin<Box<NativeCursor<'c>>>;
@@ -26,10 +32,21 @@ pub struct NativeCursor<'c> {
 }
 
 impl<'c> NativeCursor<'c> {
+    fn wrong_database_type_error() -> Error {
+        DataJointError::new_with_message(
+            "prepared query is for the wrong database type",
+            ErrorCode::WrongDatabaseType,
+        )
+    }
+
     /// Creates a new cursor over a stream of SQLx rows.
     ///
     /// Consumes the input executor.
-    pub(crate) fn new_from_executor(query: &str, executor: Executor<'c>) -> Cursor<'c> {
+    pub(crate) fn new_from_executor(
+        query: &str,
+        executor: Executor<'c>,
+        args: Option<impl PlaceholderArgumentCollection>,
+    ) -> Result<Cursor<'c>, Error> {
         // self.stream needs to reference self.query in order to work properly.
         // This is because SQLx expects its query string to live as long as the query itself,
         // but we can't make that guarantee when using this wrapper model.
@@ -59,74 +76,44 @@ impl<'c> NativeCursor<'c> {
             // Get mutable reference to the created object.
             let unchecked_mut = Pin::get_unchecked_mut(Pin::as_mut(&mut boxed));
             // Create the stream with the reference to the query.
-            unchecked_mut.stream = Some(sqlx::query(slice.as_ref()).fetch(executor.executor));
+            unchecked_mut.stream = match executor.executor {
+                Pool::MySql(pool) => {
+                    let mut query = Query::new(DatabaseType::MySql, slice.as_ref());
+                    if let Some(args) = args {
+                        query = args.bind_to_query(query)?;
+                    }
+                    if let Query::MySql(query) = query {
+                        Some(SqlxCursor::MySql(query.fetch(pool)))
+                    } else {
+                        return Err(NativeCursor::wrong_database_type_error());
+                    }
+                }
+                Pool::Postgres(pool) => {
+                    let mut query = Query::new(DatabaseType::Postgres, slice.as_ref());
+                    if let Some(args) = args {
+                        query = args.bind_to_query(query)?;
+                    }
+                    if let Query::Postgres(query) = query {
+                        Some(SqlxCursor::Postgres(query.fetch(pool)))
+                    } else {
+                        return Err(NativeCursor::wrong_database_type_error());
+                    }
+                }
+            }
         }
 
         // Output is the pinned cursor.
-        return boxed;
-    }
-
-    /// Creates a new cursor over a stream of SQLx rows.
-    ///
-    /// Consumes the input executor.
-    ///
-    /// Uses placeholder arguments, binding them to the query prior to execution.
-    pub(crate) fn new_from_executor_ph(
-        query: &str,
-        executor: Executor<'c>,
-        args: impl PlaceholderArgumentCollection,
-    ) -> Cursor<'c> {
-        // See the above function for an explanation of what this is doing and why.
-
-        let res = NativeCursor {
-            query: query.to_string(),
-            runtime: executor.runtime,
-            stream: None,
-            _pin: PhantomPinned,
-        };
-        let mut boxed = Box::pin(res);
-        let slice = NonNull::from(&boxed.query);
-        unsafe {
-            let query = args.prepare(slice.as_ref());
-            let unchecked_mut = Pin::get_unchecked_mut(Pin::as_mut(&mut boxed));
-            unchecked_mut.stream = Some(query.fetch(executor.executor));
-        }
-        return boxed;
+        return Ok(boxed);
     }
 
     /// Creates a new cursor over a stream of SQLx rows.
     ///
     /// Keeps the executor reference simply by borrowing out of it.
-    pub(crate) fn new_from_executor_ref(query: &str, executor: &'c Executor) -> Cursor<'c> {
-        // See the above functions for an explanation of what this is doing and why.
-
-        let res = NativeCursor {
-            query: query.to_string(),
-            runtime: executor.runtime,
-            stream: None,
-            _pin: PhantomPinned,
-        };
-        let mut boxed = Box::pin(res);
-        let slice = NonNull::from(&boxed.query);
-        unsafe {
-            let mut_ref = Pin::as_mut(&mut boxed);
-            let unchecked_mut = Pin::get_unchecked_mut(mut_ref);
-            unchecked_mut.stream = Some(sqlx::query(slice.as_ref()).fetch(executor.executor));
-        }
-
-        return boxed;
-    }
-
-    /// Creates a new cursor over a stream of SQLx rows.
-    ///
-    /// Keeps the executor reference simply by borrowing out of it.
-    ///
-    /// Uses placeholder arguments, binding them to the query prior to execution.
-    pub(crate) fn new_from_executor_ref_ph(
+    pub(crate) fn new_from_executor_ref(
         query: &str,
         executor: &'c Executor,
-        args: impl PlaceholderArgumentCollection,
-    ) -> Cursor<'c> {
+        args: Option<impl PlaceholderArgumentCollection>,
+    ) -> Result<Cursor<'c>, Error> {
         // See the above functions for an explanation of what this is doing and why.
 
         let res = NativeCursor {
@@ -138,13 +125,35 @@ impl<'c> NativeCursor<'c> {
         let mut boxed = Box::pin(res);
         let slice = NonNull::from(&boxed.query);
         unsafe {
-            let query = args.prepare(slice.as_ref());
             let mut_ref = Pin::as_mut(&mut boxed);
             let unchecked_mut = Pin::get_unchecked_mut(mut_ref);
-            unchecked_mut.stream = Some(query.fetch(executor.executor))
+            unchecked_mut.stream = match executor.executor {
+                Pool::MySql(pool) => {
+                    let mut query = Query::new(DatabaseType::MySql, slice.as_ref());
+                    if let Some(args) = args {
+                        query = args.bind_to_query(query)?;
+                    }
+                    if let Query::MySql(query) = query {
+                        Some(SqlxCursor::MySql(query.fetch(pool)))
+                    } else {
+                        return Err(NativeCursor::wrong_database_type_error());
+                    }
+                }
+                Pool::Postgres(pool) => {
+                    let mut query = Query::new(DatabaseType::Postgres, slice.as_ref());
+                    if let Some(args) = args {
+                        query = args.bind_to_query(query)?;
+                    }
+                    if let Query::Postgres(query) = query {
+                        Some(SqlxCursor::Postgres(query.fetch(pool)))
+                    } else {
+                        return Err(NativeCursor::wrong_database_type_error());
+                    }
+                }
+            }
         }
 
-        return boxed;
+        return Ok(boxed);
     }
 
     /// Fetches the next row.
@@ -156,11 +165,20 @@ impl<'c> NativeCursor<'c> {
 
     /// Fetches the next row.
     pub fn try_next(&mut self) -> Result<TableRow, Error> {
-        match self.runtime.block_on(self.stream.as_mut().unwrap().next()) {
-            None => Err(DataJointError::new(ErrorCode::NoMoreRows)),
-            Some(result) => match result {
-                Err(err) => Err(SqlxError::new(err)),
-                Ok(row) => Ok(TableRow::new(row)),
+        match self.stream.as_mut().unwrap() {
+            SqlxCursor::MySql(stream) => match self.runtime.block_on(stream.next()) {
+                None => Err(DataJointError::new(ErrorCode::NoMoreRows)),
+                Some(result) => match result {
+                    Err(err) => Err(SqlxError::new(err)),
+                    Ok(row) => Ok(TableRow::MySql(row)),
+                },
+            },
+            SqlxCursor::Postgres(stream) => match self.runtime.block_on(stream.next()) {
+                None => Err(DataJointError::new(ErrorCode::NoMoreRows)),
+                Some(result) => match result {
+                    Err(err) => Err(SqlxError::new(err)),
+                    Ok(row) => Ok(TableRow::Postgres(row)),
+                },
             },
         }
     }
