@@ -1,4 +1,5 @@
 use crate::results::table_row_vector::TableRowVector;
+use crate::util;
 use datajoint_core::connection::{Cursor, Executor};
 use datajoint_core::error::ErrorCode;
 use datajoint_core::results::TableRow;
@@ -6,17 +7,9 @@ use libc::{c_char, c_void, free, malloc, size_t};
 use std::ffi::CStr;
 
 #[no_mangle]
-pub unsafe extern "C" fn executor_new<'c>() -> *mut Executor<'c> {
-    malloc(std::mem::size_of::<Executor<'c>> as size_t) as *mut Executor
-}
-
-#[no_mangle]
-pub extern "C" fn executor_free(this: *mut Executor) {
-    if this.is_null() {
-        return;
-    }
-    unsafe {
-        free(this as *mut c_void);
+pub unsafe extern "C" fn executor_free(this: *mut Executor) {
+    if !this.is_null() {
+        Box::from_raw(this);
     }
 }
 
@@ -26,15 +19,20 @@ pub unsafe extern "C" fn executor_execute(
     query: *const c_char,
     out_size: *mut u64,
 ) -> i32 {
-    if this.is_null() {
+    if this.is_null() || query.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
     let executor = { &mut *this };
-    let query_str = { CStr::from_ptr(query).to_string_lossy().to_owned() };
+    let query_str = match CStr::from_ptr(query).to_str() {
+        Err(_) => return ErrorCode::InvalidCString as i32,
+        Ok(value) => value,
+    };
     match executor.try_execute(&query_str.to_string()) {
         Err(error) => error.code() as i32,
         Ok(value) => {
-            *out_size = value;
+            if !out_size.is_null() {
+                *out_size = value;
+            }
             ErrorCode::Success as i32
         }
     }
@@ -44,17 +42,20 @@ pub unsafe extern "C" fn executor_execute(
 pub unsafe extern "C" fn executor_fetch_one(
     this: *mut Executor,
     query: *const c_char,
-    out: *mut TableRow,
+    out: *mut *mut TableRow,
 ) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
     let executor = { &mut *this };
-    let query_str = { CStr::from_ptr(query).to_string_lossy().to_owned() };
+    let query_str = match CStr::from_ptr(query).to_str() {
+        Err(_) => return ErrorCode::InvalidCString as i32,
+        Ok(value) => value,
+    };
     match executor.try_fetch_one(&query_str.to_string()) {
         Err(error) => error.code() as i32,
         Ok(row) => {
-            *out = row;
+            util::mem::handle_output_ptr(out, row);
             ErrorCode::Success as i32
         }
     }
@@ -64,31 +65,39 @@ pub unsafe extern "C" fn executor_fetch_one(
 pub unsafe extern "C" fn executor_fetch_all(
     this: *mut Executor,
     query: *const c_char,
-    out: *mut TableRowVector,
+    out: *mut *mut TableRowVector,
 ) -> i32 {
     if this.is_null() {
         return ErrorCode::NullNotAllowed as i32;
     }
     let executor = { &mut *this };
-    let query_str = { CStr::from_ptr(query).to_string_lossy().to_owned() };
+    let query_str = match CStr::from_ptr(query).to_str() {
+        Err(_) => return ErrorCode::InvalidCString as i32,
+        Ok(value) => value,
+    };
     match executor.try_fetch_all(&query_str.to_string()) {
         Err(error) => error.code() as i32,
         Ok(rows) => {
-            *out = TableRowVector::new(rows);
+            util::mem::handle_output_ptr(out, TableRowVector::new(rows));
             ErrorCode::Success as i32
         }
     }
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn executor_cursor(this: *mut Executor, query: *const c_char) -> *mut Cursor {
+pub unsafe extern "C" fn executor_cursor(
+    this: *mut Executor,
+    query: *const c_char,
+    out: *mut *mut Cursor,
+) -> i32 {
     if this.is_null() {
-        return std::ptr::null_mut();
+        return ErrorCode::NullNotAllowed as i32;
     }
     let executor = { &*this };
     let query_str = match CStr::from_ptr(query).to_str() {
-        Err(_) => return std::ptr::null_mut(),
+        Err(_) => return ErrorCode::InvalidCString as i32,
         Ok(value) => value,
     };
-    Box::into_raw(Box::new(executor.cursor(query_str)))
+    util::mem::handle_output_ptr(out, executor.cursor(query_str)); // TODO(jonathan-hocevar): FIX LIFETIME ERROR
+    ErrorCode::Success as i32
 }
