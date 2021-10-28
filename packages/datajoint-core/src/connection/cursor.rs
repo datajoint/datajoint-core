@@ -157,7 +157,7 @@ impl<'c> NativeCursor<'c> {
     /// Fetches the next row.
     pub fn try_next(&mut self) -> Result<TableRow, Error> {
         match self.runtime.block_on(self.stream.as_mut().unwrap().next()) {
-            None => Err(DataJointError::new("no more rows", ErrorCode::NoMoreRows)),
+            None => Err(DataJointError::new(ErrorCode::NoMoreRows)),
             Some(result) => match result {
                 Err(err) => Err(SqlxError::new(err)),
                 Ok(row) => Ok(TableRow::new(row)),

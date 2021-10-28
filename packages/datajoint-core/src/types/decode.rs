@@ -55,13 +55,13 @@ impl TableRow {
         use DataJointType::*;
         let index = column.ordinal();
         match column.type_name() {
-            Unknown => Err(DataJointError::new(
+            Unknown => Err(DataJointError::new_with_message(
                 "unsupported column type",
                 ErrorCode::ColumnDecodeError,
             )),
             // Need to look at https://docs.rs/sqlx/0.5.9/sqlx/types/index.html closer
             // for these types.
-            Decimal | Attach | FilepathStore => Err(DataJointError::new(
+            Decimal | Attach | FilepathStore => Err(DataJointError::new_with_message(
                 "supported column type, but no decoder implemented",
                 ErrorCode::ColumnDecodeError,
             )),

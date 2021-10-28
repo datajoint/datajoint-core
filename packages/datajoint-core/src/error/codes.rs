@@ -39,10 +39,43 @@ pub enum ErrorCode {
     BufferNotEnough,
     InvalidNativeType,
     InvalidCString,
+    RowIndexOutOfBounds,
 }
 
 impl Display for ErrorCode {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{:?}", self)
+    }
+}
+
+impl ErrorCode {
+    /// Returns the standard message for the error code.
+    pub fn standard_message(&self) -> &'static str {
+        use ErrorCode::*;
+        match self {
+            Success => "success",
+            ConfigurationError => "configuration error",
+            UnknownDatabaseError => "unknown database error",
+            IoError => "io error",
+            TlsError => "tls error",
+            ProtocolError => "protocol error",
+            RowNotFound => "row not found",
+            TypeNotFound => "type not found",
+            ColumnIndexOutOfBounds => "column index out of bounds",
+            ColumnNotFound => "column not found",
+            ColumnDecodeError => "column decode error",
+            ValueDecodeError => "value decode error",
+            PoolTimedOut => "pool timed out",
+            PoolClosed => "pool closed",
+            WorkerCrashed => "worker crashed",
+            UnknownSqlxError => "unknown sqlx error",
+            NotConnected => "database not connected",
+            NoMoreRows => "no more rows",
+            NullNotAllowed => "null not allowed",
+            BufferNotEnough => "buffer not enough",
+            InvalidNativeType => "invalid native type",
+            InvalidCString => "invalid c string",
+            RowIndexOutOfBounds => "row index out of bounds",
+        }
     }
 }

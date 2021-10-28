@@ -34,7 +34,7 @@ impl Connection {
     }
 
     fn not_connected_error() -> Error {
-        DataJointError::new("not connected", ErrorCode::NotConnected)
+        DataJointError::new(ErrorCode::NotConnected)
     }
 
     fn get_connected_pool(&self) -> Result<&sqlx::AnyPool, Error> {
