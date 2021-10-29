@@ -77,7 +77,7 @@ mod tests {
     #[test]
     fn test_settings_uri() {
         let mut settings = ConnectionSettings::new();
-        
+
         // MySql Test
         assert_eq!(settings.uri(), "mysql://localhost:3306");
         settings.database_type = DatabaseType::MySql;
@@ -87,17 +87,35 @@ mod tests {
         settings.password = "testpassword".to_string();
         assert_eq!(settings.uri(), "mysql://test:testpassword@localhost:3306");
         settings.hostname = "testhostname".to_string();
-        assert_eq!(settings.uri(), "mysql://test:testpassword@testhostname:3306");
+        assert_eq!(
+            settings.uri(),
+            "mysql://test:testpassword@testhostname:3306"
+        );
         settings.port = 8800;
-        assert_eq!(settings.uri(), "mysql://test:testpassword@testhostname:8800");
+        assert_eq!(
+            settings.uri(),
+            "mysql://test:testpassword@testhostname:8800"
+        );
         settings.database_name = "testdatabasename".to_string();
-        assert_eq!(settings.uri(), "mysql://test:testpassword@testhostname:8800/testdatabasename");
+        assert_eq!(
+            settings.uri(),
+            "mysql://test:testpassword@testhostname:8800/testdatabasename"
+        );
         settings.use_tls = Some(true);
-        assert_eq!(settings.uri(), "mysql://test:testpassword@testhostname:8800/testdatabasename?tls=true");
+        assert_eq!(
+            settings.uri(),
+            "mysql://test:testpassword@testhostname:8800/testdatabasename?tls=true"
+        );
         settings.use_tls = Some(false);
-        assert_eq!(settings.uri(), "mysql://test:testpassword@testhostname:8800/testdatabasename?tls=false");
+        assert_eq!(
+            settings.uri(),
+            "mysql://test:testpassword@testhostname:8800/testdatabasename?tls=false"
+        );
         settings.use_tls = None;
-        assert_eq!(settings.uri(), "mysql://test:testpassword@testhostname:8800/testdatabasename");
+        assert_eq!(
+            settings.uri(),
+            "mysql://test:testpassword@testhostname:8800/testdatabasename"
+        );
 
         // Postgres Test
         let mut settingspost = ConnectionSettings::new();
@@ -106,18 +124,39 @@ mod tests {
         settingspost.username = "test".to_string();
         assert_eq!(settingspost.uri(), "postgres://test@localhost:3306");
         settingspost.password = "testpassword".to_string();
-        assert_eq!(settingspost.uri(), "postgres://test:testpassword@localhost:3306");
+        assert_eq!(
+            settingspost.uri(),
+            "postgres://test:testpassword@localhost:3306"
+        );
         settingspost.hostname = "testhostname".to_string();
-        assert_eq!(settingspost.uri(), "postgres://test:testpassword@testhostname:3306");
+        assert_eq!(
+            settingspost.uri(),
+            "postgres://test:testpassword@testhostname:3306"
+        );
         settingspost.port = 8800;
-        assert_eq!(settingspost.uri(), "postgres://test:testpassword@testhostname:8800");
+        assert_eq!(
+            settingspost.uri(),
+            "postgres://test:testpassword@testhostname:8800"
+        );
         settingspost.database_name = "testdatabasename".to_string();
-        assert_eq!(settingspost.uri(), "postgres://test:testpassword@testhostname:8800/testdatabasename");
+        assert_eq!(
+            settingspost.uri(),
+            "postgres://test:testpassword@testhostname:8800/testdatabasename"
+        );
         settingspost.use_tls = Some(true);
-        assert_eq!(settingspost.uri(), "postgres://test:testpassword@testhostname:8800/testdatabasename?ssl=true");
+        assert_eq!(
+            settingspost.uri(),
+            "postgres://test:testpassword@testhostname:8800/testdatabasename?ssl=true"
+        );
         settingspost.use_tls = Some(false);
-        assert_eq!(settingspost.uri(), "postgres://test:testpassword@testhostname:8800/testdatabasename?ssl=false");
+        assert_eq!(
+            settingspost.uri(),
+            "postgres://test:testpassword@testhostname:8800/testdatabasename?ssl=false"
+        );
         settingspost.use_tls = None;
-        assert_eq!(settingspost.uri(), "postgres://test:testpassword@testhostname:8800/testdatabasename");
+        assert_eq!(
+            settingspost.uri(),
+            "postgres://test:testpassword@testhostname:8800/testdatabasename"
+        );
     }
 }
