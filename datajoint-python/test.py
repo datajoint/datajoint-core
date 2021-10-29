@@ -2,8 +2,8 @@
 import datajoint as dj
 
 
-connection = dj.conn(host="tutorial-db.datajoint.io", user="<username>",
-                     password="<password>", database_name="jonathan_tutorial", reset=False, use_tls=True)
+connection = dj.conn(host="tutorial-db.datajoint.io", user="jonathan",
+                     password="testpassword123", database_name="jonathan_tutorial", reset=False, use_tls=True)
 
 cursor = connection.fetch_query(
     "select * from mouse where sex = ?", 'M')

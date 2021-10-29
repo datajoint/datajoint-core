@@ -5,7 +5,6 @@ import sys
 
 min_py_version = (3, 6)
 
-
 if sys.version_info < min_py_version:
     sys.exit('DataJoint is only supported for Python {}.{} or higher'.format(
         *min_py_version))
@@ -36,6 +35,6 @@ setup(
     python_requires='~={}.{}'.format(*min_py_version),
     setup_requires=["cffi>=1.0.0"],
     cffi_modules=[
-        "./datajoint/build_datajoint_core.py:ffi",
+        "./datajoint/datajoint-core/build_datajoint_core.py:ffi",
     ],
 )
