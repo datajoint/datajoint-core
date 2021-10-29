@@ -1,6 +1,7 @@
+use crate::error::datajoint_core_set_last_error;
 use crate::types::native_type::NativeTypeEnum;
 use datajoint_core::{
-    error::ErrorCode,
+    error::{DataJointError, ErrorCode},
     placeholders::{PlaceholderArgument, PlaceholderArgumentVector},
 };
 use std::os::raw::c_void;
@@ -35,12 +36,13 @@ pub unsafe extern "C" fn placeholder_argument_vector_add(
     out: *mut *mut PlaceholderArgument,
 ) -> i32 {
     if this.is_null() || data.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
 
     let vector = &mut *this;
     let encoded = match data_type.encode(data, data_size) {
-        Err(error) => return error.code() as i32,
+        Err(error) => return datajoint_core_set_last_error(error) as i32,
         Ok(val) => val,
     };
 
