@@ -12,6 +12,7 @@ impl NativeTypeEnum {
         }
         match self {
             NativeTypeEnum::None => Ok(NativeType::None),
+            NativeTypeEnum::Null => Ok(NativeType::None),
             NativeTypeEnum::Bool => Ok(NativeType::Bool(*data.cast::<bool>())),
             NativeTypeEnum::Int8 => Ok(NativeType::Int8(*data.cast::<i8>())),
             NativeTypeEnum::UInt8 => Ok(NativeType::UInt8(*data.cast::<u8>())),

@@ -35,6 +35,8 @@ pub enum ErrorCode {
     NoMoreRows,
     UnsupportedNativeType,
     WrongDatabaseType,
+    UnexpectedNullValue,
+    UnexpectedNoneType,
 
     // C FFI error codes.
     NullNotAllowed,
@@ -76,6 +78,8 @@ impl ErrorCode {
             NoMoreRows => "no more rows",
             UnsupportedNativeType => "unsupported native type",
             WrongDatabaseType => "wrong database type",
+            UnexpectedNullValue => "unexpected null value encountered in decoding",
+            UnexpectedNoneType => "unexpected none type encountered in encoding",
 
             NullNotAllowed => "null not allowed",
             BufferNotEnough => "buffer not enough",

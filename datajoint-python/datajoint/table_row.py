@@ -90,7 +90,7 @@ class TableRow:
                 col_name = col.name()
                 # Decode the value to a Python value.
                 dj_type = dj_core.allocated_decoded_value_type(value)
-                if dj_type == dj_core.NativeTypeEnum_None:
+                if dj_type == dj_core.NativeTypeEnum_None or dj_type == dj_core.NativeTypeEnum_Null:
                     result[col_name] = None
                 elif dj_type == dj_core.NativeTypeEnum_Bool:
                     result[col_name] = ffi.cast(

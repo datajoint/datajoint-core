@@ -71,6 +71,7 @@ impl LibraryError for SqlxError {
                 index: _,
                 source: _,
             } => ErrorCode::ColumnDecodeError,
+            sqlx::Error::Decode(_) => ErrorCode::ColumnDecodeError,
             sqlx::Error::PoolTimedOut => ErrorCode::PoolTimedOut,
             sqlx::Error::PoolClosed => ErrorCode::PoolClosed,
             sqlx::Error::WorkerCrashed => ErrorCode::WorkerCrashed,
