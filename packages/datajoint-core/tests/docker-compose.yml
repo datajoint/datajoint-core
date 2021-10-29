@@ -1,59 +1,26 @@
-version: "3"
+version: '3'
 
 services:
   #
-  # MySQL 8.x, 5.7.x, 5.6.x
+  # MySQL 5.7.x
   # https://www.mysql.com/support/supportedplatforms/database.html
   #
-
-  mysql_8:
-    image: mysql:8.0
-    volumes:
-      - "./mysql/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
-    ports:
-      - 3306
-    environment:
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: datajoint_core
 
   mysql_5_7:
     image: mysql:5.7
     volumes:
-      - "./mysql/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
+      - './mysql/setup.sql:/docker-entrypoint-initdb.d/setup.sql'
     ports:
       - 3306
     environment:
-      MYSQL_ROOT_HOST: "%"
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: datajoint_core
-
-  mysql_5_6:
-    image: mysql:5.6
-    volumes:
-      - "./mysql/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
-    ports:
-      - 3306
-    environment:
-      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_HOST: '%'
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: datajoint_core
 
   #
-  # PostgreSQL 13.x, 12.x, 11.x 10.x, 9.6.x
+  # PostgreSQL 13.x
   # https://www.postgresql.org/support/versioning/
   #
-
-  postgres_14:
-    image: postgres:14-alpine
-    ports:
-      - 5432
-    environment:
-      POSTGRES_DB: datajoint_core
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    volumes:
-      - "./postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
 
   postgres_13:
     image: postgres:13-alpine
@@ -64,48 +31,4 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
-      - "./postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
-
-  postgres_12:
-    image: postgres:12-alpine
-    ports:
-      - 5432
-    environment:
-      POSTGRES_DB: datajoint_core
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    volumes:
-      - "./postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
-
-  postgres_11:
-    image: postgres:11-alpine
-    ports:
-      - 5432
-    environment:
-      POSTGRES_DB: datajoint_core
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    volumes:
-      - "./postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
-
-  postgres_10:
-    image: postgres:10-alpine
-    ports:
-      - 5432
-    environment:
-      POSTGRES_DB: datajoint_core
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    volumes:
-      - "./postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
-
-  postgres_9_6:
-    image: postgres:9.6-alpine
-    ports:
-      - 5432
-    environment:
-      POSTGRES_DB: datajoint_core
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    volumes:
-      - "./postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
+      - './postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql'
