@@ -33,6 +33,8 @@ pub enum ErrorCode {
     // DataJoint error codes.
     NotConnected,
     NoMoreRows,
+    UnsupportedNativeType,
+    WrongDatabaseType,
 
     // C FFI error codes.
     NullNotAllowed,
@@ -69,8 +71,12 @@ impl ErrorCode {
             PoolClosed => "pool closed",
             WorkerCrashed => "worker crashed",
             UnknownSqlxError => "unknown sqlx error",
+
             NotConnected => "database not connected",
             NoMoreRows => "no more rows",
+            UnsupportedNativeType => "unsupported native type",
+            WrongDatabaseType => "wrong database type",
+
             NullNotAllowed => "null not allowed",
             BufferNotEnough => "buffer not enough",
             InvalidNativeType => "invalid native type",

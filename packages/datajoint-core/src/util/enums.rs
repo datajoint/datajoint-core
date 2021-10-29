@@ -1,4 +1,4 @@
-use crate::connection::DatabaseType;
+use crate::common::DatabaseType;
 use crate::error::ErrorCode;
 use crate::types::DataJointType;
 use num_traits::FromPrimitive;
