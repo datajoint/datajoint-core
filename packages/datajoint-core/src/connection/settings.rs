@@ -1,10 +1,4 @@
-/// Enum type for representing the type of SQL database to connect to.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, FromPrimitive)]
-#[repr(i32)]
-pub enum DatabaseType {
-    MySql,
-    Postgres,
-}
+use crate::common::DatabaseType;
 
 /// Settings for connecting to an arbitrary SQL database.
 pub struct ConnectionSettings {
@@ -40,28 +34,32 @@ impl ConnectionSettings {
 
     /// Constructs a database connection URI for the settings object.
     pub fn uri(&self) -> String {
-        let protocol: &str;
         let tls_ssl: &str;
+        let mut uri: String;
 
         match self.database_type {
             DatabaseType::Postgres => {
-                protocol = "postgres";
+                uri = "postgres://".to_string();
                 tls_ssl = "ssl";
             }
             DatabaseType::MySql => {
-                protocol = "mysql";
+                uri = "mysql://".to_string();
                 tls_ssl = "tls";
             }
         }
-        let uri = format!(
-            "{}://{}:{}@{}:{}/{}",
-            protocol,
-            self.username,
-            self.password,
-            self.hostname,
-            self.port.to_string(),
-            self.database_name
-        );
+        if !self.username.trim().is_empty() {
+            uri.push_str(self.username.as_str());
+            if !self.password.trim().is_empty() {
+                uri = format!("{}:{}", uri, self.password);
+            }
+            uri.push('@');
+        }
+        // Based on the defaults, hostname and port will always have values
+        uri = format!("{}{}:{}", uri, self.hostname, self.port);
+        if !self.database_name.trim().is_empty() {
+            uri = format!("{}/{}", uri, self.database_name);
+        }
+
         match self.use_tls {
             Some(true) => format!("{}?{}=true", uri, tls_ssl),
             Some(false) => format!("{}?{}=false", uri, tls_ssl),
