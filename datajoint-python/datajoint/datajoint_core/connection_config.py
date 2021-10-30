@@ -1,26 +1,31 @@
-import os
-from enum import Enum
-from dotenv import load_dotenv
 from .datajoint_core_lib import dj_core
 from ._datajoint_core import ffi
 
 
 def free_and_decode_string(value):
+    ret = ffi.string(value).decode("utf-8")
     dj_core.datajoint_core_cstring_free(value)
-    return ffi.string(value).decode("utf-8")
+    return ret
 
 
-class DatabaseType(Enum):
-    MySQL = dj_core.DatabaseType_MySql
-    Postgres = dj_core.DatabaseType_Postgres
+OptionalBool_encode = {
+    None: dj_core.OptionalBool_None,
+    True: dj_core.OptionalBool_True,
+    False: dj_core.OptionalBool_False,
+}
 
-    @classmethod
-    def from_str(cls, label):
-        if label.lower() == "mysql":
-            return cls.MySQL.value
-        if label.lower() == "postgres":
-            return cls.Postgres.value
-        raise NotImplementedError
+OptionalBool_decode = {
+    dj_core.OptionalBool_None: None,
+    dj_core.OptionalBool_True: True,
+    dj_core.OptionalBool_False: False
+}
+
+DatabaseType = {
+    "mysql": dj_core.DatabaseType_MySql,
+    "postgres": dj_core.DatabaseType_Postgres,
+    dj_core.DatabaseType_MySql: "MySQL",
+    dj_core.DatabaseType_Postgres: "Postgres",
+}
 
 
 class ConnectionSetting:
@@ -33,16 +38,17 @@ class ConnectionSetting:
         encode_methods = {
             int: int,
             str: lambda val: val.encode("utf-8"),
-            DatabaseType: DatabaseType.from_str
+            "OptionalBool": lambda val: OptionalBool_encode[val],
+            "DatabaseType": lambda val: DatabaseType[val.lower()]
         }
         self.setter(native, encode_methods[self.ffi_type](value))
 
     def get_value(self, native):
         decode_methods = {
             int: lambda val: val,
-            # TODO(jonathan-hocevar): Free's value at the wrong time.
             str: lambda val: free_and_decode_string(val),
-            DatabaseType: lambda val: DatabaseType(val).name
+            "OptionalBool": lambda val: OptionalBool_decode[val],
+            "DatabaseType": lambda val: DatabaseType[val]
         }
         return decode_methods[self.ffi_type](self.getter(native))
 
@@ -52,7 +58,7 @@ class Config:
         "database_type": ConnectionSetting(
             getter=dj_core.connection_settings_get_database_type,
             setter=dj_core.connection_settings_set_database_type,
-            ffi_type=DatabaseType
+            ffi_type="DatabaseType"
         ),
         "hostname": ConnectionSetting(
             getter=dj_core.connection_settings_get_hostname,
@@ -78,6 +84,11 @@ class Config:
             getter=dj_core.connection_settings_get_port,
             setter=dj_core.connection_settings_set_port,
             ffi_type=int
+        ),
+        "use_tls": ConnectionSetting(
+            getter=dj_core.connection_settings_get_use_tls,
+            setter=dj_core.connection_settings_set_use_tls,
+            ffi_type="OptionalBool"
         )
     }
 
@@ -121,17 +132,3 @@ class Config:
     def update(self, mapping):
         for key in mapping:
             self[key] = mapping[key]
-
-
-# Placeholders for setting default values into the config variable
-# In the future this would be upadated with settings from environment
-# variables similar to how it is done in 'datajoint-python/settings.py'
-load_dotenv()
-
-default_config = {k: v for k, v in zip(
-    ("hostname", "username", "password",
-     "port", "database_name",),
-    map(os.getenv, ("DJ_HOST", "DJ_USER", "DJ_PASS",
-                    "PORT", "DB_NAME")))
-    if v is not None}
-default_config["port"] = int(default_config["port"])

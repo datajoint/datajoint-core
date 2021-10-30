@@ -27,8 +27,8 @@ __date__ = "November 7, 2020"
 #            'errors', 'DataJointError', 'key', 'key_hash']
 
 from .version import __version__
-from .settings import Config
-from .connection import conn, Connection
+from .settings import config
+from .connection import conn
 # from .schemas import Schema
 # from .schemas import VirtualModule, list_schemas
 # from .table import Table, FreeTable
