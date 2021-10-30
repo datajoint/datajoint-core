@@ -3,6 +3,8 @@ from setuptools import setup, find_packages
 from os import path
 import sys
 
+# TODO(Jonathan-Hocevar): Fix Setup.py script to work with datajoint_core subpackage
+
 min_py_version = (3, 6)
 
 if sys.version_info < min_py_version:
@@ -12,7 +14,7 @@ if sys.version_info < min_py_version:
 here = path.abspath(path.dirname(__file__))
 
 sys.path.insert(0, path.abspath(path.join(path.dirname(
-    __file__), 'datajoint'))) or sys.path.insert(0, (path.join(here, 'datajoint')))
+    __file__), 'datajoint/datajoint_core'))) or sys.path.insert(0, (path.join(here, 'datajoint/datajoint_core')))
 
 long_description = "A relational data framework for scientific data pipelines with MySQL backend."
 
@@ -35,6 +37,6 @@ setup(
     python_requires='~={}.{}'.format(*min_py_version),
     setup_requires=["cffi>=1.0.0"],
     cffi_modules=[
-        "./datajoint/datajoint-core/build_datajoint_core.py:ffi",
+        "./datajoint/datajoint_core/build_datajoint_core.py:ffi",
     ],
 )

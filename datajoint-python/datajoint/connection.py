@@ -2,7 +2,6 @@
 This module contains the Connection class that manages the connection to the database,
  and the `conn` function that provides access to a persistent connection in datajoint.
 """
-from contextlib import contextmanager
 from getpass import getpass
 
 from .datajoint_core import Connection
