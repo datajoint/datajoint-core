@@ -27,7 +27,7 @@ services:
     ports:
       - "5678:5432"
     environment:
-      POSTGRES_DB: datajoint_core
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
