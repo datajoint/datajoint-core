@@ -1,4 +1,4 @@
- use datajoint_core::{
+use datajoint_core::{
     common::DatabaseType,
     connection::{Connection, ConnectionSettings},
     results::TableRow,
@@ -22,16 +22,8 @@ fn run_test() {
 
     let cursor = &mut con.fetch_query("select * from tweet");
     let cursor = cursor;
-    // TODO(EdwardGarmon): remove unsafe block that is necessary due to pinned cursor
-    let rows: Vec<TableRow> = unsafe {
-        match std::pin::Pin::as_mut(cursor).get_unchecked_mut().try_rest() {
-            Ok(value) => value,
-            Err(err) => {
-                println!("{} error unsafely accessing pinned data", err);
-                panic!()
-            }
-        }
-    };
+
+    let rows: Vec<TableRow> = cursor.rest();
 
     for row in rows {
         for col in row.columns() {
