@@ -70,7 +70,7 @@ impl TableRow {
             )),
             // Need to look at https://docs.rs/sqlx/0.5.9/sqlx/types/index.html closer
             // for these types.
-            Decimal | Attach | FilepathStore => Err(DataJointError::new_with_message(
+            FilepathStore => Err(DataJointError::new_with_message(
                 "supported column type, but no decoder implemented",
                 ErrorCode::ColumnDecodeError,
             )),
@@ -154,9 +154,13 @@ impl TableRow {
                 None => None,
                 Some(val) => Some(NativeType::Float64(val)),
             }),
-            TinyBlob | MediumBlob | Blob | LongBlob => Ok(match self.try_get::<Option<Vec<u8>>, usize>(index)? {
+            TinyBlob | MediumBlob | Blob | LongBlob | Binary | Attach => Ok(match self.try_get::<Option<Vec<u8>>, usize>(index)? {
                 None => None,
                 Some(val) => Some(NativeType::Bytes(val)),
+            }),
+            Decimal => Ok(match self.try_get::<Option<sqlx::types::BigDecimal>, usize>(index)? {
+                None => None,
+                Some(val) => Some(NativeType::String(val.to_string())),
             }),
         }
     }
