@@ -12,6 +12,7 @@ impl NativeTypeEnum {
         }
         match self {
             NativeTypeEnum::None => Ok(NativeType::None),
+            NativeTypeEnum::Null => Ok(NativeType::None),
             NativeTypeEnum::Bool => Ok(NativeType::Bool(*data.cast::<bool>())),
             NativeTypeEnum::Int8 => Ok(NativeType::Int8(*data.cast::<i8>())),
             NativeTypeEnum::UInt8 => Ok(NativeType::UInt8(*data.cast::<u8>())),
@@ -23,7 +24,7 @@ impl NativeTypeEnum {
             NativeTypeEnum::UInt64 => Ok(NativeType::UInt64(*data.cast::<u64>())),
             NativeTypeEnum::String => {
                 let str = match CStr::from_ptr(data as *const _).to_str() {
-                    Err(_) => return Err(DataJointError::new(ErrorCode::InvalidCString)),
+                    Err(_) => return Err(DataJointError::new(ErrorCode::InvalidUtf8String)),
                     Ok(str) => str,
                 };
                 Ok(NativeType::String(str.to_string()))

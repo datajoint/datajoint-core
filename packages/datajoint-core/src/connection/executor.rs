@@ -1,5 +1,5 @@
 use crate::common::{DatabaseType, DatabaseTypeAgnostic};
-use crate::connection::{Cursor, NativeCursor, Pool};
+use crate::connection::{Cursor, Pool};
 use crate::error::Error;
 use crate::placeholders::{PlaceholderArgumentCollection, PlaceholderArgumentVector};
 use crate::query::Query;
@@ -99,7 +99,7 @@ impl<'c> Executor<'c> {
 
     /// Creates a cursor for the given query.
     pub fn cursor(&'c self, query: &str) -> Result<Cursor<'c>, Error> {
-        NativeCursor::new_from_executor_ref(query, &self, None as Option<PlaceholderArgumentVector>)
+        Cursor::new_from_executor_ref(query, &self, None as Option<PlaceholderArgumentVector>)
     }
 
     /// Creates a cursor for the given query.
@@ -110,6 +110,6 @@ impl<'c> Executor<'c> {
         query: &str,
         args: impl PlaceholderArgumentCollection,
     ) -> Result<Cursor<'c>, Error> {
-        NativeCursor::new_from_executor_ref(query, self, Some(args))
+        Cursor::new_from_executor_ref(query, self, Some(args))
     }
 }

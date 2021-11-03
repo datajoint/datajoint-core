@@ -24,9 +24,14 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
         return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
             as i32;
     }
-    match (*this).try_decode(*column) {
+    match (*this).try_decode_optional(*column) {
         Err(err) => datajoint_core_set_last_error(err) as i32,
-        Ok(result) => match result {
+        Ok(None) => {
+            *output_size = 0;
+            *output_type = NativeTypeEnum::Null;
+            ErrorCode::Success as i32
+        }
+        Ok(Some(result)) => match result {
             NativeType::None => ErrorCode::ValueDecodeError as i32,
             // No macro for generating these because of cbindgen limitations.
             NativeType::Bool(value) => {
@@ -328,7 +333,7 @@ impl AllocatedDecodedValue {
         //
         // This value cannot be set, by any means, by the outside world.
         match self.type_name {
-            NativeTypeEnum::None => (),
+            NativeTypeEnum::None | NativeTypeEnum::Null => (),
             NativeTypeEnum::Bool => {
                 Box::from_raw(self.data as *mut bool);
             }
@@ -420,6 +425,13 @@ pub unsafe extern "C" fn allocated_decoded_value_type(
     }
 }
 
+#[no_mangle]
+pub unsafe extern "C" fn allocated_decoded_value_is_null_value(
+    this: *const AllocatedDecodedValue,
+) -> i32 {
+    (this.is_null() || (*this).type_name == NativeTypeEnum::Null) as i32
+}
+
 /// Decodes a single table row value to a Rust-allocated buffer stored in a
 /// caller-allocated wrapper value.
 ///
@@ -439,9 +451,13 @@ pub extern "C" fn table_row_decode_to_allocation(
 
     unsafe {
         (*value).reset();
-        match (*this).try_decode(*column) {
+        match (*this).try_decode_optional(*column) {
             Err(err) => datajoint_core_set_last_error(err) as i32,
-            Ok(res) => match res {
+            Ok(None) => {
+                (*value).type_name = NativeTypeEnum::Null;
+                ErrorCode::Success as i32
+            }
+            Ok(Some(res)) => match res {
                 NativeType::None => {
                     datajoint_core_set_last_error(DataJointError::new(ErrorCode::ValueDecodeError))
                         as i32
@@ -518,7 +534,7 @@ pub extern "C" fn table_row_decode_to_allocation(
                     (*value).type_name = NativeTypeEnum::String;
                     match CString::new(string) {
                         Err(_) => datajoint_core_set_last_error(DataJointError::new(
-                            ErrorCode::InvalidCString,
+                            ErrorCode::InvalidUtf8String,
                         )) as i32,
                         Ok(cstr) => {
                             (*value).data = cstr.into_raw() as *const c_void;

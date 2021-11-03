@@ -35,13 +35,16 @@ pub enum ErrorCode {
     NoMoreRows,
     UnsupportedNativeType,
     WrongDatabaseType,
+    UnexpectedNullValue,
+    UnexpectedNoneType,
 
     // C FFI error codes.
     NullNotAllowed,
     BufferNotEnough,
     InvalidNativeType,
-    InvalidCString,
+    InvalidUtf8String,
     RowIndexOutOfBounds,
+    BadPrimitiveEnumValue,
 }
 
 impl Display for ErrorCode {
@@ -76,12 +79,15 @@ impl ErrorCode {
             NoMoreRows => "no more rows",
             UnsupportedNativeType => "unsupported native type",
             WrongDatabaseType => "wrong database type",
+            UnexpectedNullValue => "unexpected null value encountered in decoding",
+            UnexpectedNoneType => "unexpected none type encountered in encoding",
 
             NullNotAllowed => "null not allowed",
             BufferNotEnough => "buffer not enough",
             InvalidNativeType => "invalid native type",
-            InvalidCString => "invalid c string",
+            InvalidUtf8String => "invalid utf-8 string",
             RowIndexOutOfBounds => "row index out of bounds",
+            BadPrimitiveEnumValue => "bad primitive enum value",
         }
     }
 }

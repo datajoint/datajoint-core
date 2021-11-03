@@ -113,7 +113,7 @@ pub unsafe extern "C" fn connection_execute_query(
     let connection = &mut *this;
     let query_str = match CStr::from_ptr(query).to_str() {
         Err(_) => {
-            return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidCString))
+            return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidUtf8String))
                 as i32
         }
         Ok(value) => value,
@@ -147,7 +147,7 @@ pub unsafe extern "C" fn connection_fetch_query(
     let connection = &mut *this;
     let query_str = match CStr::from_ptr(query).to_str() {
         Err(_) => {
-            return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidCString))
+            return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidUtf8String))
                 as i32
         }
         Ok(value) => value,
