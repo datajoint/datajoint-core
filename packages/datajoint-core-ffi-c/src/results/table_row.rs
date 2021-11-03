@@ -82,7 +82,7 @@ pub unsafe extern "C" fn table_row_get_column_with_name(
 
     let column_name = match CStr::from_ptr(column_name).to_str() {
         Err(_) => {
-            return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidCString))
+            return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidUtf8String))
                 as i32
         }
         Ok(string) => string,

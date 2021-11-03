@@ -534,7 +534,7 @@ pub extern "C" fn table_row_decode_to_allocation(
                     (*value).type_name = NativeTypeEnum::String;
                     match CString::new(string) {
                         Err(_) => datajoint_core_set_last_error(DataJointError::new(
-                            ErrorCode::InvalidCString,
+                            ErrorCode::InvalidUtf8String,
                         )) as i32,
                         Ok(cstr) => {
                             (*value).data = cstr.into_raw() as *const c_void;
