@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for MySQL and Postgres database servers.
 - Support for placeholder arguments.
 - Ability to Allow database backend to be dynamically configured (without need to recompile) i.e. ability to issue query to MySQL or Postgres.
-- A simple Python client to demonstrate how it can call datajoint-core.
+- Simple Python client to demonstrate how it can call datajoint-core.
 - Documentation for the project.
 - Initial unit tests and integration tests.
 
