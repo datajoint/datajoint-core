@@ -10,3 +10,6 @@ This repository primarily contains two Rust packages (aka, crates) that make up 
 - [datajoint-core-ffi-c](packages/datajoint-core-ffi-c) - A C FFI library for calling the core library from user-level languages.
 
 At the moment, [datajoint-python](datajoint-python) is a temporary home for integrating the core library into the Python library.
+
+## Set Up
+Read [the set up document](doc/SETUP.md) for set up information.
