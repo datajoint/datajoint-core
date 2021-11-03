@@ -65,6 +65,16 @@ impl TableRow {
     }
 
     /// Returns a reference to the table column for the given index.
+    ///
+    /// Panics on error.
+    pub fn column<I>(&self, index: I) -> TableColumnRef
+    where
+        I: ColumnIndex,
+    {
+        self.try_column(index).unwrap()
+    }
+
+    /// Returns a reference to the table column for the given index.
     pub fn try_column<I>(&self, index: I) -> Result<TableColumnRef, Error>
     where
         I: ColumnIndex,
@@ -79,6 +89,17 @@ impl TableRow {
                 Ok(column) => Ok(TableColumnRef::Postgres(column)),
             },
         }
+    }
+
+    /// Gets a reference to the value stored at the given column in the row.
+    ///
+    /// Panics on error.
+    pub fn get<'r, T, I>(&'r self, index: I) -> T
+    where
+        T: ValueDecodable<'r>,
+        I: ColumnIndex,
+    {
+        self.try_get(index).unwrap()
     }
 
     /// Gets a reference to the value stored at the given column in the row.
