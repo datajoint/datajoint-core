@@ -5,6 +5,36 @@ use datajoint_core::{
 };
 
 #[test]
+fn test_successful_connection_to_db() {
+    let mut settings = ConnectionSettings::new();
+    settings.database_type = DatabaseType::MySql;
+    settings.username = "root".to_string();
+    settings.port = 1234;
+    settings.password = "password".to_string();
+    settings.database_name = "datajoint_core".to_string();
+    settings.use_tls = Some(true);
+
+    let mut conn = Connection::new(settings);
+    let result = conn.connect();
+    assert!(result.is_ok()); 
+}
+
+#[test]
+fn test_unsuccessful_connection_to_db() {
+    let mut settings = ConnectionSettings::new();
+    settings.database_type = DatabaseType::MySql;
+    settings.username = "root".to_string();
+    settings.port = 1234;
+    settings.password = "wrongpassword".to_string();
+    settings.database_name = "datajoint_core".to_string();
+    settings.use_tls = Some(true);
+
+    let mut conn = Connection::new(settings);
+    let result = conn.connect();
+    assert!(result.is_err()); 
+}
+
+#[test]
 fn run_test() {
     let mut settings = ConnectionSettings::new();
     settings.database_type = DatabaseType::MySql;
