@@ -1,6 +1,6 @@
 use crate::common::{DatabaseType, DatabaseTypeAgnostic};
 use crate::connection::Pool;
-use crate::connection::{ConnectionSettings, Cursor, Executor, NativeCursor};
+use crate::connection::{ConnectionSettings, Cursor, Executor};
 use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
 use crate::placeholders::{PlaceholderArgumentCollection, PlaceholderArgumentVector};
 
@@ -186,7 +186,7 @@ impl Connection {
 
     /// Creates a cursor for iterating over the results of the given returning query.
     pub fn try_fetch_query<'c>(&'c self, query: &str) -> Result<Cursor<'c>, Error> {
-        NativeCursor::new_from_executor(
+        Cursor::new_from_executor(
             query,
             self.try_executor()?,
             None as Option<PlaceholderArgumentVector>,
@@ -201,6 +201,6 @@ impl Connection {
         query: &'c str,
         args: impl PlaceholderArgumentCollection,
     ) -> Result<Cursor, Error> {
-        NativeCursor::new_from_executor(query, self.try_executor()?, Some(args))
+        Cursor::new_from_executor(query, self.try_executor()?, Some(args))
     }
 }
