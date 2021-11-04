@@ -63,7 +63,6 @@ impl ConnectionSettings {
         if !self.database_name.trim().is_empty() {
             uri = format!("{}/{}", uri, self.database_name);
         }
-
         match self.use_tls {
             Some(true) => format!("{}?{}=true", uri, tls_ssl),
             Some(false) => format!("{}?{}=false", uri, tls_ssl),
@@ -119,6 +118,11 @@ mod tests {
         assert_eq!(
             settings.uri(),
             "mysql://test:testpassword@testhostname:8800/testdatabasename"
+        );
+        settings.hostname = "".to_string();
+        assert_eq!(
+            settings.uri(),
+            "mysql://test:testpassword@localhost:8800/testdatabasename"
         );
 
         // Postgres Test
