@@ -3,6 +3,7 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, FromPrimitive)]
 pub enum DataJointType {
     Unknown,
+    Boolean,
     TinyInt,
     TinyIntUnsigned,
     SmallInt,
@@ -11,6 +12,8 @@ pub enum DataJointType {
     MediumIntUnsigned,
     Int,
     IntUnsigned,
+    BigInt,
+    BigIntUnsigned,
     Enum,
     Date,
     Time,

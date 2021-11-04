@@ -1,23 +1,30 @@
-use crate::connection::{Cursor, NativeCursor};
-use crate::error::{Error, SqlxError};
-use crate::placeholders::PlaceholderArgumentCollection;
+use crate::common::{DatabaseType, DatabaseTypeAgnostic};
+use crate::connection::{Cursor, NativeCursor, Pool};
+use crate::error::Error;
+use crate::placeholders::{PlaceholderArgumentCollection, PlaceholderArgumentVector};
+use crate::query::Query;
 use crate::results::TableRow;
-use sqlx::Executor as SqlxExecutor;
 
 /// An object used to interact with a database by executing queries.
 ///
 /// Instances of `Executor` should not be created manually but by calling
 /// `executor()` on a `Connection` instance.
 pub struct Executor<'c> {
-    // TODO(jackson-nestelroad): Somehow wrap sqlx::AnyExecutor so that pools,
+    // TODO(jackson-nestelroad): Somehow wrap sqlx::Executor so that pools,
     // connections, and transactions can all use this API.
-    pub(crate) executor: &'c sqlx::AnyPool,
+    pub(crate) executor: &'c Pool,
     pub(crate) runtime: &'c tokio::runtime::Runtime,
+}
+
+impl<'c> DatabaseTypeAgnostic for Executor<'c> {
+    fn database_type(&self) -> DatabaseType {
+        self.executor.database_type()
+    }
 }
 
 impl<'c> Executor<'c> {
     /// Creates a new executor over the given SQLx executor.
-    pub(crate) fn new(executor: &'c sqlx::AnyPool, runtime: &'c tokio::runtime::Runtime) -> Self {
+    pub(crate) fn new(executor: &'c Pool, runtime: &'c tokio::runtime::Runtime) -> Self {
         Executor {
             executor: executor,
             runtime: runtime,
@@ -40,10 +47,10 @@ impl<'c> Executor<'c> {
 
     /// Executes the given query over the connection.
     pub fn try_execute(&self, query: &str) -> Result<u64, Error> {
-        match self.runtime.block_on(self.executor.execute(query)) {
-            Err(err) => Err(SqlxError::new(err)),
-            Ok(result) => Ok(result.rows_affected()),
-        }
+        self.runtime.block_on(
+            self.executor
+                .try_execute(Query::new(self.database_type(), query)),
+        )
     }
 
     /// Executes the given query over the connection.
@@ -54,11 +61,10 @@ impl<'c> Executor<'c> {
         query: &str,
         args: impl PlaceholderArgumentCollection,
     ) -> Result<u64, Error> {
-        let qu = args.prepare(query);
-        match self.runtime.block_on(qu.execute(self.executor)) {
-            Err(err) => Err(SqlxError::new(err)),
-            Ok(result) => Ok(result.rows_affected()),
-        }
+        self.runtime.block_on(
+            self.executor
+                .try_execute(args.bind_to_query(Query::new(self.database_type(), query))?),
+        )
     }
 
     /// Fetches one row using the given query.
@@ -70,10 +76,10 @@ impl<'c> Executor<'c> {
 
     /// Fetches one row using the given query.
     pub fn try_fetch_one(&self, query: &str) -> Result<TableRow, Error> {
-        match self.runtime.block_on(self.executor.fetch_one(query)) {
-            Err(err) => Err(SqlxError::new(err)),
-            Ok(row) => Ok(TableRow::new(row)),
-        }
+        self.runtime.block_on(
+            self.executor
+                .try_fetch_one(Query::new(self.database_type(), query)),
+        )
     }
 
     /// Fetches multiple rows using the given query.
@@ -85,15 +91,15 @@ impl<'c> Executor<'c> {
 
     /// Fetches multiple rows using the given query.
     pub fn try_fetch_all(&self, query: &str) -> Result<Vec<TableRow>, Error> {
-        match self.runtime.block_on(self.executor.fetch_all(query)) {
-            Err(err) => Err(SqlxError::new(err)),
-            Ok(rows) => Ok(rows.into_iter().map(TableRow::new).collect()),
-        }
+        self.runtime.block_on(
+            self.executor
+                .try_fetch_all(Query::new(self.database_type(), query)),
+        )
     }
 
     /// Creates a cursor for the given query.
-    pub fn cursor(&'c self, query: &str) -> Cursor<'c> {
-        NativeCursor::new_from_executor_ref(query, &self)
+    pub fn cursor(&'c self, query: &str) -> Result<Cursor<'c>, Error> {
+        NativeCursor::new_from_executor_ref(query, &self, None as Option<PlaceholderArgumentVector>)
     }
 
     /// Creates a cursor for the given query.
@@ -103,7 +109,7 @@ impl<'c> Executor<'c> {
         &'c self,
         query: &str,
         args: impl PlaceholderArgumentCollection,
-    ) -> Cursor<'c> {
-        NativeCursor::new_from_executor_ref_ph(query, &self, args)
+    ) -> Result<Cursor<'c>, Error> {
+        NativeCursor::new_from_executor_ref(query, self, Some(args))
     }
 }

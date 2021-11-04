@@ -90,8 +90,11 @@ class TableRow:
                 col_name = col.name()
                 # Decode the value to a Python value.
                 dj_type = dj_core.allocated_decoded_value_type(value)
-                if dj_type == dj_core.NativeTypeEnum_None:
+                if dj_type == dj_core.NativeTypeEnum_None or dj_type == dj_core.NativeTypeEnum_Null:
                     result[col_name] = None
+                elif dj_type == dj_core.NativeTypeEnum_Bool:
+                    result[col_name] = ffi.cast(
+                        "int8_t*", raw_data)[0]
                 elif dj_type == dj_core.NativeTypeEnum_Int8:
                     result[col_name] = ffi.cast(
                         "int8_t*", raw_data)[0]
@@ -110,6 +113,12 @@ class TableRow:
                 elif dj_type == dj_core.NativeTypeEnum_UInt32:
                     result[col_name] = ffi.cast(
                         "uint32_t*", raw_data)[0]
+                elif dj_type == dj_core.NativeTypeEnum_Int64:
+                    result[col_name] = ffi.cast(
+                        "int64_t*", raw_data)[0]
+                elif dj_type == dj_core.NativeTypeEnum_UInt64:
+                    result[col_name] = ffi.cast(
+                        "uint64_t*", raw_data)[0]
                 elif dj_type == dj_core.NativeTypeEnum_String:
                     result[col_name] = ffi.string(
                         ffi.cast("char*", raw_data), data_size).decode('utf-8')
