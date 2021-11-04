@@ -5,10 +5,6 @@ jobs:
   test:
     name:                       coverage
     runs-on:                    ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - image: djbase
     container:
       # do we want to use the nightly version or not?
       image:                    xd009642/tarpaulin:develop-nightly
@@ -16,6 +12,11 @@ jobs:
     steps: 
       - name:                   Checkout repository
         uses:                   actions/checkout@v2
+
+      - name:                   Install docker-compose
+        run: |                  
+            sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
 
       - name:                   Start test databases
         run: |                  
