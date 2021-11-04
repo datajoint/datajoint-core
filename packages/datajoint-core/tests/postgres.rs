@@ -5,33 +5,25 @@ use datajoint_core::{
 };
 
 #[test]
-fn test_successful_connection_to_db() {
+fn test_connection_to_db() {
     let mut settings = ConnectionSettings::new();
     settings.database_type = DatabaseType::Postgres;
     settings.username = "postgres".to_string();
-    settings.port = 5432;
+    settings.port = 5678;
     settings.password = "password".to_string();
     settings.database_name = "postgres".to_string();
     settings.use_tls = Some(true);
 
     let mut conn = Connection::new(settings);
     let result = conn.connect();
-    assert!(result.is_ok()); 
-}
+    assert!(result.is_ok(), "Connection did not connect."); 
 
-#[test]
-fn test_unsuccessful_connection_to_db() {
-    let mut settings = ConnectionSettings::new();
-    settings.database_type = DatabaseType::Postgres;
-    settings.username = "postgres".to_string();
-    settings.port = 5432;
-    settings.password = "wrongpassword".to_string();
-    settings.database_name = "postgres".to_string();
-    settings.use_tls = Some(true);
+    conn.disconnect();
 
-    let mut conn = Connection::new(settings);
+    conn.settings.port = 5432;
+
     let result = conn.connect();
-    assert!(result.is_err()); 
+    assert!(result.is_err(), "Connection did not fail.");
 }
 
 #[test]
