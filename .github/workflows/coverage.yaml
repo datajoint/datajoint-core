@@ -9,9 +9,13 @@ jobs:
       # do we want to use the nightly version or not?
       image:                    xd009642/tarpaulin:develop-nightly
       options:                  --security-opt seccomp=unconfined
-    steps:
+    steps: 
       - name:                   Checkout repository
         uses:                   actions/checkout@v2
+
+      - name:                   Start test databases
+      - run: |                  
+          docker-compose -f packages/datajoint-core/tests/docker-compose.yml up
 
       - name:                   Generate code coverage
         run: |
