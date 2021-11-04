@@ -5,6 +5,10 @@ jobs:
   test:
     name:                       coverage
     runs-on:                    ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: djbase
     container:
       # do we want to use the nightly version or not?
       image:                    xd009642/tarpaulin:develop-nightly
