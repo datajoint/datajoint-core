@@ -37,6 +37,4 @@ fn run_test() {
     }
 
     con.disconnect();
-
-    panic!();
 }
