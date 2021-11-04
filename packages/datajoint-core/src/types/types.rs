@@ -29,6 +29,4 @@ pub enum DataJointType {
     Blob,
     LongBlob,
     Binary,
-    Attach,
-    FilepathStore,
 }
