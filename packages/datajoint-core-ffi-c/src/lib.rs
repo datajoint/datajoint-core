@@ -1,4 +1,6 @@
 extern crate datajoint_core;
+#[macro_use]
+extern crate num_derive;
 
 mod connection;
 mod error;

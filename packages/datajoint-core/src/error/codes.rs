@@ -42,8 +42,9 @@ pub enum ErrorCode {
     NullNotAllowed,
     BufferNotEnough,
     InvalidNativeType,
-    InvalidCString,
+    InvalidUtf8String,
     RowIndexOutOfBounds,
+    BadPrimitiveEnumValue,
 }
 
 impl Display for ErrorCode {
@@ -84,8 +85,9 @@ impl ErrorCode {
             NullNotAllowed => "null not allowed",
             BufferNotEnough => "buffer not enough",
             InvalidNativeType => "invalid native type",
-            InvalidCString => "invalid c string",
+            InvalidUtf8String => "invalid utf-8 string",
             RowIndexOutOfBounds => "row index out of bounds",
+            BadPrimitiveEnumValue => "bad primitive enum value",
         }
     }
 }

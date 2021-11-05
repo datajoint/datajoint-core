@@ -3,6 +3,7 @@ use crate::types::native_type::NativeTypeEnum;
 use datajoint_core::{
     error::{DataJointError, ErrorCode},
     placeholders::{PlaceholderArgument, PlaceholderArgumentVector},
+    util::IntegerEnum,
 };
 use std::os::raw::c_void;
 
@@ -38,6 +39,9 @@ pub unsafe extern "C" fn placeholder_argument_vector_add(
     if this.is_null() || data.is_null() {
         return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
             as i32;
+    } else if NativeTypeEnum::from_int(data_type as i32) == None {
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::BadPrimitiveEnumValue))
+            as i32;
     }
 
     let vector = &mut *this;
@@ -49,8 +53,8 @@ pub unsafe extern "C" fn placeholder_argument_vector_add(
     vector.push(encoded);
 
     if !out.is_null() {
-        let last = vector.len() - 1;
-        *out = &mut vector[last] as *mut PlaceholderArgument;
+        // We just pushed a value, so last() trivially has an item to return.
+        *out = vector.last().unwrap() as *const PlaceholderArgument as *mut PlaceholderArgument;
     }
 
     return ErrorCode::Success as i32;

@@ -21,7 +21,7 @@ pub unsafe extern "C" fn cursor_next(this: *mut Cursor, out: *mut *mut TableRow)
             as i32;
     }
     let cursor = &mut *this;
-    match std::pin::Pin::as_mut(cursor).get_unchecked_mut().try_next() {
+    match cursor.try_next() {
         Err(error) => datajoint_core_set_last_error(error) as i32,
         Ok(value) => {
             util::mem::handle_output_ptr(out, value);
@@ -37,7 +37,7 @@ pub unsafe extern "C" fn cursor_rest(this: *mut Cursor, out: *mut *mut TableRowV
             as i32;
     }
     let cursor = &mut *this;
-    match std::pin::Pin::as_mut(cursor).get_unchecked_mut().try_rest() {
+    match cursor.try_rest() {
         Err(error) => datajoint_core_set_last_error(error) as i32,
         Ok(value) => {
             util::mem::handle_output_ptr(out, TableRowVector::new(value));
