@@ -33,7 +33,7 @@ impl ConnectionSettings {
     }
 
     /// Constructs a database connection URI for the settings object.
-    pub fn uri(&mut self) -> String {
+    pub fn uri(&self) -> String {
         let tls_ssl: &str;
         let mut uri: String;
 
@@ -54,12 +54,12 @@ impl ConnectionSettings {
             }
             uri.push('@');
         }
-        // Based on the defaults, hostname and port should always have a value
         if self.hostname.trim().is_empty() {
             // If the hostname is empty, just reset it to "localhost".
-            self.hostname = "localhost".to_string();
+            uri = format!("{}localhost:{}", uri, self.port);
+        } else {
+            uri = format!("{}{}:{}", uri, self.hostname, self.port);
         }
-        uri = format!("{}{}:{}", uri, self.hostname, self.port);
         if !self.database_name.trim().is_empty() {
             uri = format!("{}/{}", uri, self.database_name);
         }
