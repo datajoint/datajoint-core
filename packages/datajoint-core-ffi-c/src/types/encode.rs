@@ -24,7 +24,7 @@ impl NativeTypeEnum {
             NativeTypeEnum::UInt64 => Ok(NativeType::UInt64(*data.cast::<u64>())),
             NativeTypeEnum::String => {
                 let str = match CStr::from_ptr(data as *const _).to_str() {
-                    Err(_) => return Err(DataJointError::new(ErrorCode::InvalidCString)),
+                    Err(_) => return Err(DataJointError::new(ErrorCode::InvalidUtf8String)),
                     Ok(str) => str,
                 };
                 Ok(NativeType::String(str.to_string()))
