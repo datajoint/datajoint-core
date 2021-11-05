@@ -1,13 +1,6 @@
 from .datajoint_core_lib import dj_core
 from ._datajoint_core import ffi
 
-
-def free_and_decode_string(value):
-    ret = ffi.string(value).decode("utf-8")
-    dj_core.datajoint_core_cstring_free(value)
-    return ret
-
-
 OptionalBool_encode = {
     None: dj_core.OptionalBool_None,
     True: dj_core.OptionalBool_True,
@@ -28,6 +21,28 @@ DatabaseType = {
 }
 
 
+def free_and_decode_string(value):
+    ret = ffi.string(value).decode("utf-8")
+    dj_core.datajoint_core_cstring_free(value)
+    return ret
+
+
+def encode_string(value):
+    return value.encode("utf-8")
+
+
+def encode_bool(value):
+    return OptionalBool_encode[value]
+
+
+def decode_bool(value):
+    return OptionalBool_decode[value]
+
+
+def map_database_type(value):
+    return DatabaseType[value]
+
+
 class ConnectionSetting:
     def __init__(self, getter, setter, ffi_type):
         self.getter = getter
@@ -37,18 +52,18 @@ class ConnectionSetting:
     def set_value(self, native, value):
         encode_methods = {
             int: int,
-            str: lambda val: val.encode("utf-8"),
-            "OptionalBool": lambda val: OptionalBool_encode[val],
-            "DatabaseType": lambda val: DatabaseType[val.lower()]
+            str: encode_string,
+            "OptionalBool": encode_bool,
+            "DatabaseType": map_database_type
         }
         self.setter(native, encode_methods[self.ffi_type](value))
 
     def get_value(self, native):
         decode_methods = {
-            int: lambda val: val,
-            str: lambda val: free_and_decode_string(val),
-            "OptionalBool": lambda val: OptionalBool_decode[val],
-            "DatabaseType": lambda val: DatabaseType[val]
+            int: int,
+            str: free_and_decode_string,
+            "OptionalBool": decode_bool,
+            "DatabaseType": map_database_type
         }
         return decode_methods[self.ffi_type](self.getter(native))
 
@@ -106,8 +121,6 @@ class Config:
     def __del__(self):
         if self.owning:
             dj_core.connection_settings_free(self.native[0])
-
-    # TODO(jackson-nestelroad): Type checking here for inputs and outputs.
 
     def __setitem__(self, setting, value):
         field = self._fields[setting]
