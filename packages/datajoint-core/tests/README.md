@@ -4,10 +4,10 @@ datajoint_core uses docker to run many compatible database systems for integrati
 
     $ docker run hello-world
 
-Start the databases with `docker-compose` before running tests:
+Build all docker services first using:
 
-    $ docker-compose up
+    $ docker-compose -f .\docker-compose-test.yml build
 
-Run all tests against all supported databases using:
+Run all tests against all supported databases in docker using:
 
-    $ ./run_tests.py
+    $ docker-compose -f .\docker-compose-test.yml up

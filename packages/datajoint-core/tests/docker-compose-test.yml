@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  #
+  # MySQL 5.7.x
+  # https://www.mysql.com/support/supportedplatforms/database.html
+  #
+  mysql_5_7:
+    image: mysql:5.7
+    hostname: mysql_5_7
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: datajoint_core
+    volumes:
+      - "./mysql/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
+
+  #
+  # PostgreSQL 13.x
+  # https://www.postgresql.org/support/versioning/
+  #
+  postgres_13:
+    image: postgres:13-alpine
+    hostname: postgres_13
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: datajoint_core
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - "./postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
+
+  # Run datajoint_core test suite
+  tests:
+    depends_on:
+      - mysql_5_7
+      - postgres_13
+    build: ../../../
+    command:
+      [
+        "./wait-for-it.sh",
+        "postgres_13:5432",
+        "--",
+        "./wait-for-it.sh",
+        "mysql_5_7:3306",
+        "--",
+        "cargo",
+        "test",
+      ]
