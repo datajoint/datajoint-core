@@ -48,7 +48,7 @@ impl ConnectionSettings {
             }
         }
 
-        /// If the username is empty, a password and '@' are not needed
+        // If the username is empty, a password and '@' are not needed
         if !self.username.trim().is_empty() {
             uri.push_str(self.username.as_str());
             if !self.password.trim().is_empty() {
@@ -57,9 +57,9 @@ impl ConnectionSettings {
             uri.push('@');
         }
       
-        /// Based on the defaults, hostname and port will always have values.
-        ///
-        /// Since port is a u16, it will never be empty.
+        // Based on the defaults, hostname and port will always have values.
+        //
+        // Since port is a u16, it will never be empty.
         if self.hostname.trim().is_empty() {
             // If the hostname is empty, just reset it to "localhost".
             uri = format!("{}localhost:{}", uri, self.port);
@@ -70,7 +70,7 @@ impl ConnectionSettings {
             uri = format!("{}/{}", uri, self.database_name);
         }
       
-        /// Will match to see if use_tls needs to be added to the uri
+        // Will match to see if use_tls needs to be added to the uri
         match self.use_tls {
             Some(true) => format!("{}?{}=true", uri, tls_ssl),
             Some(false) => format!("{}?{}=false", uri, tls_ssl),
