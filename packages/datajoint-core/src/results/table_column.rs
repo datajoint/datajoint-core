@@ -89,6 +89,8 @@ impl<'r> TableColumnRef<'r> {
                 "MEDIUMBLOB" => MediumBlob,
                 "BLOB" => Blob,
                 "LONGBLOB" => LongBlob,
+                "BINARY" => Binary,
+                "VARBINARY" => Binary,
                 &_ => Unknown,
             },
             Self::Postgres(column) => {
@@ -102,16 +104,19 @@ impl<'r> TableColumnRef<'r> {
                         "CHAR" => CharN,
                         "VARCHAR" => VarCharN,
                         "TEXT" => VarCharN,
-                        "BYTEA" => LongBlob,
+                        "BYTEA" => Binary,
                         "FLOAT4" => Float,
                         "FLOAT8" => Double,
                         "DATE" => Date,
                         "TIME" => Time,
                         "TIMESTAMP" => DateTime,
                         "TIMESTAMPTZ" => Timestamp,
+                        "NUMERIC" => Decimal,
                         &_ => Unknown,
                         // TODO(jackson-nestelroad): Check all of the other Postgres types at
                         // https://docs.rs/sqlx-core/0.5.9/src/sqlx_core/postgres/type_info.rs.html#447.
+                        //
+                        // It is specifically interesting how arrays might be handled.
                     },
                     _ => Unknown,
                 }
