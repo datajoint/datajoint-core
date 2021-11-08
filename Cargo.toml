@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+  "packages/datajoint-core-ffi-c",
+  "packages/datajoint-core",
+]

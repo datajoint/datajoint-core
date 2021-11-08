@@ -26,3 +26,8 @@ __main__.py
 jupyter_custom.js
 apk_requirements.txt
 .eggs
+/target
+Cargo.lock
+*.h
+.vscode/
+_datajoint_core.py

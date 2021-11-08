@@ -29,13 +29,13 @@ The new blobs are a superset of the old functionality and are fully backward com
 In previous versions, only MATLAB-style numerical arrays were fully supported.
 Some Python datatypes such as dicts were coerced into numpy recarrays and then fetched as such.
 
-However, since some Python types were coerced into MATLAB types, old blobs and new blobs may now be fetched as different types of objects even if they were inserted the same way. 
+However, since some Python types were coerced into MATLAB types, old blobs and new blobs may now be fetched as different types of objects even if they were inserted the same way.
 For example, new `dict` objects will be returned as `dict` while the same types of objects inserted with `datajoint 0.11` will be recarrays.
 
-Since this is a big change, we chose to temporarily disable this feature by default in DataJoint for Python 0.12.x, allowing users to adjust their code if necessary. 
+Since this is a big change, we chose to temporarily disable this feature by default in DataJoint for Python 0.12.x, allowing users to adjust their code if necessary.
 From 13.x, the flag will default to True (on), and will ultimately be removed when corresponding decode support for the new format is added to datajoint-matlab (see: datajoint-matlab #222, datajoint-python #765).
 
-The flag is configured by setting the `enable_python_native_blobs` flag in `dj.config`. 
+The flag is configured by setting the `enable_python_native_blobs` flag in `dj.config`.
 
 ```python
 import datajoint as dj
@@ -60,16 +60,16 @@ and Python for certain record types. However, this created a discrepancy
 between insert and fetch datatypes which could cause problems in other
 portions of users pipelines.
 
-DataJoint v0.12, removes the squashing behavior, instead encoding native python datatypes in blobs directly. 
-However, this change creates a compatibility problem for pipelines 
-which previously relied on the type squashing behavior since records 
+DataJoint v0.12, removes the squashing behavior, instead encoding native python datatypes in blobs directly.
+However, this change creates a compatibility problem for pipelines
+which previously relied on the type squashing behavior since records
 saved via the old squashing format will continue to fetch
 as structured arrays, whereas new record inserted in DataJoint 0.12 with
 `enable_python_native_blobs` would result in records returned as the
-appropriate native python type (dict, etc).  
+appropriate native python type (dict, etc).
 Furthermore, DataJoint for MATLAB does not yet support unpacking native Python datatypes.
 
-With `dj.config["enable_python_native_blobs"]` set to `False`, 
+With `dj.config["enable_python_native_blobs"]` set to `False`,
 any attempt to insert any datatype other than a numpy array will result in an exception.
 This is meant to get users to read this message in order to allow proper testing
 and migration of pre-0.12 pipelines to 0.12 in a safe manner.
@@ -78,13 +78,13 @@ The exact process to update a specific pipeline will vary depending on
 the situation, but generally the following strategies may apply:
 
   * Altering code to directly store numpy structured arrays or plain
-    multidimensional arrays. This strategy is likely best one for those 
+    multidimensional arrays. This strategy is likely best one for those
     tables requiring compatibility with MATLAB.
   * Adjust code to deal with both structured array and native fetched data
-    for those tables that are populated with `dict`s in blobs in pre-0.12 version. 
+    for those tables that are populated with `dict`s in blobs in pre-0.12 version.
     In this case, insert logic is not adjusted, but downstream consumers
     are adjusted to handle records saved under the old and new schemes.
-  * Migrate data into a fresh schema, fetching the old data, converting blobs to 
+  * Migrate data into a fresh schema, fetching the old data, converting blobs to
     a uniform data type and re-inserting.
   * Drop/Recompute imported/computed tables to ensure they are in the new
     format.
