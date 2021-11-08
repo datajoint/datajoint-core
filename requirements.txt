@@ -11,3 +11,4 @@ matplotlib
 cryptography
 otumat
 urllib3
+cffi==1.14.6

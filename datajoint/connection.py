@@ -4,12 +4,12 @@ This module contains the Connection class that manages the connection to the dat
 """
 import warnings
 from contextlib import contextmanager
-import pymysql as client
 import logging
 from getpass import getpass
 import re
 import pathlib
 
+from . import datajoint_core as client
 from .settings import config
 from . import errors
 from .dependencies import Dependencies
@@ -203,17 +203,17 @@ class Connection:
                     sql_mode="NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
                              "STRICT_ALL_TABLES,NO_ENGINE_SUBSTITUTION,ONLY_FULL_GROUP_BY",
                     charset=config['connection.charset'],
-                    **{k: v for k, v in self.conn_info.items()
-                       if k not in ['ssl_input', 'host_input']})
+                    default_config={k: v for k, v in self.conn_info.items()
+                                    if k not in ['ssl_input', 'host_input']})
             except client.err.InternalError:
                 self._conn = client.connect(
                     init_command=self.init_fun,
                     sql_mode="NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
                              "STRICT_ALL_TABLES,NO_ENGINE_SUBSTITUTION,ONLY_FULL_GROUP_BY",
                     charset=config['connection.charset'],
-                    **{k: v for k, v in self.conn_info.items()
-                       if not(k in ['ssl_input', 'host_input'] or
-                              k == 'ssl' and self.conn_info['ssl_input'] is None)})
+                    default_config={k: v for k, v in self.conn_info.items()
+                                    if not(k in ['ssl_input', 'host_input'] or
+                                    k == 'ssl' and self.conn_info['ssl_input'] is None)})
         self._conn.autocommit(True)
 
     def set_query_cache(self, query_cache=None):
