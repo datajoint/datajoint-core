@@ -8,11 +8,13 @@ use libc::c_char;
 use std::ffi::{CStr, CString};
 use std::ptr;
 
+/// Creates a new instance of ConnectionSettings.
 #[no_mangle]
 pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings {
     Box::into_raw(Box::new(ConnectionSettings::new()))
 }
 
+/// Frees an instancec of ConnectionSettings.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_free(this: *mut ConnectionSettings) {
     if !this.is_null() {
@@ -20,6 +22,7 @@ pub unsafe extern "C" fn connection_settings_free(this: *mut ConnectionSettings)
     }
 }
 
+/// Sets the database_type on a given an instance of ConnectionSettings.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_database_type(
     this: *mut ConnectionSettings,
@@ -38,6 +41,7 @@ pub unsafe extern "C" fn connection_settings_set_database_type(
     ErrorCode::Success as i32
 }
 
+/// Sets the username on a given an instance of ConnectionSettings.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_username(
     this: *mut ConnectionSettings,
@@ -59,6 +63,7 @@ pub unsafe extern "C" fn connection_settings_set_username(
     ErrorCode::Success as i32
 }
 
+/// Sets the password on a given an instance of ConnectionSettings.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_password(
     this: *mut ConnectionSettings,
@@ -80,6 +85,7 @@ pub unsafe extern "C" fn connection_settings_set_password(
     ErrorCode::Success as i32
 }
 
+/// Sets the hostname on a given an instance of ConnectionSettings.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_hostname(
     this: *mut ConnectionSettings,
@@ -101,6 +107,7 @@ pub unsafe extern "C" fn connection_settings_set_hostname(
     ErrorCode::Success as i32
 }
 
+/// Sets the port on a given an instance of ConnectionSettings.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_port(
     this: *mut ConnectionSettings,
@@ -115,6 +122,7 @@ pub unsafe extern "C" fn connection_settings_set_port(
     ErrorCode::Success as i32
 }
 
+/// Sets the database_name on a given an instance of ConnectionSettings.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_database_name(
     this: *mut ConnectionSettings,
@@ -136,6 +144,7 @@ pub unsafe extern "C" fn connection_settings_set_database_name(
     ErrorCode::Success as i32
 }
 
+/// Sets use_tls on a given an instance of ConnectionSettings.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_use_tls(
     this: *mut ConnectionSettings,
@@ -153,6 +162,7 @@ pub unsafe extern "C" fn connection_settings_set_use_tls(
     ErrorCode::Success as i32
 }
 
+/// Given an instance of ConnectionSettings, the function will return the database_type.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_database_type(
     this: *mut ConnectionSettings,
@@ -167,6 +177,7 @@ pub unsafe extern "C" fn connection_settings_get_database_type(
     settings.database_type
 }
 
+/// Given an instance of ConnectionSettings, the function will return the user_name.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_username(
     this: *const ConnectionSettings,
@@ -182,6 +193,7 @@ pub unsafe extern "C" fn connection_settings_get_username(
     }
 }
 
+/// Given an instance of ConnectionSettings, the function will return the password.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_password(
     this: *const ConnectionSettings,
@@ -197,6 +209,7 @@ pub unsafe extern "C" fn connection_settings_get_password(
     }
 }
 
+/// Given an instance of ConnectionSettings, the function will return the hostname.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_hostname(
     this: *const ConnectionSettings,
@@ -212,6 +225,7 @@ pub unsafe extern "C" fn connection_settings_get_hostname(
     }
 }
 
+/// Given an instance of ConnectionSettings, the function will return the port.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSettings) -> u16 {
     if this.is_null() {
@@ -222,6 +236,7 @@ pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSet
     settings.port
 }
 
+/// Given an instance of ConnectionSettings, the function will return the database_name.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_database_name(
     this: *const ConnectionSettings,
@@ -237,6 +252,7 @@ pub unsafe extern "C" fn connection_settings_get_database_name(
     }
 }
 
+/// Given an instance of ConnectionSettings, the function will return the value of use_tls.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_use_tls(
     this: *const ConnectionSettings,
