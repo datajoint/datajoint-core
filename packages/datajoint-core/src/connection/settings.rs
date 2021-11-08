@@ -47,6 +47,8 @@ impl ConnectionSettings {
                 tls_ssl = "tls";
             }
         }
+
+        /// If the username is empty, a password and '@' are not needed
         if !self.username.trim().is_empty() {
             uri.push_str(self.username.as_str());
             if !self.password.trim().is_empty() {
@@ -54,12 +56,15 @@ impl ConnectionSettings {
             }
             uri.push('@');
         }
-        // Based on the defaults, hostname and port will always have values
+        /// Based on the defaults, hostname and port will always have values.
+        ///
+        /// Since port is a u16, therefore it will never be empty.
         uri = format!("{}{}:{}", uri, self.hostname, self.port);
         if !self.database_name.trim().is_empty() {
             uri = format!("{}/{}", uri, self.database_name);
         }
 
+        /// Will match to see if use_tls needs to be added to the uri
         match self.use_tls {
             Some(true) => format!("{}?{}=true", uri, tls_ssl),
             Some(false) => format!("{}?{}=false", uri, tls_ssl),
@@ -68,6 +73,7 @@ impl ConnectionSettings {
     }
 }
 
+/// Tests checking if the uri() function output is correct
 #[cfg(test)]
 mod tests {
 
