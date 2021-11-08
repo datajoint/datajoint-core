@@ -25,7 +25,7 @@ pub unsafe extern "C" fn executor_execute(
         return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
             as i32;
     }
-    let executor = { &mut *this };
+    let executor = &*this;
     let query_str = match CStr::from_ptr(query).to_str() {
         Err(_) => {
             return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidUtf8String))
@@ -50,11 +50,11 @@ pub unsafe extern "C" fn executor_fetch_one(
     query: *const c_char,
     out: *mut *mut TableRow,
 ) -> i32 {
-    if this.is_null() {
+    if this.is_null() || query.is_null() {
         return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
             as i32;
     }
-    let executor = { &mut *this };
+    let executor = &*this;
     let query_str = match CStr::from_ptr(query).to_str() {
         Err(_) => {
             return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidUtf8String))
@@ -77,11 +77,11 @@ pub unsafe extern "C" fn executor_fetch_all(
     query: *const c_char,
     out: *mut *mut TableRowVector,
 ) -> i32 {
-    if this.is_null() {
+    if this.is_null() || query.is_null() {
         return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
             as i32;
     }
-    let executor = { &mut *this };
+    let executor = &*this;
     let query_str = match CStr::from_ptr(query).to_str() {
         Err(_) => {
             return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidUtf8String))
@@ -105,11 +105,11 @@ pub unsafe extern "C" fn executor_cursor<'c>(
     args: *mut PlaceholderArgumentVector,
     out: *mut *mut Cursor<'c>,
 ) -> i32 {
-    if this.is_null() {
+    if this.is_null() || query.is_null() {
         return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
             as i32;
     }
-    let executor = { &*this };
+    let executor = &*this;
     let query_str = match CStr::from_ptr(query).to_str() {
         Err(_) => {
             return datajoint_core_set_last_error(DataJointError::new(ErrorCode::InvalidUtf8String))
