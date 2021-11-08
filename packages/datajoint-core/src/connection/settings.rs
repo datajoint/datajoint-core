@@ -56,14 +56,20 @@ impl ConnectionSettings {
             }
             uri.push('@');
         }
+      
         /// Based on the defaults, hostname and port will always have values.
         ///
-        /// Since port is a u16, therefore it will never be empty.
-        uri = format!("{}{}:{}", uri, self.hostname, self.port);
+        /// Since port is a u16, it will never be empty.
+        if self.hostname.trim().is_empty() {
+            // If the hostname is empty, just reset it to "localhost".
+            uri = format!("{}localhost:{}", uri, self.port);
+        } else {
+            uri = format!("{}{}:{}", uri, self.hostname, self.port);
+        }
         if !self.database_name.trim().is_empty() {
             uri = format!("{}/{}", uri, self.database_name);
         }
-
+      
         /// Will match to see if use_tls needs to be added to the uri
         match self.use_tls {
             Some(true) => format!("{}?{}=true", uri, tls_ssl),
@@ -121,6 +127,11 @@ mod tests {
         assert_eq!(
             settings.uri(),
             "mysql://test:testpassword@testhostname:8800/testdatabasename"
+        );
+        settings.hostname = "".to_string();
+        assert_eq!(
+            settings.uri(),
+            "mysql://test:testpassword@localhost:8800/testdatabasename"
         );
 
         // Postgres Test
