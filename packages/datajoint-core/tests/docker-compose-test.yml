@@ -5,9 +5,9 @@ services:
   # MySQL 5.7.x
   # https://www.mysql.com/support/supportedplatforms/database.html
   #
-  mysql_5_7:
-    image: mysql:5.7
-    hostname: mysql_5_7
+  mysql_5_6:
+    image: mysql:5.6
+    hostname: mysql_5_6
     ports:
       - 3306:3306
     environment:
@@ -15,7 +15,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: datajoint_core
     volumes:
-      - "./mysql/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
+      - "./mysql:/docker-entrypoint-initdb.d"
 
   #
   # PostgreSQL 13.x
@@ -31,7 +31,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
-      - "./postgres/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
+      - "./postgres:/docker-entrypoint-initdb.d"
 
   # # Run datajoint_core test suite
   # tests:
