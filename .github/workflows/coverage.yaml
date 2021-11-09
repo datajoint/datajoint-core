@@ -13,7 +13,7 @@ jobs:
       - name: install tarpaulin
         uses: actions-rs/cargo@v1
         with:
-          command: binstall
+          command: install
           args: >
             cargo-tarpaulin
 
