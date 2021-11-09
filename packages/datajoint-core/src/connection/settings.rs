@@ -79,7 +79,7 @@ impl ConnectionSettings {
     }
 }
 
-/// Tests checking if the uri() function output is correct
+// Tests checking if the uri() function output is correct
 #[cfg(test)]
 mod tests {
 
