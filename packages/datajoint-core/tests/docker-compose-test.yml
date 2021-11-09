@@ -31,7 +31,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
-      - "./postgres:/docker-entrypoint-initdb.d"
+      - "./home/runner/worker/datajoint-core/packages/datajoint-core/tests/mysql/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
 
   # # Run datajoint_core test suite
   # tests:

@@ -5,56 +5,30 @@ jobs:
   test:
     name: coverage
     runs-on: ubuntu-latest
-    container:
-      # do we want to use the nightly version or not?
-      image: xd009642/tarpaulin:develop-nightly
-      options: --security-opt seccomp=unconfined
-    services:
-      # Label used to access the service container
-      postgres_13:
-        image: postgres:13-alpine
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: datajoint_core
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: password
-        volumes:
-          - "./home/runner/worker/datajoint-core/packages/datajoint-core/tests/postgres:/docker-entrypoint-initdb.d"
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      mysql_5_6:
-        image: mysql:5.6
-        ports:
-          - 3306:3306
-        env:
-          MYSQL_ROOT_HOST: "%"
-          MYSQL_ROOT_PASSWORD: password
-          MYSQL_DATABASE: datajoint_core
-        volumes:
-          - "./home/runner/worker/datajoint-core/packages/datajoint-core/tests/postgres/mysql:/docker-entrypoint-initdb.d"
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: install tarpaulin
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: >
+            tarpaulin
 
       # - name: Install docker-compose
       #   run: |
       #     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
       #     chmod +x /usr/local/bin/docker-compose
 
-      # - name: Start test databases
-      #   run: |
-      #     cd packages/datajoint-core/tests
-      #     ls
-      #     pwd
-      #     docker-compose -f docker-compose-test.yml rm
-      #     docker-compose -f docker-compose-test.yml up --build
+      - name: Start test databases
+        run: |
+          cd packages/datajoint-core/tests
+          ls
+          pwd
+          docker-compose -f tests/docker-compose.yml run -d --name postgres_13
+          docker exec postgres_13 bash -c "until pg_isready; do sleep 1; done"
 
       - name: Run tests and upload coverage
         run: |
