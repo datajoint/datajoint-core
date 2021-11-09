@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+        run: |
+          pwd
 
       - name: Install docker-compose
         run: |
