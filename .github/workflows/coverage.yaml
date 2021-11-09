@@ -13,9 +13,9 @@ jobs:
       - name: install tarpaulin
         uses: actions-rs/cargo@v1
         with:
-          command: install
+          command: binstall
           args: >
-            tarpaulin
+            cargo-tarpaulin
 
       # - name: Install docker-compose
       #   run: |
