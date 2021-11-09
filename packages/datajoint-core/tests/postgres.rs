@@ -2,7 +2,7 @@ use datajoint_core::{
     common::DatabaseType,
     connection::{Connection, ConnectionSettings},
     results::TableRow,
-    types::NativeType
+    types::NativeType,
 };
 
 #[test]
@@ -14,11 +14,11 @@ fn test_connection_to_db() {
     settings.password = "password".to_string();
     settings.database_name = "datajoint_core".to_string();
     settings.use_tls = Some(true);
-    settings.hostname = "postgres_13".to_string();
+    settings.hostname = "localhost".to_string();
     let mut conn = Connection::new(settings);
 
     let result = conn.connect();
-    assert!(result.is_ok(), "Connection did not connect."); 
+    assert!(result.is_ok(), "Connection did not connect.");
 
     conn.disconnect();
 
@@ -51,19 +51,24 @@ fn test_insert_and_retrieve_one_row() {
     let cols = rows[0].columns();
 
     let text = match rows[0].try_decode(cols[0]) {
-        Ok(data) => { data }
-        Err(_) => {NativeType::None}
+        Ok(data) => data,
+        Err(_) => NativeType::None,
     };
 
     let owner_id = match rows[0].try_decode(cols[1]) {
-        Ok(data) => { data }
-        Err(_) => {NativeType::None}
+        Ok(data) => data,
+        Err(_) => NativeType::None,
     };
 
-    assert!(text == NativeType::String("hello world".to_string()), "text did not match \"hello world\".");
-    assert!(owner_id == NativeType::Int64(1234), "owner_id did not equal 1234.");
+    assert!(
+        text == NativeType::String("hello world".to_string()),
+        "text did not match \"hello world\"."
+    );
+    assert!(
+        owner_id == NativeType::Int64(1234),
+        "owner_id did not equal 1234."
+    );
 }
-
 
 #[test]
 fn run_test() {
