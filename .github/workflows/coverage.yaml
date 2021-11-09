@@ -20,7 +20,13 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
         volumes:
-          - "./postgres:/docker-entrypoint-initdb.d"
+          - "./home/runner/worker/datajoint-core/packages/datajoint-core/tests/postgres:/docker-entrypoint-initdb.d"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
       mysql_5_6:
         image: mysql:5.6
         ports:
@@ -30,7 +36,9 @@ jobs:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: datajoint_core
         volumes:
-          - "./mysql:/docker-entrypoint-initdb.d"
+          - "./home/runner/worker/datajoint-core/packages/datajoint-core/tests/postgres/mysql:/docker-entrypoint-initdb.d"
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
