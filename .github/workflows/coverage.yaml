@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        run: |
-          pwd
 
       - name: Install docker-compose
         run: |
@@ -24,7 +22,8 @@ jobs:
         run: |
           cd packages/datajoint-core/tests
           ls
-          docker-compose -f docker-compose-test.yml up
+          pwd
+          docker-compose -f docker-compose-test.yml up --renew-anon-volumes
 
       - name: Run tests and upload coverage
         run: |
