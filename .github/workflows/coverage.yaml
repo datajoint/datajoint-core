@@ -22,13 +22,18 @@ jobs:
       #     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
       #     chmod +x /usr/local/bin/docker-compose
 
-      - name: Start test databases
+      - name: Start postgres database
         run: |
           cd packages/datajoint-core/tests
           ls
           pwd
           docker-compose -f docker-compose-test.yml run -d --name postgres_13 postgres_13
           docker exec postgres_13 bash -c "until pg_isready; do sleep 1; done"
+          docker-compose -f docker-compose-test.yml run -d --name mysql_5_6
+          run sleep 60
+
+      - name: Start mysql database
+        run: |
           docker-compose -f docker-compose-test.yml run -d --name mysql_5_6
           run sleep 60
 
