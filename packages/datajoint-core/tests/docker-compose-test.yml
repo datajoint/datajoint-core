@@ -15,8 +15,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: datajoint_core
     volumes:
-      - "./mysql:/docker-entrypoint-initdb.d"
-
+      - "./home/runner/worker/datajoint-core/packages/datajoint-core/tests/mysql:/docker-entrypoint-initdb.d/"
   #
   # PostgreSQL 13.x
   # https://www.postgresql.org/support/versioning/
@@ -31,7 +30,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     volumes:
-      - "./home/runner/worker/datajoint-core/packages/datajoint-core/tests/mysql/setup.sql:/docker-entrypoint-initdb.d/setup.sql"
+      - "./home/runner/worker/datajoint-core/packages/datajoint-core/tests/postgres:/docker-entrypoint-initdb.d/"
 
   # # Run datajoint_core test suite
   # tests:
