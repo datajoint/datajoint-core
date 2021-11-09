@@ -29,8 +29,6 @@ jobs:
           pwd
           docker-compose -f docker-compose-test.yml run -d --name postgres_13 postgres_13
           docker exec postgres_13 bash -c "until pg_isready; do sleep 1; done"
-          docker-compose -f docker-compose-test.yml run -d --name mysql_5_6
-          run sleep 60
 
       - name: Start mysql database
         run: |
