@@ -32,6 +32,9 @@ jobs:
 
       - name: Start mysql database
         run: |
+          cd packages/datajoint-core/tests
+          ls
+          pwd
           docker-compose -f docker-compose-test.yml run -d mysql_5_6
           sleep 60
 
