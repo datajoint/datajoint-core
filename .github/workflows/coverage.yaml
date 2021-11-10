@@ -36,7 +36,7 @@ jobs:
           ls
           pwd
           docker-compose -f docker-compose-test.yml run -d mysql_5_6
-          sleep 60
+          until nc -z -v -w30 localhost 3306; do echo "Waiting for database connection...";sleep 5;done
 
       # - name: Run tests and upload coverage
       #   run: |
