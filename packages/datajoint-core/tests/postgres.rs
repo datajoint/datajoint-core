@@ -21,11 +21,6 @@ fn test_connection_to_db() {
     assert!(result.is_ok(), "Connection did not connect.");
 
     conn.disconnect();
-
-    conn.settings.port = 1234;
-
-    let result = conn.connect();
-    assert!(result.is_err(), "Connection did not fail.");
 }
 
 #[test]
