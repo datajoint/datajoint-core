@@ -16,27 +16,24 @@ jobs:
       #     command: install
       #     args: >
       #       cargo-tarpaulin
-
       # - name: Install docker-compose
       #   run: |
       #     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
       #     chmod +x /usr/local/bin/docker-compose
-
-      - name: Start postgres database
-        run: |
-          cd packages/datajoint-core/tests
-          ls
-          pwd
-          docker-compose -f docker-compose-test.yml run -d --name postgres_13 postgres_13
-          docker exec postgres_13 bash -c "until pg_isready; do sleep 1; done"
-
+      # - name: Start postgres database
+      #   run: |
+      #     cd packages/datajoint-core/tests
+      #     ls
+      #     pwd
+      #     docker-compose -f docker-compose-test.yml run -d --name postgres_13 postgres_13
+      #     docker exec postgres_13 bash -c "until pg_isready; do sleep 1; done"
       - name: Start mysql database
         run: |
           cd packages/datajoint-core/tests
           ls
           pwd
-          docker-compose -f docker-compose-test.yml run -d --name mysql_5_6 mysql_5_6
-          until nc -z -v -w30 localhost 3306; do echo "Waiting for database connection...";sleep 5;done;
+          docker-compose -f docker-compose-test.yml run --name mysql_5_6 mysql_5_6
+        # until nc -z -v -w30 localhost 3306; do echo "Waiting for database connection...";sleep 5;done;
 
       # - name: Run tests and upload coverage
       #   run: |
