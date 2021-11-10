@@ -167,7 +167,7 @@ fn run_test() {
     settings.password = "password".to_string();
     settings.database_name = "datajoint_core".to_string();
     settings.use_tls = Some(true);
-    settings.hostname = "localhost ".to_string();
+    settings.hostname = "localhost".to_string();
     let mut con = Connection::new(settings);
 
     con.connect().unwrap();
