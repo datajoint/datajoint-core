@@ -10,12 +10,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # - name: install tarpaulin
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: install
-      #     args: >
-      #       cargo-tarpaulin
+      - name: install tarpaulin
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: >
+            cargo-tarpaulin
       # - name: Install docker-compose
       #   run: |
       #     curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -28,24 +28,18 @@ jobs:
           docker-compose -f docker-compose-test.yml up -d 
           docker exec tests_postgres_13_1 bash -c "until pg_isready; do sleep 1; done"
           until nc -z -v -w30 localhost 3306; do echo "Waiting for database connection...";sleep 5;done;
-      # - name: Start mysql database
-      #   run: |
-      #     cd packages/datajoint-core/tests
-      #     ls
-      #     pwd
-      #     docker-compose -f docker-compose-test.yml run --name mysql_5_6 mysql_5_6
-      #   # until nc -z -v -w30 localhost 3306; do echo "Waiting for database connection...";sleep 5;done;
 
-      # - name: Run tests and upload coverage
-      #   run: |
-      #     cargo tarpaulin --verbose --coveralls ${{ secrets.GITHUB_TOKEN }}
-
-      - name: run tests
+      - name: Run tests and upload coverage
         run: |
-          cargo test
+          cargo tarpaulin --verbose --coveralls ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: run tests
+      #   run: |
+      #     cargo test
 
       - name: clean
         run: |
+          cd packages/datajoint-core/tests
           docker-compose -f docker-compose-test.yml rm
 
       #   are we going to upload these any where?
