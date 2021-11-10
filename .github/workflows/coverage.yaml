@@ -31,7 +31,7 @@ jobs:
 
       - name: Run tests and upload coverage
         run: |
-          cargo tarpaulin --verbose --coveralls ${{ secrets.GITHUB_TOKEN }}
+          cargo tarpaulin --verbose --coveralls X5IJ9L48tT10necJAKzAkaMkHtpwDp43G
 
       # - name: run tests
       #   run: |
