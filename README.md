@@ -1,6 +1,8 @@
+[![Coverage Status](https://coveralls.io/repos/github/EdwardGarmon/datajoint-core/badge.svg)](https://coveralls.io/github/EdwardGarmon/datajoint-core)
+
 # datajoint-core
 
-Common DataJoint OSS framework
+Common DataJoint OSS framework 
 
 `./datajoint-python` is a temporary home for the light python wrapper to show a POC of how the Rust packages will operate.
 
