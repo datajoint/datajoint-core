@@ -37,7 +37,7 @@ fn test_insert_and_retrieve_one_row() {
     settings.password = "password".to_string();
     settings.database_name = "datajoint_core".to_string();
     settings.use_tls = Some(true);
-    settings.hostname = "postgres_13".to_string();
+    settings.hostname = "localhost".to_string();
     let mut con = Connection::new(settings);
 
     con.connect().unwrap();
@@ -79,7 +79,7 @@ fn run_test() {
     settings.password = "password".to_string();
     settings.database_name = "datajoint_core".to_string();
     settings.use_tls = Some(true);
-    settings.hostname = "postgres_13".to_string();
+    settings.hostname = "localhost".to_string();
     let mut con = Connection::new(settings);
 
     con.connect().unwrap();

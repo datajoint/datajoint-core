@@ -39,7 +39,7 @@ fn test_insert_and_retrieve_one_row() {
     settings.password = "password".to_string();
     settings.database_name = "datajoint_core".to_string();
     settings.use_tls = Some(true);
-    settings.hostname = "mysql_5_7".to_string();
+    settings.hostname = "localhost".to_string();
     let mut con = Connection::new(settings);
 
     con.connect().unwrap();
@@ -81,7 +81,7 @@ fn test_insert_and_retrieve_multiple_rows() {
     settings.password = "password".to_string();
     settings.database_name = "datajoint_core".to_string();
     settings.use_tls = Some(true);
-    settings.hostname = "mysql_5_7".to_string();
+    settings.hostname = "localhost".to_string();
     let mut con = Connection::new(settings);
 
     con.connect().unwrap();
@@ -122,7 +122,7 @@ fn test_try_query_after_disconnect() {
     settings.password = "password".to_string();
     settings.database_name = "datajoint_core".to_string();
     settings.use_tls = Some(true);
-    settings.hostname = "mysql_5_7".to_string();
+    settings.hostname = "localhost".to_string();
     let mut con = Connection::new(settings);
 
     con.connect().unwrap();
@@ -146,7 +146,7 @@ fn test_postgres_query_to_mysql_db() {
     settings.password = "password".to_string();
     settings.database_name = "datajoint_core".to_string();
     settings.use_tls = Some(true);
-    settings.hostname = "mysql_5_7".to_string();
+    settings.hostname = "localhost".to_string();
     let mut con = Connection::new(settings);
 
     con.connect().unwrap();
@@ -167,7 +167,7 @@ fn run_test() {
     settings.password = "password".to_string();
     settings.database_name = "datajoint_core".to_string();
     settings.use_tls = Some(true);
-    settings.hostname = "mysql_5_7".to_string();
+    settings.hostname = "localhost ".to_string();
     let mut con = Connection::new(settings);
 
     con.connect().unwrap();
