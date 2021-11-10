@@ -62,6 +62,7 @@ fn test_insert_and_retrieve_one_row() {
         Err(_) => NativeType::None,
     };
 
+    println!("{}", text);
     assert!(
         text == NativeType::String("hello world".to_string()),
         "text did not match \"hello world\"."
@@ -109,6 +110,7 @@ fn test_insert_and_retrieve_multiple_rows() {
             }
         }
     }
+    con.execute_query("truncate tweet");
     con.disconnect()
 }
 
