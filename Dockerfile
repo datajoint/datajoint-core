@@ -4,4 +4,6 @@ COPY . .
 
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-RUN cargo build
+# we don't need to build here since 
+# the code will be built once we run the tests
+# RUN cargo build
