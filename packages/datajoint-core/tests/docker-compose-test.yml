@@ -32,21 +32,5 @@ services:
     volumes:
       - "./postgres:/docker-entrypoint-initdb.d/"
 
-  # # Run datajoint_core test suite
-  # tests:
-  #   depends_on:
-  #     - mysql_5_7
-  #     - postgres_13
-  #   build: ../../../
-  #   command:
-  #     [
-  #       "./wait-for-it.sh",
-  #       "postgres_13:5432",
-  #       "--",
-  #       "./wait-for-it.sh",
-  #       "mysql_5_7:3306",
-  #       "--",
-  #       "cargo tarpaulin" --verbose --coveralls ${{ secrets.GITHUB_TOKEN }}
 
-  #     ]
 
