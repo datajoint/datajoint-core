@@ -5,24 +5,17 @@ jobs:
   test:
     name: coverage
     runs-on: ubuntu-latest
-    container:
-      image: xd009642/tarpaulin
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: install docker-compose
-        run: |
-          curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          chmod +x /usr/local/bin/docker-compose
-
-      # - name: install tarpaulin
-      #   uses: actions-rs/cargo@v1
-      #   with:
-      #     command: install
-      #     args: >
-      #       cargo-tarpaulin
+      - name: install tarpaulin
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: >
+            cargo-tarpaulin
 
       - name: Start postgres database
         run: |
