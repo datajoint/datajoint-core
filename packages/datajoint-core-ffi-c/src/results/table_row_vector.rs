@@ -42,6 +42,7 @@ impl TableRowVector {
     }
 }
 
+/// Frees an instance of TableRowVector
 #[no_mangle]
 pub unsafe extern "C" fn table_row_vector_free(this: *mut TableRowVector) {
     if !this.is_null() {
@@ -49,6 +50,7 @@ pub unsafe extern "C" fn table_row_vector_free(this: *mut TableRowVector) {
     }
 }
 
+/// Returns the number of rows.
 #[no_mangle]
 pub extern "C" fn table_row_vector_size(this: *const TableRowVector) -> size_t {
     if this.is_null() {
@@ -58,6 +60,7 @@ pub extern "C" fn table_row_vector_size(this: *const TableRowVector) -> size_t {
     table_rows.row_count()
 }
 
+/// Returns a reference to a TableRow at the given index.
 #[no_mangle]
 pub extern "C" fn table_row_vector_get(
     this: *const TableRowVector,

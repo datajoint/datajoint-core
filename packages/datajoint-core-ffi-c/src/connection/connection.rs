@@ -6,6 +6,7 @@ use datajoint_core::placeholders::PlaceholderArgumentVector;
 use libc::c_char;
 use std::ffi::CStr;
 
+/// Creates a new instance of Connection.
 #[no_mangle]
 pub extern "C" fn connection_new(this: *mut ConnectionSettings) -> *mut Connection {
     if this.is_null() {
@@ -16,6 +17,7 @@ pub extern "C" fn connection_new(this: *mut ConnectionSettings) -> *mut Connecti
     Box::into_raw(Box::new(Connection::new(*settings)))
 }
 
+/// Frees an istance of Connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_free(this: *mut Connection) {
     if !this.is_null() {
@@ -23,6 +25,7 @@ pub unsafe extern "C" fn connection_free(this: *mut Connection) {
     }
 }
 
+/// Checks if the connection is still connected.
 #[no_mangle]
 pub extern "C" fn connection_is_connected(this: *mut Connection) -> i32 {
     if this.is_null() {
@@ -33,6 +36,8 @@ pub extern "C" fn connection_is_connected(this: *mut Connection) -> i32 {
     }
 }
 
+/// Starts the connection to the SQL database according to settings the object was
+/// initialized with.
 #[no_mangle]
 pub extern "C" fn connection_connect(this: *mut Connection) -> i32 {
     if this.is_null() {
@@ -46,6 +51,12 @@ pub extern "C" fn connection_connect(this: *mut Connection) -> i32 {
     }
 }
 
+/// Disconnects from the SQL database.
+///
+/// If the database connection has already been disconnected, this method
+/// is a no-op.
+///
+/// The connection can be restarted if desired.
 #[no_mangle]
 pub extern "C" fn connection_disconnect(this: *mut Connection) -> i32 {
     if this.is_null() {
@@ -57,6 +68,8 @@ pub extern "C" fn connection_disconnect(this: *mut Connection) -> i32 {
     ErrorCode::Success as i32
 }
 
+/// Starts the connection to the SQL database according to settings the object was
+/// initialized with.
 #[no_mangle]
 pub extern "C" fn connection_reconnect(this: *mut Connection) -> i32 {
     if this.is_null() {
@@ -71,6 +84,7 @@ pub extern "C" fn connection_reconnect(this: *mut Connection) -> i32 {
     }
 }
 
+/// Gets the settings from the instance of Connection.
 #[no_mangle]
 pub extern "C" fn connection_get_settings(this: *mut Connection) -> *mut ConnectionSettings {
     if this.is_null() {
@@ -80,6 +94,7 @@ pub extern "C" fn connection_get_settings(this: *mut Connection) -> *mut Connect
     &connection.settings as *const ConnectionSettings as *mut ConnectionSettings
 }
 
+/// Creates an executor to interact with the database over this connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_executor(
     this: *mut Connection,
@@ -99,6 +114,9 @@ pub unsafe extern "C" fn connection_executor(
     }
 }
 
+/// Executes the given non-returning query, returning the number of rows affected.
+///
+/// Uses placeholder arguments, binding them to the query prior to execution.
 #[no_mangle]
 pub unsafe extern "C" fn connection_execute_query(
     this: *mut Connection,
@@ -133,6 +151,9 @@ pub unsafe extern "C" fn connection_execute_query(
     }
 }
 
+/// Creates a cursor for iterating over the results of the given returning query.
+///
+/// Uses placeholder arguments, binding them to the query prior to execution.
 #[no_mangle]
 pub unsafe extern "C" fn connection_fetch_query(
     this: *mut Connection,

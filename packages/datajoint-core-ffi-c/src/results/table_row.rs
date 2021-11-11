@@ -6,6 +6,7 @@ use datajoint_core::results::TableRow;
 use libc::{c_char, size_t};
 use std::ffi::CStr;
 
+/// Frees an instance of TableRow.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_free(this: *mut TableRow) {
     if !this.is_null() {
@@ -13,6 +14,7 @@ pub unsafe extern "C" fn table_row_free(this: *mut TableRow) {
     }
 }
 
+/// Returns if the row is empty.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_is_empty(this: *const TableRow) -> i32 {
     if this.is_null() {
@@ -22,6 +24,8 @@ pub unsafe extern "C" fn table_row_is_empty(this: *const TableRow) -> i32 {
     (&*this).is_empty() as i32
 }
 
+/// Utility method for returning the number of columns in the row
+/// without constructing an intermediate vector.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_column_count(this: *const TableRow) -> size_t {
     if this.is_null() {

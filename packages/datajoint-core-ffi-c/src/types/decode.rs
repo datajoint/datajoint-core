@@ -379,11 +379,13 @@ impl AllocatedDecodedValue {
     }
 }
 
+/// Creates instance of AllocatedDecodedValue.
 #[no_mangle]
 pub extern "C" fn allocated_decoded_value_new() -> *mut AllocatedDecodedValue {
     Box::into_raw(Box::new(AllocatedDecodedValue::new()))
 }
 
+/// Frees instance of AllocatedDecodedValue
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_free(this: *mut AllocatedDecodedValue) {
     if !this.is_null() {
@@ -392,6 +394,7 @@ pub unsafe extern "C" fn allocated_decoded_value_free(this: *mut AllocatedDecode
     }
 }
 
+/// Returns the data of the AllocatedDecodedValue.
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_data(
     this: *const AllocatedDecodedValue,
@@ -403,6 +406,7 @@ pub unsafe extern "C" fn allocated_decoded_value_data(
     }
 }
 
+/// Returns the size of the AllocatedDecodedValue.
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_size(
     this: *const AllocatedDecodedValue,
@@ -414,6 +418,7 @@ pub unsafe extern "C" fn allocated_decoded_value_size(
     }
 }
 
+/// Returns the type_name of the AllocatedDecodedValue.
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_type(
     this: *const AllocatedDecodedValue,
