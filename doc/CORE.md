@@ -150,7 +150,7 @@ for col in row.columns() {
 
     // While `decode` considers null values an error, `decode_optional`
     // returns null values as `Option::None`.
-    let value: Option<NativeType> = row.decode_optiona(col);
+    let value: Option<NativeType> = row.decode_optional(col);
 }
 ```
 
