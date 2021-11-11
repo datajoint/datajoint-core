@@ -178,6 +178,8 @@ pub unsafe extern "C" fn connection_settings_get_database_type(
 }
 
 /// Given an instance of ConnectionSettings, the function will return the user_name.
+///
+/// Datajoint_core_cstring_free needs to be called to free the string from memory.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_username(
     this: *const ConnectionSettings,
@@ -194,6 +196,8 @@ pub unsafe extern "C" fn connection_settings_get_username(
 }
 
 /// Given an instance of ConnectionSettings, the function will return the password.
+///
+/// Datajoint_core_cstring_free needs to be called to free the string from memory.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_password(
     this: *const ConnectionSettings,
@@ -210,6 +214,8 @@ pub unsafe extern "C" fn connection_settings_get_password(
 }
 
 /// Given an instance of ConnectionSettings, the function will return the hostname.
+///
+/// Datajoint_core_cstring_free needs to be called to free the string from memory.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_hostname(
     this: *const ConnectionSettings,
@@ -237,6 +243,8 @@ pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSet
 }
 
 /// Given an instance of ConnectionSettings, the function will return the database_name.
+///
+/// Datajoint_core_cstring_free needs to be called to free the string from memory.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_database_name(
     this: *const ConnectionSettings,
