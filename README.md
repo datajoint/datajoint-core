@@ -1,5 +1,4 @@
-[![Coverage Status](https://coveralls.io/repos/github/EdwardGarmon/datajoint-core/badge.svg)](https://coveralls.io/github/EdwardGarmon/datajoint-core)
-
+[![Coverage Status](https://coveralls.io/repos/github/EdwardGarmon/datajoint-core/badge.svg?branch=integration-tests)](https://coveralls.io/github/EdwardGarmon/datajoint-core?branch=integration-tests)
 # datajoint-core
 
 Common DataJoint OSS framework 
