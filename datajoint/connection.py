@@ -178,7 +178,7 @@ class Connection:
         connect_host_hook(self)
         if self.is_connected:
             logger.info("Connected {user}@{host}:{port}".format(**self.conn_info))
-            self.connection_id = self.query('SELECT connection_id()').fetchone()[0]
+            self.connection_id = list(self.query('SELECT connection_id()'))[0]
         else:
             raise errors.LostConnectionError('Connection failed.')
         self._in_transaction = False
@@ -205,16 +205,18 @@ class Connection:
                     charset=config['connection.charset'],
                     default_config={k: v for k, v in self.conn_info.items()
                                     if k not in ['ssl_input', 'host_input']})
-            except client.err.InternalError:
-                self._conn = client.connect(
-                    init_command=self.init_fun,
-                    sql_mode="NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
-                             "STRICT_ALL_TABLES,NO_ENGINE_SUBSTITUTION,ONLY_FULL_GROUP_BY",
-                    charset=config['connection.charset'],
-                    default_config={k: v for k, v in self.conn_info.items()
-                                    if not(k in ['ssl_input', 'host_input'] or
-                                    k == 'ssl' and self.conn_info['ssl_input'] is None)})
-        self._conn.autocommit(True)
+            except AssertionError:
+                raise AssertionError # TODO: Fix error handling from client wrapper
+                # self._conn = client.connect(
+                #     init_command=self.init_fun,
+                #     sql_mode="NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,"
+                #              "STRICT_ALL_TABLES,NO_ENGINE_SUBSTITUTION,ONLY_FULL_GROUP_BY",
+                #     charset=config['connection.charset'],
+                #     default_config={k: v for k, v in self.conn_info.items()
+                #                     if not(k in ['ssl_input', 'host_input'] or
+                #                     k == 'ssl' and self.conn_info['ssl_input'] is None)})
+        # TODO: Commented out autocommit from pymysql
+        # self._conn.autocommit(True)
 
     def set_query_cache(self, query_cache=None):
         """
@@ -249,19 +251,22 @@ class Connection:
     def is_connected(self):
         """ Return true if the object is connected to the database server. """
         try:
-            self.ping()
+            # TODO: Implement ping method in datajoint-core
+            # self.ping()
+            if self._conn:
+                return True
         except:
             return False
         return True
 
     @staticmethod
-    def _execute_query(cursor, query, args, suppress_warnings):
+    def _execute_query(conn, query, args, suppress_warnings):
         try:
             with warnings.catch_warnings():
                 if suppress_warnings:
                     # suppress all warnings arising from underlying SQL library
                     warnings.simplefilter("ignore")
-                cursor.execute(query, args)
+                return conn.fetch_query(query, args)
         except client.err.Error as err:
             raise translate_query_error(err, query)
 
@@ -294,10 +299,10 @@ class Connection:
         if reconnect is None:
             reconnect = config['database.reconnect']
         logger.debug("Executing SQL:" + query[:query_log_max_length])
-        cursor_class = client.cursors.DictCursor if as_dict else client.cursors.Cursor
-        cursor = self._conn.cursor(cursor=cursor_class)
+        # cursor_class = client.cursors.DictCursor if as_dict else client.cursors.Cursor
+        # cursor = self._conn.cursor(cursor=cursor_class)
         try:
-            self._execute_query(cursor, query, args, suppress_warnings)
+            cursor = self._execute_query(self._conn, query, args, suppress_warnings)
         except errors.LostConnectionError:
             if not reconnect:
                 raise
@@ -308,7 +313,7 @@ class Connection:
                 raise errors.LostConnectionError("Connection was lost during a transaction.")
             logger.debug("Re-executing")
             cursor = self._conn.cursor(cursor=cursor_class)
-            self._execute_query(cursor, query, args, suppress_warnings)
+            cursor = self._execute_query(self._conn, query, args, suppress_warnings)
 
         if use_query_cache:
             data = cursor.fetchall()

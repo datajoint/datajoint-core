@@ -8,8 +8,6 @@ from .connection_config import Config
 
 class Connection:
     def __init__(self, default_config=None, sql_mode=None, charset=None, init_command=None):
-        print(f'Default config is')
-        print(default_config)
         self.native = dj_core.connection_new(dj_core.connection_settings_new())
         self.config = Config(
             native=dj_core.connection_get_settings(self.native),

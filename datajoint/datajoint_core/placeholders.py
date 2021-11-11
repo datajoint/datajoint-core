@@ -26,5 +26,9 @@ class PlaceholderArgumentVector:
             p_data = ffi.new("int32_t*", data)
             dj_core.placeholder_argument_vector_add(
                 self.native, p_data, 0, dj_core.NativeTypeEnum_Int32, ffi.NULL)
+        # TODO: Remove tuple instance when placeholder arguments format adjusted to math datajoint-python
+        elif isinstance(data, tuple):
+            pass
         else:
+            print(f'type of data is' + str(type(data)))
             raise TypeError("unsupported placeholder argument type")

@@ -75,17 +75,17 @@ class Config:
             setter=dj_core.connection_settings_set_database_type,
             ffi_type="DatabaseType"
         ),
-        "hostname": ConnectionSetting(
+        "host": ConnectionSetting(
             getter=dj_core.connection_settings_get_hostname,
             setter=dj_core.connection_settings_set_hostname,
             ffi_type=str
         ),
-        "username": ConnectionSetting(
+        "user": ConnectionSetting(
             getter=dj_core.connection_settings_get_username,
             setter=dj_core.connection_settings_set_username,
             ffi_type=str
         ),
-        "password": ConnectionSetting(
+        "passwd": ConnectionSetting(
             getter=dj_core.connection_settings_get_password,
             setter=dj_core.connection_settings_set_password,
             ffi_type=str
@@ -123,8 +123,10 @@ class Config:
             dj_core.connection_settings_free(self.native[0])
 
     def __setitem__(self, setting, value):
-        field = self._fields[setting]
-        field.set_value(self.native[0], value)
+        # TODO: BANDAGE SOLUTION! currently ignoring bad keys (for use_tls/ssl error)
+        field = self._fields.get(setting)
+        if field:
+            field.set_value(self.native[0], value)
 
     def __getitem__(self, setting):
         field = self._fields[setting]
