@@ -430,6 +430,8 @@ pub unsafe extern "C" fn allocated_decoded_value_type(
     }
 }
 
+/// Checks if the allocated decoded value contains a `null` value, which
+/// means `null` was successfully decoded.
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_is_null_value(
     this: *const AllocatedDecodedValue,
