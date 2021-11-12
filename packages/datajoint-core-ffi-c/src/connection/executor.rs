@@ -105,7 +105,7 @@ pub unsafe extern "C" fn executor_fetch_all(
 /// Creates a cursor for the given query.
 ///
 /// The third parameter can be `NULL` or a collection of placeholder arguments to
-/// bind to the query. Once the query is executed, the `PlaceholderArgumentVector`
+/// bind to the query. Once the query is executed, the [`PlaceholderArgumentVector`]
 /// is owned and deallocated by the library. In other words, the caller does not
 /// need to manually free the placeholder arguments after they are bound to a query.
 #[no_mangle]

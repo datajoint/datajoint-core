@@ -25,7 +25,7 @@ pub extern "C" fn placeholder_argument_vector_free(ptr: *mut PlaceholderArgument
 ///
 /// Data is referenced by the `void* data` and is `data_size` bytes.
 /// The data is NOT owned and must remain alive until the placeholder arguments are bound to the query.
-/// Data is decoded in the library of type `type`, which is a supported column type for decoding.
+/// Data is decoded in the library of type `data_type`, which is a supported column type for decoding.
 ///
 /// Gives the created argument object through an output parameter for further modification if desired.
 #[no_mangle]

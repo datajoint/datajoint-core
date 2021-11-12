@@ -4,7 +4,7 @@ use num_traits::FromPrimitive;
 /// Native types that can be decoded from a database or encoded to a query,
 /// possibly for a placeholder argument.
 ///
-/// Should be parallel to `datajoint_core::types::NativeType`, aside from the
+/// Should be parallel to [`datajoint_core::types::NativeType`], aside from the
 /// additional variant to represent null.
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, FromPrimitive)]

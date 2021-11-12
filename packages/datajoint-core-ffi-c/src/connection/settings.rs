@@ -146,10 +146,10 @@ pub unsafe extern "C" fn connection_settings_set_database_name(
 
 /// Specifies how a connection should use TLS.
 ///
-/// Receives an `OptionalBool`, which represents three-state logic.
-/// - `OptionalBool::True` - Enforce TLS.
-/// - `OptionalBool::False` - Do not use TLS.
-/// - `OptionalBool::None` - Let database decide.
+/// Receives an [`OptionalBool`], which represents three-state logic.
+/// - [`OptionalBool::True`] - Enforce TLS.
+/// - [`OptionalBool::False`] - Do not use TLS.
+/// - [`OptionalBool::None`] - Let database decide.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_use_tls(
     this: *mut ConnectionSettings,
@@ -184,8 +184,8 @@ pub unsafe extern "C" fn connection_settings_get_database_type(
 
 /// Gets the username entry on the settings object.
 ///
-/// `datajoint_core_cstring_free` must be called on the string returned from this
-/// function to avoid memory leaks.
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_username(
     this: *const ConnectionSettings,
@@ -203,8 +203,8 @@ pub unsafe extern "C" fn connection_settings_get_username(
 
 /// Gets the password entry on the settings object.
 ///
-/// `datajoint_core_cstring_free` must be called on the string returned from this
-/// function to avoid memory leaks.
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_password(
     this: *const ConnectionSettings,
@@ -222,8 +222,8 @@ pub unsafe extern "C" fn connection_settings_get_password(
 
 /// Gets the hostname entry on the settings object.
 ///
-/// `datajoint_core_cstring_free` must be called on the string returned from this
-/// function to avoid memory leaks.
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_hostname(
     this: *const ConnectionSettings,
@@ -241,8 +241,8 @@ pub unsafe extern "C" fn connection_settings_get_hostname(
 
 /// Gets the port entry on the settings object.
 ///
-/// `datajoint_core_cstring_free` must be called on the string returned from this
-/// function to avoid memory leaks.
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSettings) -> u16 {
     if this.is_null() {
@@ -255,8 +255,8 @@ pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSet
 
 /// Gets the database name entry on the settings object.
 ///
-/// `datajoint_core_cstring_free` must be called on the string returned from this
-/// function to avoid memory leaks.
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_database_name(
     this: *const ConnectionSettings,
@@ -274,8 +274,8 @@ pub unsafe extern "C" fn connection_settings_get_database_name(
 
 /// Gets the TLS setting entry on the settings object.
 ///
-/// `datajoint_core_cstring_free` must be called on the string returned from this
-/// function to avoid memory leaks.
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_use_tls(
     this: *const ConnectionSettings,

@@ -19,8 +19,8 @@ pub(crate) fn datajoint_core_set_last_error(error: Error) -> ErrorCode {
 
 /// Returns the last error message as a C string. Returns null if there has been no error.
 ///
-/// `datajoint_core_cstring_free` must be called on the string returned from this
-/// function to avoid memory leaks.
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub extern "C" fn datajoint_core_get_last_error_message() -> *const c_char {
     LAST_ERROR.with(|last_error| match &*(last_error.borrow()) {
@@ -32,7 +32,7 @@ pub extern "C" fn datajoint_core_get_last_error_message() -> *const c_char {
     })
 }
 
-/// Returns the last error code. Returns `ErrorCode::Success` if there has been no error.
+/// Returns the last error code. Returns [`ErrorCode::Success`] if there has been no error.
 #[no_mangle]
 pub extern "C" fn datajoint_core_get_last_error_code() -> i32 {
     LAST_ERROR.with(|last_error| match &*(last_error.borrow()) {

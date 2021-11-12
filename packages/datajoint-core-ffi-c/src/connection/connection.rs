@@ -10,7 +10,7 @@ use std::ffi::CStr;
 ///
 /// The new connection instance takes ownership of the settings object passed in.
 /// The settings object will be deallocated when the settings object is deallocated.
-/// Library users should not manually free a `ConnectionSettings` object after it
+/// Library users should not manually free a [`ConnectionSettings`] object after it
 /// is passed into this function.
 #[no_mangle]
 pub unsafe extern "C" fn connection_new(settings: *mut ConnectionSettings) -> *mut Connection {
@@ -122,7 +122,7 @@ pub unsafe extern "C" fn connection_executor(
 /// Executes the given non-returning query, returning the number of rows affected.
 ///
 /// The third parameter can be `NULL` or a collection of placeholder arguments to
-/// bind to the query. Once the query is executed, the `PlaceholderArgumentVector`
+/// bind to the query. Once the query is executed, the [`PlaceholderArgumentVector`]
 /// is owned and deallocated by the library. In other words, the caller does not
 /// need to manually free the placeholder arguments after they are bound to a query.
 #[no_mangle]
@@ -162,7 +162,7 @@ pub unsafe extern "C" fn connection_execute_query(
 /// Creates a cursor for iterating over the results of the given returning query.
 ///
 /// The third parameter can be `NULL` or a collection of placeholder arguments to
-/// bind to the query. Once the query is executed, the `PlaceholderArgumentVector`
+/// bind to the query. Once the query is executed, the [`PlaceholderArgumentVector`]
 /// is owned and deallocated by the library. In other words, the caller does not
 /// need to manually free the placeholder arguments after they are bound to a query.
 #[no_mangle]

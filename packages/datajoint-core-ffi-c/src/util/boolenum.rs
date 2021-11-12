@@ -1,7 +1,7 @@
 use datajoint_core::util::IntegerEnum;
 use num_traits::FromPrimitive;
 
-/// Three-state boolean for representing `Option<bool>` in an FFI-compatible manner.
+/// Three-state boolean for representing [`Option<bool>`] in an FFI-compatible manner.
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, FromPrimitive)]
 pub enum OptionalBool {

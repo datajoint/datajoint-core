@@ -22,9 +22,9 @@ impl<'r, T> ValueEncodable<'r> for T where
 /// A wrapper around a SQLx query.
 ///
 /// You probably should not use this class on its own, as it does not provide
-/// any high-level API at the moment. The `Executor` object takes in string queries
-/// and placeholder arguments individually, automatically creating this object
-/// for execution behind the scenes.
+/// any high-level API at the moment. The [`Executor`][crate::connection::Executor]
+/// object takes in string queries and placeholder arguments individually,
+/// automatically creating this object for execution behind the scenes.
 pub enum Query<'q> {
     MySql(
         sqlx::query::Query<

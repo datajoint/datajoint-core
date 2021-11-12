@@ -40,9 +40,9 @@ pub unsafe extern "C" fn table_row_column_count(this: *const TableRow) -> size_t
 /// On success, `out_columns` will point to the beginning of the array of columns,
 /// and `columns_size` will be the number of columns in the array.
 ///
-/// `table_row_columns_advance` can be used to advance the pointer by index.
+/// [`table_row_columns_advance`] can be used to advance the pointer by index.
 ///
-/// `table_row_columns_free` must be called on the created array to avoid memory
+/// [`table_row_columns_free`] must be called on the created array to avoid memory
 /// leaks.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_columns(
@@ -75,7 +75,7 @@ pub unsafe extern "C" fn table_row_columns_advance(
 }
 
 /// Frees a series of table columns in memory that were created from
-/// `table_row_columns_advance`.
+/// [`table_row_columns_advance`].
 #[no_mangle]
 pub unsafe extern "C" fn table_row_columns_free(
     out_columns: *mut TableColumnRef,

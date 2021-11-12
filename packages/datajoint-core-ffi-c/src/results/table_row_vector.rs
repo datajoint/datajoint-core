@@ -59,9 +59,9 @@ pub extern "C" fn table_row_vector_size(this: *const TableRowVector) -> size_t {
     table_rows.row_count()
 }
 
-/// Gives an internal pointer to a `TableRow` at the given index.
+/// Gives an internal pointer to a [`TableRow`] at the given index.
 ///
-/// This pointer should not be freed by the user. Instead, call `table_row_vector_free`
+/// This pointer should not be freed by the user. Instead, call [`table_row_vector_free`]
 /// to free an entire table row vector.
 #[no_mangle]
 pub extern "C" fn table_row_vector_get(
