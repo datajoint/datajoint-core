@@ -52,7 +52,7 @@ impl<'q> DatabaseTypeAgnostic for Query<'q> {
 }
 
 impl<'q> Query<'q> {
-    /// Creates a new SQLx query with the given string.DatabaseType
+    /// Creates a new SQLx query with the given string.
     ///
     /// The database type is required to assure the query is checked against the correct
     /// database.
