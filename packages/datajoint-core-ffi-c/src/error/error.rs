@@ -5,13 +5,13 @@ use std::ffi::CString;
 
 thread_local! {
     /// The last error in the current thread.
-    pub static LAST_ERROR: RefCell<Option<Error>> = RefCell::new(None);
+    pub(crate) static LAST_ERROR: RefCell<Option<Error>> = RefCell::new(None);
 }
 
 /// Sets the last library error for the current thread.
 ///
 /// Returns the error code of the new error for easy returns.
-pub fn datajoint_core_set_last_error(error: Error) -> ErrorCode {
+pub(crate) fn datajoint_core_set_last_error(error: Error) -> ErrorCode {
     let out = error.code();
     LAST_ERROR.with(|last_error| last_error.replace(Some(error)));
     return out;
@@ -19,7 +19,8 @@ pub fn datajoint_core_set_last_error(error: Error) -> ErrorCode {
 
 /// Returns the last error message as a C string. Returns null if there has been no error.
 ///
-/// Returned string must be properly deallocated using `datajoint_core_cstring_free`.
+/// `datajoint_core_cstring_free` must be called on the string returned from this
+/// function to avoid memory leaks.
 #[no_mangle]
 pub extern "C" fn datajoint_core_get_last_error_message() -> *const c_char {
     LAST_ERROR.with(|last_error| match &*(last_error.borrow()) {

@@ -1,5 +1,5 @@
 use crate::error::datajoint_core_set_last_error;
-use crate::results::table_row_vector::TableRowVector;
+use crate::results::TableRowVector;
 use crate::util;
 use datajoint_core::connection::{Cursor, Executor};
 use datajoint_core::error::{DataJointError, ErrorCode};
@@ -8,7 +8,7 @@ use datajoint_core::results::TableRow;
 use libc::c_char;
 use std::ffi::CStr;
 
-/// Frees instance of Executor.
+/// Frees an executor.
 #[no_mangle]
 pub unsafe extern "C" fn executor_free(this: *mut Executor) {
     if !this.is_null() {
@@ -103,6 +103,11 @@ pub unsafe extern "C" fn executor_fetch_all(
 }
 
 /// Creates a cursor for the given query.
+///
+/// The third parameter can be `NULL` or a collection of placeholder arguments to
+/// bind to the query. Once the query is executed, the `PlaceholderArgumentVector`
+/// is owned and deallocated by the library. In other words, the caller does not
+/// need to manually free the placeholder arguments after they are bound to a query.
 #[no_mangle]
 pub unsafe extern "C" fn executor_cursor<'c>(
     this: *mut Executor<'c>,

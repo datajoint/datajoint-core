@@ -1,5 +1,5 @@
 use crate::error::datajoint_core_set_last_error;
-use crate::results::table_row_vector::TableRowVector;
+use crate::results::TableRowVector;
 use crate::util;
 use datajoint_core::results::TableRow;
 use datajoint_core::{
@@ -7,7 +7,7 @@ use datajoint_core::{
     error::{DataJointError, ErrorCode},
 };
 
-/// Frees an instance of Cursor
+/// Frees a cursor.
 #[no_mangle]
 pub unsafe extern "C" fn cursor_free(this: *mut Cursor) {
     if !this.is_null() {

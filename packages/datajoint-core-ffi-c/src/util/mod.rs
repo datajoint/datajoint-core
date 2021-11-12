@@ -1,5 +1,6 @@
 mod boolenum;
-pub mod mem;
+pub(crate) mod mem;
 mod strings;
 
-pub use boolenum::OptionalBool;
+pub use boolenum::*;
+pub use strings::*;

@@ -3,7 +3,7 @@ use datajoint_core::types::DataJointType;
 use libc::{c_char, size_t};
 use std::ffi::CString;
 
-/// Frees an instance of TableColumnRef.
+/// Frees a table column reference.
 #[no_mangle]
 pub unsafe extern "C" fn table_column_ref_free<'r>(this: *mut TableColumnRef<'r>) {
     if !this.is_null() {
@@ -11,7 +11,7 @@ pub unsafe extern "C" fn table_column_ref_free<'r>(this: *mut TableColumnRef<'r>
     }
 }
 
-/// Returns the integer ordinal of the column, which can be used to
+/// Gives the integer ordinal of the column, which can be used to
 /// fetch the column in a row.
 #[no_mangle]
 pub extern "C" fn table_column_ref_ordinal<'r>(this: *const TableColumnRef<'r>) -> size_t {
@@ -22,7 +22,7 @@ pub extern "C" fn table_column_ref_ordinal<'r>(this: *const TableColumnRef<'r>) 
     column.ordinal()
 }
 
-/// Returns the name of the column, which can be used to fetch the
+/// Gives the name of the column, which can be used to fetch the
 /// column in a row.
 #[no_mangle]
 pub extern "C" fn table_column_ref_name<'r>(this: *const TableColumnRef<'r>) -> *const c_char {

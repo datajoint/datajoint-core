@@ -1,5 +1,5 @@
 use crate::error::datajoint_core_set_last_error;
-use crate::types::native_type::NativeTypeEnum;
+use crate::types::NativeTypeEnum;
 use datajoint_core::{
     error::{DataJointError, ErrorCode},
     placeholders::{PlaceholderArgument, PlaceholderArgumentVector},
@@ -13,7 +13,7 @@ pub extern "C" fn placeholder_argument_vector_new() -> *mut PlaceholderArgumentV
     Box::into_raw(Box::new(PlaceholderArgumentVector::new()))
 }
 
-/// Frees an entire placeholder argument vector, including all argument inside.
+/// Frees an entire placeholder argument vector, including all arguments inside.
 #[no_mangle]
 pub extern "C" fn placeholder_argument_vector_free(ptr: *mut PlaceholderArgumentVector) {
     if !ptr.is_null() {
@@ -23,11 +23,11 @@ pub extern "C" fn placeholder_argument_vector_free(ptr: *mut PlaceholderArgument
 
 /// Adds a new placeholder argument to the vector.
 ///
-/// Data is referenced by the void* `data` and is `data_size` bytes.
+/// Data is referenced by the `void* data` and is `data_size` bytes.
 /// The data is NOT owned and must remain alive until the placeholder arguments are bound to the query.
 /// Data is decoded in the library of type `type`, which is a supported column type for decoding.
 ///
-/// Gives the created argument through an output parameter for further modification if desired.
+/// Gives the created argument object through an output parameter for further modification if desired.
 #[no_mangle]
 pub unsafe extern "C" fn placeholder_argument_vector_add(
     this: *mut PlaceholderArgumentVector,
