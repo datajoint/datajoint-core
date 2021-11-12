@@ -8,6 +8,7 @@ use datajoint_core::results::TableRow;
 use libc::c_char;
 use std::ffi::CStr;
 
+/// Frees instance of Executor.
 #[no_mangle]
 pub unsafe extern "C" fn executor_free(this: *mut Executor) {
     if !this.is_null() {
@@ -15,6 +16,7 @@ pub unsafe extern "C" fn executor_free(this: *mut Executor) {
     }
 }
 
+/// Executes the given query over the connection.
 #[no_mangle]
 pub unsafe extern "C" fn executor_execute(
     this: *mut Executor,
@@ -44,6 +46,7 @@ pub unsafe extern "C" fn executor_execute(
     }
 }
 
+/// Fetches one row using the given query.
 #[no_mangle]
 pub unsafe extern "C" fn executor_fetch_one(
     this: *mut Executor,
@@ -71,6 +74,7 @@ pub unsafe extern "C" fn executor_fetch_one(
     }
 }
 
+/// Fetches multiple rows using the given query.
 #[no_mangle]
 pub unsafe extern "C" fn executor_fetch_all(
     this: *mut Executor,
@@ -98,6 +102,7 @@ pub unsafe extern "C" fn executor_fetch_all(
     }
 }
 
+/// Creates a cursor for the given query.
 #[no_mangle]
 pub unsafe extern "C" fn executor_cursor<'c>(
     this: *mut Executor<'c>,
