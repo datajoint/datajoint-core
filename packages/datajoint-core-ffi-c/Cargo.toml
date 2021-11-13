@@ -6,7 +6,7 @@ repository = "https://github.com/datajoint/datajoint-core"
 
 [lib]
 crate-type = ["cdylib"]
-name="corelib"
+name="datajoint_core_ffi_c"
 
 [build-dependencies]
 cbindgen = "0.20.0"

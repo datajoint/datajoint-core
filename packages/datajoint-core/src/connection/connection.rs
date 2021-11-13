@@ -6,6 +6,11 @@ use crate::placeholders::{PlaceholderArgumentCollection, PlaceholderArgumentVect
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
+    /// The settings for the database connection.
+    ///
+    /// If changes to the settings are made after a connection has been established,
+    /// the client should call [`.disconnect()`][Connection::disconnect] and then connect
+    /// again to use the updated settings.
     pub settings: ConnectionSettings,
     pool: Option<Pool>,
     runtime: tokio::runtime::Runtime,
@@ -23,7 +28,7 @@ impl DatabaseTypeAgnostic for Connection {
 impl Connection {
     /// Creates a new connection to a SQL database based on the given settings.
     ///
-    /// The connection is not actually established until [.connect()][Connection::connect]
+    /// The connection is not actually established until [`.connect()`][Connection::connect]
     /// is called.
     pub fn new(settings: ConnectionSettings) -> Self {
         Connection {
@@ -37,8 +42,8 @@ impl Connection {
         }
     }
 
-    /// Starts the connection to the SQL database according to settings the object was
-    /// initialized with.
+    /// Starts the connection to the SQL database according to the settings the connection
+    /// was initialized with.
     pub fn connect(&mut self) -> Result<(), Error> {
         self.pool = Some(Connection::get_pool(
             &self.runtime,

@@ -8,7 +8,8 @@ use crate::results::TableRow;
 /// An object used to interact with a database by executing queries.
 ///
 /// Instances of `Executor` should not be created manually but by calling
-/// `executor()` on a `Connection` instance.
+/// [`executor()`][crate::connection::Connection::executor] on a
+/// [`Connection`][crate::connection::Connection] instance.
 pub struct Executor<'c> {
     // TODO(jackson-nestelroad): Somehow wrap sqlx::Executor so that pools,
     // connections, and transactions can all use this API.

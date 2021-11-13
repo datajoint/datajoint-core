@@ -170,7 +170,7 @@ impl TableRow {
     /// Decodes the value at the given column depending on the type of the column,
     /// assuming it is not null.
     ///
-    /// Returns `ErrorCode::UnexpectedNullValue` on null values.
+    /// Returns [`ErrorCode::UnexpectedNullValue`] on null values.
     pub fn try_decode(&self, column: TableColumnRef) -> Result<NativeType, Error> {
         match self.try_decode_impl(column)? {
             None => Err(DataJointError::new(ErrorCode::UnexpectedNullValue)),

@@ -5,7 +5,7 @@ use num_traits::FromPrimitive;
 
 /// Trait for converting integer enum types to the Rust enum type.
 ///
-/// Wraps the `num::traits::FromPrimitive` trait so it does not need
+/// Wraps the [`num_traits::FromPrimitive`] trait so it does not need
 /// to be imported by library users.
 pub trait IntegerEnum<I>
 where

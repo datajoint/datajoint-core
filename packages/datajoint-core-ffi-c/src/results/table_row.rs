@@ -6,6 +6,7 @@ use datajoint_core::results::TableRow;
 use libc::{c_char, size_t};
 use std::ffi::CStr;
 
+/// Frees a table row.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_free(this: *mut TableRow) {
     if !this.is_null() {
@@ -13,6 +14,7 @@ pub unsafe extern "C" fn table_row_free(this: *mut TableRow) {
     }
 }
 
+/// Checks if the row is empty.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_is_empty(this: *const TableRow) -> i32 {
     if this.is_null() {
@@ -22,6 +24,8 @@ pub unsafe extern "C" fn table_row_is_empty(this: *const TableRow) -> i32 {
     (&*this).is_empty() as i32
 }
 
+/// Utility method for returning the number of columns in the row
+/// without constructing an intermediate vector.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_column_count(this: *const TableRow) -> size_t {
     if this.is_null() {
@@ -30,6 +34,16 @@ pub unsafe extern "C" fn table_row_column_count(this: *const TableRow) -> size_t
     (&*this).column_count()
 }
 
+/// Creates an array of table columns in memory that can be used to read values
+/// inside of this table row.
+///
+/// On success, `out_columns` will point to the beginning of the array of columns,
+/// and `columns_size` will be the number of columns in the array.
+///
+/// [`table_row_columns_advance`] can be used to advance the pointer by index.
+///
+/// [`table_row_columns_free`] must be called on the created array to avoid memory
+/// leaks.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_columns(
     this: *const TableRow,
@@ -47,6 +61,7 @@ pub unsafe extern "C" fn table_row_columns(
     ErrorCode::Success as i32
 }
 
+/// Performs pointer arithmetic. Equivalent to `columns + index` in C.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_columns_advance(
     columns: *mut TableColumnRef,
@@ -59,6 +74,8 @@ pub unsafe extern "C" fn table_row_columns_advance(
     }
 }
 
+/// Frees a series of table columns in memory that were created from
+/// [`table_row_columns_advance`].
 #[no_mangle]
 pub unsafe extern "C" fn table_row_columns_free(
     out_columns: *mut TableColumnRef,
@@ -69,6 +86,7 @@ pub unsafe extern "C" fn table_row_columns_free(
     }
 }
 
+/// Gets a column by name.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_get_column_with_name(
     this: *const TableRow,
@@ -96,6 +114,7 @@ pub unsafe extern "C" fn table_row_get_column_with_name(
     ErrorCode::Success as i32
 }
 
+/// Gets a column by ordinal index.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_get_column_with_ordinal(
     this: *const TableRow,

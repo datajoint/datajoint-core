@@ -6,16 +6,22 @@ use datajoint_core::placeholders::PlaceholderArgumentVector;
 use libc::c_char;
 use std::ffi::CStr;
 
+/// Allocates a new connection.
+///
+/// The new connection instance takes ownership of the settings object passed in.
+/// The settings object will be deallocated when the settings object is deallocated.
+/// Library users should not manually free a [`ConnectionSettings`] object after it
+/// is passed into this function.
 #[no_mangle]
-pub extern "C" fn connection_new(this: *mut ConnectionSettings) -> *mut Connection {
-    if this.is_null() {
+pub unsafe extern "C" fn connection_new(settings: *mut ConnectionSettings) -> *mut Connection {
+    if settings.is_null() {
         return std::ptr::null_mut();
     }
-    let settings = unsafe { Box::from_raw(this) };
 
-    Box::into_raw(Box::new(Connection::new(*settings)))
+    Box::into_raw(Box::new(Connection::new(*Box::from_raw(settings))))
 }
 
+/// Frees a connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_free(this: *mut Connection) {
     if !this.is_null() {
@@ -23,6 +29,7 @@ pub unsafe extern "C" fn connection_free(this: *mut Connection) {
     }
 }
 
+/// Checks if the connection is still connected.
 #[no_mangle]
 pub extern "C" fn connection_is_connected(this: *mut Connection) -> i32 {
     if this.is_null() {
@@ -33,6 +40,8 @@ pub extern "C" fn connection_is_connected(this: *mut Connection) -> i32 {
     }
 }
 
+/// Starts the connection to the SQL database according to the settings the connection
+/// was initialized with.
 #[no_mangle]
 pub extern "C" fn connection_connect(this: *mut Connection) -> i32 {
     if this.is_null() {
@@ -46,6 +55,12 @@ pub extern "C" fn connection_connect(this: *mut Connection) -> i32 {
     }
 }
 
+/// Disconnects from the SQL database.
+///
+/// If the database connection has already been disconnected, this method
+/// is a no-op.
+///
+/// The connection can be restarted if desired.
 #[no_mangle]
 pub extern "C" fn connection_disconnect(this: *mut Connection) -> i32 {
     if this.is_null() {
@@ -57,6 +72,7 @@ pub extern "C" fn connection_disconnect(this: *mut Connection) -> i32 {
     ErrorCode::Success as i32
 }
 
+/// Restarts the connection to the SQL database according to the internal settings object.
 #[no_mangle]
 pub extern "C" fn connection_reconnect(this: *mut Connection) -> i32 {
     if this.is_null() {
@@ -71,6 +87,9 @@ pub extern "C" fn connection_reconnect(this: *mut Connection) -> i32 {
     }
 }
 
+/// Gets the pointer to the connection's internal settings object..
+///
+/// This pointer should not be freed.
 #[no_mangle]
 pub extern "C" fn connection_get_settings(this: *mut Connection) -> *mut ConnectionSettings {
     if this.is_null() {
@@ -80,6 +99,7 @@ pub extern "C" fn connection_get_settings(this: *mut Connection) -> *mut Connect
     &connection.settings as *const ConnectionSettings as *mut ConnectionSettings
 }
 
+/// Creates an executor to interact with the database over this connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_executor(
     this: *mut Connection,
@@ -99,6 +119,12 @@ pub unsafe extern "C" fn connection_executor(
     }
 }
 
+/// Executes the given non-returning query, returning the number of rows affected.
+///
+/// The third parameter can be `NULL` or a collection of placeholder arguments to
+/// bind to the query. Once the query is executed, the [`PlaceholderArgumentVector`]
+/// is owned and deallocated by the library. In other words, the caller does not
+/// need to manually free the placeholder arguments after they are bound to a query.
 #[no_mangle]
 pub unsafe extern "C" fn connection_execute_query(
     this: *mut Connection,
@@ -133,6 +159,12 @@ pub unsafe extern "C" fn connection_execute_query(
     }
 }
 
+/// Creates a cursor for iterating over the results of the given returning query.
+///
+/// The third parameter can be `NULL` or a collection of placeholder arguments to
+/// bind to the query. Once the query is executed, the [`PlaceholderArgumentVector`]
+/// is owned and deallocated by the library. In other words, the caller does not
+/// need to manually free the placeholder arguments after they are bound to a query.
 #[no_mangle]
 pub unsafe extern "C" fn connection_fetch_query(
     this: *mut Connection,
