@@ -8,25 +8,26 @@ Build the rust library
 cargo build
 ```
 
+Build the python library
+```bash
+cd datajoint-python/datajoint
+python datajoint/build_datajoint_core.py
+```
+
 Run the python tests
 
-```bash
-python datajoint-python/test.py
-```
-
-output
-
-```
-Connected to database: Host: example@email.com User: Username123 Password: secretPassword Reset: false use_TLS: true
-Making query from rust library: SELECT STUFF FROM TABLE
-result from query is: 0
-```
-
-You can also test from the python interactive shell
+Import and use datajoint from the python interactive shell
 
 ```python
 import datajoint as dj
 
 connection = dj.conn("example@email.com", "Username123", "secretPassword", reset=False, use_tls=True)
-connection.raw_query("SELECT STUFF FROM TABLE")
+cursor = connection.fetch_query("SELECT * FROM <database_name>.<Table> where <trait> = ?", '<trait-lit>')
+
+try:
+    l = list(cursor)
+    for row in l:
+        print(row.to_dict())
+except AssertionError err:
+    print(err)
 ```
