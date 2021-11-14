@@ -20,20 +20,6 @@ DatabaseType = {
     dj_core.DatabaseType_Postgres: "Postgres",
 }
 
-encode_methods = {
-    int: int,
-    str: encode_string,
-    "OptionalBool": encode_bool,
-    "DatabaseType": map_database_type
-}
-
-decode_methods = {
-    int: int,
-    str: free_and_decode_string,
-    "OptionalBool": decode_bool,
-    "DatabaseType": map_database_type
-}
-
 def free_and_decode_string(value):
     ret = ffi.string(value).decode("utf-8")
     dj_core.datajoint_core_cstring_free(value)
@@ -55,6 +41,19 @@ def decode_bool(value):
 def map_database_type(value):
     return DatabaseType[value]
 
+encode_methods = {
+    int: int,
+    str: encode_string,
+    "OptionalBool": encode_bool,
+    "DatabaseType": map_database_type
+}
+
+decode_methods = {
+    int: int,
+    str: free_and_decode_string,
+    "OptionalBool": decode_bool,
+    "DatabaseType": map_database_type
+}
 
 class ConnectionSetting:
     def __init__(self, getter, setter, ffi_type):
