@@ -1,9 +1,11 @@
 mod connection;
 mod cursor;
 mod executor;
+mod pool;
 mod settings;
 
 pub use connection::Connection;
-pub use cursor::{Cursor, NativeCursor};
+pub use cursor::Cursor;
 pub use executor::Executor;
-pub use settings::{ConnectionSettings, DatabaseType};
+pub(crate) use pool::Pool;
+pub use settings::ConnectionSettings;

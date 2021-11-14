@@ -43,6 +43,7 @@ impl SqlxError {
         }
     }
 
+    /// Wraps and takes ownership of a SQLx error.
     pub fn new(sqlx_error: sqlx::Error) -> Box<Self> {
         Box::new(SqlxError::raw(sqlx_error))
     }
@@ -70,6 +71,7 @@ impl LibraryError for SqlxError {
                 index: _,
                 source: _,
             } => ErrorCode::ColumnDecodeError,
+            sqlx::Error::Decode(_) => ErrorCode::ColumnDecodeError,
             sqlx::Error::PoolTimedOut => ErrorCode::PoolTimedOut,
             sqlx::Error::PoolClosed => ErrorCode::PoolClosed,
             sqlx::Error::WorkerCrashed => ErrorCode::WorkerCrashed,
@@ -99,7 +101,15 @@ impl DataJointError {
         }
     }
 
-    pub fn new(message: &str, code: ErrorCode) -> Box<Self> {
+    /// Creates a new DataJoint error.
+    ///
+    /// The standard message for the error code is used as the error message.
+    pub fn new(code: ErrorCode) -> Box<Self> {
+        Box::new(DataJointError::raw(code.standard_message(), code))
+    }
+
+    /// Creates a new DataJoint error with a custom error message.
+    pub fn new_with_message(message: &str, code: ErrorCode) -> Box<Self> {
         Box::new(DataJointError::raw(message, code))
     }
 }

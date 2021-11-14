@@ -1,33 +1,15 @@
-# datajoint-core
+# DataJoint Core Library
+The **DataJoint Core Library** is a low-level software library for all shared code across the user-level DataJoint frameworks. Rather than using their own code, DataJoint frameworks, such as those written in Python and MATLAB, can use the library for connecting to Structured Query Language (SQL) databases, executing queries against a connection, and reading query results. The core library aims to remove the burden of writing and maintaining duplicate code across language-specific DataJoint frameworks, enhancing developer productivity, ecosystem maintainability, and framework extensibility. The DataJoint Core Library can be further enhanced by future work to house more code that currently exists at the user level, such as building generic SQL queries, building schemas, and much more.
 
-Common DataJoint OSS framework
+This project started as a **UTDesign Capstone** project with senior students in Computer Science at The University of Texas at Dallas.
 
-`./datajoint-python` is a temporary home for the light python wrapper to show a POC of how the Rust packages will operate.
+## Repository Layout
+This repository primarily contains two Rust packages (aka, crates) that make up the core library.
 
-## Build and Run
+- [datajoint-core](packages/datajoint-core) - A Rust library that provides common DataJoint features.
+- [datajoint-core-ffi-c](packages/datajoint-core-ffi-c) - A C FFI library for calling the core library from user-level languages.
 
-Build the rust library
+At the moment, [datajoint-python](datajoint-python) is a temporary home for integrating the core library into the Python library.
 
-```bash
-cargo build
-```
-
-## Using the libarary
-You can run the python from the interactive shell
-
-```python
-import datajoint as dj
-
-connection = dj.conn(host="tutorial-db.datajoint.io", user=<username>,
-                     password=<password>, reset=False, use_tls=True)
-
-cursor = connection.fetch_query("select * from mouse where sex = ?", 'M')
-try:
-    l = list(cursor)
-    for row in l:
-        print(row.to_dict())
-except AssertionError:
-    print('failed :(')
-
-connection.disconnect()
-```
+## Set Up
+Read [the set up document](doc/SETUP.md) for set up information.
