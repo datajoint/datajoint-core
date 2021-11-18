@@ -42,5 +42,6 @@ services:
     security_opt:
       - seccomp:unconfined
     command: |
-      cargo tarpaulin --verbose --coveralls X5IJ9L48tT10necJAKzAkaMkHtpwDp43G
-
+      ./wait-for-it.sh postgres_13:5432 -- ./wait-for-it.sh mysql_5_7:3306 -- cargo tarpaulin --verbose --coveralls X5IJ9L48tT10necJAKzAkaMkHtpwDp43G
+      
+              
