@@ -70,6 +70,7 @@ impl<'r> TableColumnRef<'r> {
             Self::MySql(column) => match column.type_info().name() {
                 "BOOLEAN" => Boolean,
                 "TINYINT" => TinyInt,
+                "TEXT" => VarCharN,
                 "TINYINT UNSIGNED" => TinyIntUnsigned,
                 "SMALLINT" => SmallInt,
                 "SMALLINT UNSIGNED" => SmallIntUnsigned,
