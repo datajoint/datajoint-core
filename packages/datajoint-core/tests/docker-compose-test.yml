@@ -5,13 +5,13 @@ services:
   # MySQL 5.7.x
   # https://www.mysql.com/support/supportedplatforms/database.html
   #
-  mysql_5_7:
-    image: mysql:5.7
-    hostname: mysql_5_7
+  mysql_5_6:
+    image: mysql:5.6
+    hostname: mysql_5_6
     ports:
       - 3306:3306
     environment:
-      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_HOST: '%'
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: datajoint_core
     volumes:
@@ -36,12 +36,12 @@ services:
   # Run datajoint_core test suite
   tests:
     depends_on:
-      - mysql_5_7
+      - mysql_5_6
       - postgres_13
     build: ../../../
     security_opt:
       - seccomp:unconfined
     command: |
-      ./wait-for-it.sh postgres_13:5432 -- ./wait-for-it.sh mysql_5_7:3306 -- cargo tarpaulin --verbose --coveralls X5IJ9L48tT10necJAKzAkaMkHtpwDp43G
+      ./wait-for-it.sh postgres_13:5432 -- ./wait-for-it.sh mysql_5_7:3306 -- cargo tarpaulin --verbose --coveralls X5IJ9L48tT10necJAKzAkaMkHtpwDp43G --exclude-files datajoint-core-ffi-c/* --jobs 1
       
               
