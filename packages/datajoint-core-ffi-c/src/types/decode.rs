@@ -1,5 +1,6 @@
+use crate::error::datajoint_core_set_last_error;
 use crate::types::native_type::NativeTypeEnum;
-use datajoint_core::error::ErrorCode;
+use datajoint_core::error::{DataJointError, ErrorCode};
 use datajoint_core::results::{TableColumnRef, TableRow};
 use datajoint_core::types::NativeType;
 use libc::size_t;
@@ -20,17 +21,45 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
     output_type: *mut NativeTypeEnum,
 ) -> i32 {
     if this.is_null() || column.is_null() || buffer.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
-    match (*this).try_decode(*column) {
-        Err(err) => err.code() as i32,
-        Ok(result) => match result {
+    match (*this).try_decode_optional(*column) {
+        Err(err) => datajoint_core_set_last_error(err) as i32,
+        Ok(None) => {
+            *output_size = 0;
+            *output_type = NativeTypeEnum::Null;
+            ErrorCode::Success as i32
+        }
+        Ok(Some(result)) => match result {
             NativeType::None => ErrorCode::ValueDecodeError as i32,
             // No macro for generating these because of cbindgen limitations.
+            NativeType::Bool(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<bool>() {
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut bool) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<bool>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeTypeEnum::Int8;
+                }
+                ErrorCode::Success as i32
+            }
             NativeType::Int8(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<i8>() {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 // Move the data into the buffer.
@@ -48,7 +77,9 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
             NativeType::UInt8(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<u8>() {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 // Move the data into the buffer.
@@ -66,7 +97,9 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
             NativeType::Int16(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<i16>() {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 // Move the data into the buffer.
@@ -84,7 +117,9 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
             NativeType::UInt16(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<u16>() {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 // Move the data into the buffer.
@@ -102,7 +137,9 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
             NativeType::Int32(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<i32>() {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 // Move the data into the buffer.
@@ -120,7 +157,9 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
             NativeType::UInt32(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<u32>() {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 // Move the data into the buffer.
@@ -135,10 +174,52 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
                 }
                 ErrorCode::Success as i32
             }
+            NativeType::Int64(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<i64>() {
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut i64) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<i64>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeTypeEnum::Int64;
+                }
+                ErrorCode::Success as i32
+            }
+            NativeType::UInt64(value) => {
+                // Check that buffer is large enough.
+                if buffer_size < std::mem::size_of::<u64>() {
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
+                }
+
+                // Move the data into the buffer.
+                *(buffer as *mut u64) = value;
+
+                // Set output variables if allowed.
+                if !output_size.is_null() {
+                    *output_size = std::mem::size_of::<u64>();
+                }
+                if !output_type.is_null() {
+                    *output_type = NativeTypeEnum::UInt64;
+                }
+                ErrorCode::Success as i32
+            }
             NativeType::Float32(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<f32>() {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 // Move the data into the buffer.
@@ -156,7 +237,9 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
             NativeType::Float64(value) => {
                 // Check that buffer is large enough.
                 if buffer_size < std::mem::size_of::<f64>() {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 // Move the data into the buffer.
@@ -173,7 +256,9 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
             }
             NativeType::String(string) => {
                 if buffer_size == 0 {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 // Can write at most buffer_size - 1 chars to assure the trailing null
@@ -198,7 +283,9 @@ pub unsafe extern "C" fn table_row_decode_to_buffer(
             }
             NativeType::Bytes(bytes) => {
                 if buffer_size == 0 {
-                    return ErrorCode::BufferNotEnough as i32;
+                    return datajoint_core_set_last_error(DataJointError::new(
+                        ErrorCode::BufferNotEnough,
+                    )) as i32;
                 }
 
                 let write_size = std::cmp::min(bytes.len(), buffer_size);
@@ -246,7 +333,10 @@ impl AllocatedDecodedValue {
         //
         // This value cannot be set, by any means, by the outside world.
         match self.type_name {
-            NativeTypeEnum::None => (),
+            NativeTypeEnum::None | NativeTypeEnum::Null => (),
+            NativeTypeEnum::Bool => {
+                Box::from_raw(self.data as *mut bool);
+            }
             NativeTypeEnum::Int8 => {
                 Box::from_raw(self.data as *mut i8);
             }
@@ -264,6 +354,12 @@ impl AllocatedDecodedValue {
             }
             NativeTypeEnum::UInt32 => {
                 Box::from_raw(self.data as *mut u32);
+            }
+            NativeTypeEnum::Int64 => {
+                Box::from_raw(self.data as *mut i64);
+            }
+            NativeTypeEnum::UInt64 => {
+                Box::from_raw(self.data as *mut u64);
             }
             NativeTypeEnum::Float32 => {
                 Box::from_raw(self.data as *mut f32);
@@ -283,11 +379,13 @@ impl AllocatedDecodedValue {
     }
 }
 
+/// Creates instance of AllocatedDecodedValue.
 #[no_mangle]
 pub extern "C" fn allocated_decoded_value_new() -> *mut AllocatedDecodedValue {
     Box::into_raw(Box::new(AllocatedDecodedValue::new()))
 }
 
+/// Frees instance of AllocatedDecodedValue
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_free(this: *mut AllocatedDecodedValue) {
     if !this.is_null() {
@@ -296,6 +394,7 @@ pub unsafe extern "C" fn allocated_decoded_value_free(this: *mut AllocatedDecode
     }
 }
 
+/// Returns the data of the AllocatedDecodedValue.
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_data(
     this: *const AllocatedDecodedValue,
@@ -307,6 +406,7 @@ pub unsafe extern "C" fn allocated_decoded_value_data(
     }
 }
 
+/// Returns the size of the AllocatedDecodedValue.
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_size(
     this: *const AllocatedDecodedValue,
@@ -318,6 +418,7 @@ pub unsafe extern "C" fn allocated_decoded_value_size(
     }
 }
 
+/// Returns the type_name of the AllocatedDecodedValue.
 #[no_mangle]
 pub unsafe extern "C" fn allocated_decoded_value_type(
     this: *const AllocatedDecodedValue,
@@ -327,6 +428,15 @@ pub unsafe extern "C" fn allocated_decoded_value_type(
     } else {
         (*this).type_name
     }
+}
+
+/// Checks if the allocated decoded value contains a `null` value, which
+/// means `null` was successfully decoded.
+#[no_mangle]
+pub unsafe extern "C" fn allocated_decoded_value_is_null_value(
+    this: *const AllocatedDecodedValue,
+) -> i32 {
+    (this.is_null() || (*this).type_name == NativeTypeEnum::Null) as i32
 }
 
 /// Decodes a single table row value to a Rust-allocated buffer stored in a
@@ -342,16 +452,30 @@ pub extern "C" fn table_row_decode_to_allocation(
     value: *mut AllocatedDecodedValue,
 ) -> i32 {
     if this.is_null() || column.is_null() || value.is_null() {
-        return ErrorCode::NullNotAllowed as i32;
+        return datajoint_core_set_last_error(DataJointError::new(ErrorCode::NullNotAllowed))
+            as i32;
     }
 
     unsafe {
         (*value).reset();
-        match (*this).try_decode(*column) {
-            Err(err) => err.code() as i32,
-            Ok(res) => match res {
-                NativeType::None => ErrorCode::ValueDecodeError as i32,
+        match (*this).try_decode_optional(*column) {
+            Err(err) => datajoint_core_set_last_error(err) as i32,
+            Ok(None) => {
+                (*value).type_name = NativeTypeEnum::Null;
+                ErrorCode::Success as i32
+            }
+            Ok(Some(res)) => match res {
+                NativeType::None => {
+                    datajoint_core_set_last_error(DataJointError::new(ErrorCode::ValueDecodeError))
+                        as i32
+                }
                 // No macro for generating these because of cbindgen limitations.
+                NativeType::Bool(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<bool>();
+                    (*value).type_name = NativeTypeEnum::Bool;
+                    ErrorCode::Success as i32
+                }
                 NativeType::Int8(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<i8>();
@@ -388,6 +512,18 @@ pub extern "C" fn table_row_decode_to_allocation(
                     (*value).type_name = NativeTypeEnum::UInt32;
                     ErrorCode::Success as i32
                 }
+                NativeType::Int64(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<i64>();
+                    (*value).type_name = NativeTypeEnum::Int64;
+                    ErrorCode::Success as i32
+                }
+                NativeType::UInt64(data) => {
+                    (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
+                    (*value).size = std::mem::size_of::<u64>();
+                    (*value).type_name = NativeTypeEnum::UInt64;
+                    ErrorCode::Success as i32
+                }
                 NativeType::Float32(data) => {
                     (*value).data = Box::into_raw(Box::new(data)) as *mut c_void;
                     (*value).size = std::mem::size_of::<f32>();
@@ -404,7 +540,9 @@ pub extern "C" fn table_row_decode_to_allocation(
                     (*value).size = string.len();
                     (*value).type_name = NativeTypeEnum::String;
                     match CString::new(string) {
-                        Err(_) => ErrorCode::ColumnDecodeError as i32,
+                        Err(_) => datajoint_core_set_last_error(DataJointError::new(
+                            ErrorCode::InvalidUtf8String,
+                        )) as i32,
                         Ok(cstr) => {
                             (*value).data = cstr.into_raw() as *const c_void;
                             ErrorCode::Success as i32

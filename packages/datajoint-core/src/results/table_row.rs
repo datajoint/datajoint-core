@@ -1,3 +1,4 @@
+use crate::common::{DatabaseType, DatabaseTypeAgnostic};
 use crate::error::{Error, SqlxError};
 use crate::results::table_column::{ColumnIndex, TableColumnRef};
 use sqlx::Row;
@@ -6,44 +7,61 @@ use sqlx::Row;
 ///
 /// Currently only implements how SQLx type checks return types.
 pub trait ValueDecodable<'r>:
-    sqlx::Decode<'r, sqlx::any::Any> + sqlx::Type<sqlx::any::Any>
+    sqlx::Decode<'r, sqlx::MySql> + sqlx::Decode<'r, sqlx::Postgres>
 {
 }
 
 impl<'r, T> ValueDecodable<'r> for T where
-    T: sqlx::Decode<'r, sqlx::any::Any> + sqlx::Type<sqlx::any::Any>
+    T: sqlx::Decode<'r, sqlx::MySql>
+        + sqlx::Type<sqlx::MySql>
+        + sqlx::Decode<'r, sqlx::Postgres>
+        + sqlx::Type<sqlx::Postgres>
 {
 }
 
 /// A single row in a database table or query result that is used to
 /// read values out of.
 ///
-/// Wraps `sqlx::any::AnyRow`.
-pub struct TableRow {
-    row: sqlx::any::AnyRow,
+/// Wraps a SQLx row.
+pub enum TableRow {
+    MySql(sqlx::mysql::MySqlRow),
+    Postgres(sqlx::postgres::PgRow),
+}
+
+impl DatabaseTypeAgnostic for TableRow {
+    fn database_type(&self) -> DatabaseType {
+        match self {
+            Self::MySql(_) => DatabaseType::MySql,
+            Self::Postgres(_) => DatabaseType::Postgres,
+        }
+    }
 }
 
 impl TableRow {
-    /// Creates a new table row around a SQLx row.
-    pub fn new(row: sqlx::any::AnyRow) -> Self {
-        return TableRow { row: row };
-    }
-
     /// Returns if the row is empty.
     pub fn is_empty(&self) -> bool {
-        self.row.is_empty()
+        match self {
+            Self::MySql(row) => row.is_empty(),
+            Self::Postgres(row) => row.is_empty(),
+        }
     }
 
     /// Returns a vector of table column references, which can be used
     /// to fetch all data in the row.
-    pub fn columns(&self) -> Vec<TableColumnRef> {
-        self.row.columns().iter().map(TableColumnRef::new).collect()
+    pub fn columns<'r>(&'r self) -> Vec<TableColumnRef<'r>> {
+        match self {
+            Self::MySql(row) => row.columns().iter().map(TableColumnRef::MySql).collect(),
+            Self::Postgres(row) => row.columns().iter().map(TableColumnRef::Postgres).collect(),
+        }
     }
 
     /// Utility method for returning the number of columns in the row
     /// without constructing an intermediate vector.
     pub fn column_count(&self) -> usize {
-        self.row.columns().len()
+        match self {
+            Self::MySql(row) => row.columns().len(),
+            Self::Postgres(row) => row.columns().len(),
+        }
     }
 
     /// Returns a reference to the table column for the given index.
@@ -61,9 +79,15 @@ impl TableRow {
     where
         I: ColumnIndex,
     {
-        match self.row.try_column(index) {
-            Err(err) => Err(SqlxError::new(err)),
-            Ok(column) => Ok(TableColumnRef::new(column)),
+        match self {
+            Self::MySql(row) => match row.try_column(index) {
+                Err(err) => Err(SqlxError::new(err)),
+                Ok(column) => Ok(TableColumnRef::MySql(column)),
+            },
+            Self::Postgres(row) => match row.try_column(index) {
+                Err(err) => Err(SqlxError::new(err)),
+                Ok(column) => Ok(TableColumnRef::Postgres(column)),
+            },
         }
     }
 
@@ -84,10 +108,15 @@ impl TableRow {
         T: ValueDecodable<'r>,
         I: ColumnIndex,
     {
-        let result: Result<T, sqlx::Error> = self.row.try_get(index);
-        match result {
-            Err(err) => Err(SqlxError::new(err)),
-            Ok(value) => Ok(value),
+        match self {
+            Self::MySql(row) => match row.try_get_unchecked::<T, I>(index) {
+                Err(err) => Err(SqlxError::new(err)),
+                Ok(value) => Ok(value),
+            },
+            Self::Postgres(row) => match row.try_get_unchecked::<T, I>(index) {
+                Err(err) => Err(SqlxError::new(err)),
+                Ok(value) => Ok(value),
+            },
         }
     }
 }

@@ -1,3 +1,7 @@
 mod table_column;
 mod table_row;
-pub mod table_row_vector;
+mod table_row_vector;
+
+pub use table_column::*;
+pub use table_row::*;
+pub use table_row_vector::*;

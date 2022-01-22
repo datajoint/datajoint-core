@@ -1,12 +1,13 @@
+use crate::error::{DataJointError, Error, ErrorCode};
+use crate::query::Query;
 use crate::types::NativeType;
-
-/// A SQLx query bound to zero or more placeholder arguments.
-pub type SqlxQuery<'q> =
-    sqlx::query::Query<'q, sqlx::Any, <sqlx::Any as sqlx::database::HasArguments<'q>>::Arguments>;
 
 /// A type trait for binding any amount of placeholder arguments to a query.
 pub trait PlaceholderArgumentCollection {
-    fn prepare(self, query: &str) -> SqlxQuery;
+    /// Binds the placeholder arguments to the given query.
+    ///
+    /// Returns the new query with the bound parameters.
+    fn bind_to_query<'q>(self, query: Query<'q>) -> Result<Query<'q>, Error>;
 }
 
 /// A single placeholder argument.
@@ -16,27 +17,59 @@ pub type PlaceholderArgument = NativeType;
 pub type PlaceholderArgumentVector = Vec<PlaceholderArgument>;
 
 impl PlaceholderArgumentCollection for PlaceholderArgumentVector {
-    fn prepare(self, query: &str) -> SqlxQuery {
-        let mut query = sqlx::query::<sqlx::Any>(query);
-        for arg in self {
-            match arg {
-                NativeType::None => {}
-                NativeType::Int8(val) => query = query.bind(val as i32),
-                NativeType::UInt8(val) => query = query.bind(val as i32),
-                NativeType::Int16(val) => query = query.bind(val as i32),
-                NativeType::UInt16(val) => query = query.bind(val as i32),
-                NativeType::Int32(val) => query = query.bind(val),
-                // TODO(EdwardGarmon): Will eventually move to using
-                // sqlx type parameters so we can encode types correctly
-                // according to database type, for now there
-                // will be a possible overflow error here.
-                NativeType::UInt32(val) => query = query.bind(val as i32),
-                NativeType::String(val) => query = query.bind(val),
-                NativeType::Float32(val) => query = query.bind(val),
-                NativeType::Float64(val) => query = query.bind(val),
-                NativeType::Bytes(val) => query = query.bind(val),
-            };
+    fn bind_to_query<'q>(self, query: Query<'q>) -> Result<Query<'q>, Error> {
+        match query {
+            Query::MySql(mut query) => {
+                for arg in self {
+                    match arg {
+                        NativeType::None => {
+                            return Err(DataJointError::new(ErrorCode::UnexpectedNoneType))
+                        }
+                        NativeType::Bool(val) => query = query.bind(val),
+                        NativeType::Int8(val) => query = query.bind(val),
+                        NativeType::UInt8(val) => query = query.bind(val),
+                        NativeType::Int16(val) => query = query.bind(val),
+                        NativeType::UInt16(val) => query = query.bind(val),
+                        NativeType::Int32(val) => query = query.bind(val),
+                        NativeType::UInt32(val) => query = query.bind(val),
+                        NativeType::Int64(val) => query = query.bind(val),
+                        NativeType::UInt64(val) => query = query.bind(val),
+                        NativeType::String(val) => query = query.bind(val),
+                        NativeType::Float32(val) => query = query.bind(val),
+                        NativeType::Float64(val) => query = query.bind(val),
+                        NativeType::Bytes(val) => query = query.bind(val),
+                    };
+                }
+                Ok(Query::MySql(query))
+            }
+            Query::Postgres(mut query) => {
+                for arg in self {
+                    match arg {
+                        NativeType::None => {
+                            return Err(DataJointError::new(ErrorCode::UnexpectedNoneType))
+                        }
+                        NativeType::Bool(val) => query = query.bind(val),
+                        NativeType::Int8(val) => query = query.bind(val),
+                        NativeType::Int16(val) => query = query.bind(val),
+                        NativeType::Int32(val) => query = query.bind(val),
+                        NativeType::Int64(val) => query = query.bind(val),
+                        NativeType::String(val) => query = query.bind(val),
+                        NativeType::Float32(val) => query = query.bind(val),
+                        NativeType::Float64(val) => query = query.bind(val),
+                        NativeType::Bytes(val) => query = query.bind(val),
+                        NativeType::UInt8(_)
+                        | NativeType::UInt16(_)
+                        | NativeType::UInt32(_)
+                        | NativeType::UInt64(_) => {
+                            return Err(DataJointError::new_with_message(
+                                "postgres does not support unsigned data types",
+                                ErrorCode::UnsupportedNativeType,
+                            ))
+                        }
+                    };
+                }
+                Ok(Query::Postgres(query))
+            }
         }
-        query
     }
 }

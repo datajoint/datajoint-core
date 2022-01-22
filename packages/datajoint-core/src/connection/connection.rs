@@ -1,18 +1,34 @@
-use crate::connection::{ConnectionSettings, Cursor, Executor, NativeCursor};
+use crate::common::{DatabaseType, DatabaseTypeAgnostic};
+use crate::connection::Pool;
+use crate::connection::{ConnectionSettings, Cursor, Executor};
 use crate::error::{DataJointError, Error, ErrorCode, SqlxError};
-use crate::placeholders::PlaceholderArgumentCollection;
+use crate::placeholders::{PlaceholderArgumentCollection, PlaceholderArgumentVector};
 
 /// A single connection instance to an arbitrary SQL database.
 pub struct Connection {
+    /// The settings for the database connection.
+    ///
+    /// If changes to the settings are made after a connection has been established,
+    /// the client should call [`.disconnect()`][Connection::disconnect] and then connect
+    /// again to use the updated settings.
     pub settings: ConnectionSettings,
-    pool: Option<sqlx::AnyPool>,
+    pool: Option<Pool>,
     runtime: tokio::runtime::Runtime,
+}
+
+impl DatabaseTypeAgnostic for Connection {
+    fn database_type(&self) -> DatabaseType {
+        match &self.pool {
+            None => self.settings.database_type,
+            Some(pool) => pool.database_type(),
+        }
+    }
 }
 
 impl Connection {
     /// Creates a new connection to a SQL database based on the given settings.
     ///
-    /// The connection is not actually established until [.connect()][Connection::connect]
+    /// The connection is not actually established until [`.connect()`][Connection::connect]
     /// is called.
     pub fn new(settings: ConnectionSettings) -> Self {
         Connection {
@@ -26,18 +42,22 @@ impl Connection {
         }
     }
 
-    /// Starts the connection to the SQL database according to settings the object was
-    /// initialized with.
+    /// Starts the connection to the SQL database according to the settings the connection
+    /// was initialized with.
     pub fn connect(&mut self) -> Result<(), Error> {
-        self.pool = Some(Connection::get_pool(&self.runtime, &*self.settings.uri())?);
+        self.pool = Some(Connection::get_pool(
+            &self.runtime,
+            self.settings.database_type,
+            &*self.settings.uri(),
+        )?);
         return Ok(());
     }
 
     fn not_connected_error() -> Error {
-        DataJointError::new("not connected", ErrorCode::NotConnected)
+        DataJointError::new(ErrorCode::NotConnected)
     }
 
-    fn get_connected_pool(&self) -> Result<&sqlx::AnyPool, Error> {
+    fn get_connected_pool(&self) -> Result<&Pool, Error> {
         match &self.pool {
             None => Err(Connection::not_connected_error()),
             Some(pool) => {
@@ -72,19 +92,36 @@ impl Connection {
         }
     }
 
-    fn get_pool(runtime: &tokio::runtime::Runtime, uri: &str) -> Result<sqlx::AnyPool, Error> {
-        runtime.block_on(Connection::get_pool_async(uri))
+    fn get_pool(
+        runtime: &tokio::runtime::Runtime,
+        database_type: DatabaseType,
+        uri: &str,
+    ) -> Result<Pool, Error> {
+        runtime.block_on(Connection::get_pool_async(database_type, uri))
     }
 
-    async fn get_pool_async(uri: &str) -> Result<sqlx::AnyPool, Error> {
-        match sqlx::any::AnyPoolOptions::new()
-            // TODO(jnestelroad): Allow more than one connection in settings?
-            .max_connections(1)
-            .connect(uri)
-            .await
-        {
-            Err(err) => Err(SqlxError::new(err)),
-            Ok(pool) => Ok(pool),
+    async fn get_pool_async(database_type: DatabaseType, uri: &str) -> Result<Pool, Error> {
+        match database_type {
+            DatabaseType::MySql => {
+                match sqlx::mysql::MySqlPoolOptions::new()
+                    .max_connections(1)
+                    .connect(uri)
+                    .await
+                {
+                    Err(err) => Err(SqlxError::new(err)),
+                    Ok(pool) => Ok(Pool::MySql(pool)),
+                }
+            }
+            DatabaseType::Postgres => {
+                match sqlx::postgres::PgPoolOptions::new()
+                    .max_connections(1)
+                    .connect(uri)
+                    .await
+                {
+                    Err(err) => Err(SqlxError::new(err)),
+                    Ok(pool) => Ok(Pool::Postgres(pool)),
+                }
+            }
         }
     }
 
@@ -154,7 +191,11 @@ impl Connection {
 
     /// Creates a cursor for iterating over the results of the given returning query.
     pub fn try_fetch_query<'c>(&'c self, query: &str) -> Result<Cursor<'c>, Error> {
-        Ok(NativeCursor::new_from_executor(query, self.try_executor()?))
+        Cursor::new_from_executor(
+            query,
+            self.try_executor()?,
+            None as Option<PlaceholderArgumentVector>,
+        )
     }
 
     /// Creates a cursor for iterating over the results of the given returning query.
@@ -165,10 +206,6 @@ impl Connection {
         query: &'c str,
         args: impl PlaceholderArgumentCollection,
     ) -> Result<Cursor, Error> {
-        Ok(NativeCursor::new_from_executor_ph(
-            query,
-            self.try_executor()?,
-            args,
-        ))
+        Cursor::new_from_executor(query, self.try_executor()?, Some(args))
     }
 }
