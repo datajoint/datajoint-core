@@ -8,7 +8,7 @@ use std::alloc::{alloc, Layout};
 /// been freed (to avoid a double free).
 ///
 /// Allows memory allocations to be reused over time.
-pub unsafe fn handle_output_ptr<T>(out_ptr: *mut *mut T, out_value: T)
+pub(crate) unsafe fn handle_output_ptr<T>(out_ptr: *mut *mut T, out_value: T)
 where
     T: Sized,
 {

@@ -1,7 +1,7 @@
 use datajoint_core::util::IntegerEnum;
 use num_traits::FromPrimitive;
 
-/// Enum for setters and getters in connection/settings.rs. Used instead of a Option<bool>.
+/// Three-state boolean for representing [`Option<bool>`] in an FFI-compatible manner.
 #[repr(i32)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, FromPrimitive)]
 pub enum OptionalBool {

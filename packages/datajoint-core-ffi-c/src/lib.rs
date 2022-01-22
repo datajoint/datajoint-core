@@ -2,9 +2,9 @@ extern crate datajoint_core;
 #[macro_use]
 extern crate num_derive;
 
-mod connection;
-mod error;
-mod placeholders;
-mod results;
-mod types;
-mod util;
+pub mod connection;
+pub mod error;
+pub mod placeholders;
+pub mod results;
+pub mod types;
+pub mod util;

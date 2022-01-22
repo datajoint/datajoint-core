@@ -1,5 +1,5 @@
 use crate::error::datajoint_core_set_last_error;
-use crate::results::table_row_vector::TableRowVector;
+use crate::results::TableRowVector;
 use crate::util;
 use datajoint_core::results::TableRow;
 use datajoint_core::{
@@ -7,6 +7,7 @@ use datajoint_core::{
     error::{DataJointError, ErrorCode},
 };
 
+/// Frees a cursor.
 #[no_mangle]
 pub unsafe extern "C" fn cursor_free(this: *mut Cursor) {
     if !this.is_null() {
@@ -14,6 +15,7 @@ pub unsafe extern "C" fn cursor_free(this: *mut Cursor) {
     }
 }
 
+/// Fetches the next row.
 #[no_mangle]
 pub unsafe extern "C" fn cursor_next(this: *mut Cursor, out: *mut *mut TableRow) -> i32 {
     if this.is_null() {
@@ -30,6 +32,7 @@ pub unsafe extern "C" fn cursor_next(this: *mut Cursor, out: *mut *mut TableRow)
     }
 }
 
+/// Fetches all remaining rows.
 #[no_mangle]
 pub unsafe extern "C" fn cursor_rest(this: *mut Cursor, out: *mut *mut TableRowVector) -> i32 {
     if this.is_null() {

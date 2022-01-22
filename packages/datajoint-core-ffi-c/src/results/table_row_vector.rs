@@ -3,7 +3,8 @@ use datajoint_core::results::TableRow;
 use libc::size_t;
 use std::ptr;
 
-/// Creates a vector of TableRows
+/// A vector of table rows, which is used to communicate the results of returning
+/// queries that return more than one row at a time.
 pub struct TableRowVector {
     rows: Vec<TableRow>,
 }
@@ -21,8 +22,6 @@ impl TableRowVector {
     }
 
     /// Returns a reference to a TableRow at the given index.
-    ///
-    /// Panics on error.
     pub fn get(&self, index: size_t) -> &TableRow {
         self.try_get(index).unwrap()
     }
@@ -42,6 +41,7 @@ impl TableRowVector {
     }
 }
 
+/// Frees a table row vector, including all table rows inside.
 #[no_mangle]
 pub unsafe extern "C" fn table_row_vector_free(this: *mut TableRowVector) {
     if !this.is_null() {
@@ -49,6 +49,7 @@ pub unsafe extern "C" fn table_row_vector_free(this: *mut TableRowVector) {
     }
 }
 
+/// Gives the number of rows.
 #[no_mangle]
 pub extern "C" fn table_row_vector_size(this: *const TableRowVector) -> size_t {
     if this.is_null() {
@@ -58,6 +59,10 @@ pub extern "C" fn table_row_vector_size(this: *const TableRowVector) -> size_t {
     table_rows.row_count()
 }
 
+/// Gives an internal pointer to a [`TableRow`] at the given index.
+///
+/// This pointer should not be freed by the user. Instead, call [`table_row_vector_free`]
+/// to free an entire table row vector.
 #[no_mangle]
 pub extern "C" fn table_row_vector_get(
     this: *const TableRowVector,

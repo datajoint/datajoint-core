@@ -6,7 +6,11 @@ use std::ffi::CStr;
 
 impl NativeTypeEnum {
     /// Encodes raw native type data into the proper enum variant.
-    pub unsafe fn encode(&self, data: *mut c_void, data_size: usize) -> Result<NativeType, Error> {
+    pub(crate) unsafe fn encode(
+        &self,
+        data: *mut c_void,
+        data_size: usize,
+    ) -> Result<NativeType, Error> {
         if data.is_null() {
             return Err(DataJointError::new(ErrorCode::NullNotAllowed));
         }

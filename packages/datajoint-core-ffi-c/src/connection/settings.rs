@@ -8,11 +8,13 @@ use libc::c_char;
 use std::ffi::{CStr, CString};
 use std::ptr;
 
+/// Creates a new settings object.
 #[no_mangle]
 pub extern "C" fn connection_settings_new() -> *mut ConnectionSettings {
     Box::into_raw(Box::new(ConnectionSettings::new()))
 }
 
+/// Frees a settings object.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_free(this: *mut ConnectionSettings) {
     if !this.is_null() {
@@ -20,6 +22,7 @@ pub unsafe extern "C" fn connection_settings_free(this: *mut ConnectionSettings)
     }
 }
 
+/// Sets the database type, which represents the SQL flavor to use for the connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_database_type(
     this: *mut ConnectionSettings,
@@ -38,6 +41,7 @@ pub unsafe extern "C" fn connection_settings_set_database_type(
     ErrorCode::Success as i32
 }
 
+/// Sets the username for a database connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_username(
     this: *mut ConnectionSettings,
@@ -59,6 +63,7 @@ pub unsafe extern "C" fn connection_settings_set_username(
     ErrorCode::Success as i32
 }
 
+/// Sets the password for a database connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_password(
     this: *mut ConnectionSettings,
@@ -80,6 +85,7 @@ pub unsafe extern "C" fn connection_settings_set_password(
     ErrorCode::Success as i32
 }
 
+/// Sets the hostname for a database connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_hostname(
     this: *mut ConnectionSettings,
@@ -101,6 +107,7 @@ pub unsafe extern "C" fn connection_settings_set_hostname(
     ErrorCode::Success as i32
 }
 
+/// Sets the port for a database connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_port(
     this: *mut ConnectionSettings,
@@ -115,6 +122,7 @@ pub unsafe extern "C" fn connection_settings_set_port(
     ErrorCode::Success as i32
 }
 
+/// Sets the database name for a database connection.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_database_name(
     this: *mut ConnectionSettings,
@@ -136,6 +144,12 @@ pub unsafe extern "C" fn connection_settings_set_database_name(
     ErrorCode::Success as i32
 }
 
+/// Specifies how a connection should use TLS.
+///
+/// Receives an [`OptionalBool`], which represents three-state logic.
+/// - [`OptionalBool::True`] - Enforce TLS.
+/// - [`OptionalBool::False`] - Do not use TLS.
+/// - [`OptionalBool::None`] - Let database decide.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_set_use_tls(
     this: *mut ConnectionSettings,
@@ -153,6 +167,7 @@ pub unsafe extern "C" fn connection_settings_set_use_tls(
     ErrorCode::Success as i32
 }
 
+/// Gets the database type entry on the settings object.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_database_type(
     this: *mut ConnectionSettings,
@@ -167,6 +182,10 @@ pub unsafe extern "C" fn connection_settings_get_database_type(
     settings.database_type
 }
 
+/// Gets the username entry on the settings object.
+///
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_username(
     this: *const ConnectionSettings,
@@ -182,6 +201,10 @@ pub unsafe extern "C" fn connection_settings_get_username(
     }
 }
 
+/// Gets the password entry on the settings object.
+///
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_password(
     this: *const ConnectionSettings,
@@ -197,6 +220,10 @@ pub unsafe extern "C" fn connection_settings_get_password(
     }
 }
 
+/// Gets the hostname entry on the settings object.
+///
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_hostname(
     this: *const ConnectionSettings,
@@ -212,6 +239,10 @@ pub unsafe extern "C" fn connection_settings_get_hostname(
     }
 }
 
+/// Gets the port entry on the settings object.
+///
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSettings) -> u16 {
     if this.is_null() {
@@ -222,6 +253,10 @@ pub unsafe extern "C" fn connection_settings_get_port(this: *const ConnectionSet
     settings.port
 }
 
+/// Gets the database name entry on the settings object.
+///
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_database_name(
     this: *const ConnectionSettings,
@@ -237,6 +272,10 @@ pub unsafe extern "C" fn connection_settings_get_database_name(
     }
 }
 
+/// Gets the TLS setting entry on the settings object.
+///
+/// [`datajoint_core_cstring_free`][crate::util::datajoint_core_cstring_free] must be called
+/// on the string returned from this function to avoid memory leaks.
 #[no_mangle]
 pub unsafe extern "C" fn connection_settings_get_use_tls(
     this: *const ConnectionSettings,

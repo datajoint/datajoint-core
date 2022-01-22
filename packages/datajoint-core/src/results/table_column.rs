@@ -22,6 +22,10 @@ impl<T> ColumnIndex for T where
 {
 }
 
+/// A reference to a table column object.
+///
+/// [`TableRow`][`crate::results::TableRow`] objects share table columns when they are
+/// created from the same query, which is why columns are accessed by reference.
 #[derive(Copy, Clone)]
 pub enum TableColumnRef<'r> {
     MySql(&'r sqlx::mysql::MySqlColumn),

@@ -12,8 +12,8 @@ use sqlx::Executor;
 ///
 /// Currently only used to implement an executor-like interface.
 ///
-/// Different from `Executor` in that it does not rely on a runtime for
-/// asynchronous operations.
+/// Different from [`Executor`][crate::connection::Executor] in that
+/// it does not rely on a runtime for asynchronous operations.
 pub(crate) enum Pool {
     MySql(sqlx::Pool<sqlx::MySql>),
     Postgres(sqlx::Pool<sqlx::Postgres>),

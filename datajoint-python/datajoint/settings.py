@@ -1,99 +1,82 @@
-from dotenv import load_dotenv
+"""
+Settings for DataJoint.
+"""
 import os
-from .datajoint_core_lib import dj_core
-from ._datajoint_core import ffi
+import pprint
+import collections
+
+default = dict({
+    'database.host': 'localhost',
+    'database.password': None,
+    'database.user': None,
+    'database.port': 3306,
+    'database.reconnect': True,
+    'connection.init_function': None,
+    'connection.charset': '',   # pymysql uses '' as default
+    'loglevel': 'INFO',
+    'safemode': True,
+    'fetch_format': 'array',
+    'display.limit': 12,
+    'display.width': 14,
+    'display.show_tuple_count': True,
+    'database.use_tls': None,
+    'enable_python_native_blobs': True,  # python-native/dj0 encoding support
+})
 
 
-class Config:
+class Config(collections.MutableMapping):
 
-    setters = {
-        'database_type': dj_core.connection_settings_set_database_type,
-        'username': dj_core.connection_settings_set_username,
-        'password': dj_core.connection_settings_set_password,
-        'hostname': dj_core.connection_settings_set_hostname,
-        'port': dj_core.connection_settings_set_port,
-        'database_name': dj_core.connection_settings_set_database_name
-    }
+    instance = None
 
-    getters = {
-        'database_type': dj_core.connection_settings_get_database_type,
-        'username': dj_core.connection_settings_get_username,
-        'password': dj_core.connection_settings_get_password,
-        'hostname': dj_core.connection_settings_get_hostname,
-        'port': dj_core.connection_settings_get_port,
-        'database_name': dj_core.connection_settings_get_database_name
-    }
-
-    # TODO(Jonathan Hocevar): Make this a two-way map
-    database_type = {
-        "MySQL": dj_core.DatabaseType_MySql,
-        "Postgres": dj_core.DatabaseType_Postgres,
-    }
-
-    def __init__(self, native=None, owning=True):
-        self.native = ffi.new("ConnectionSettings**")
-        if native is None:
-            self.native[0] = ffi.NULL
-            self.owning = True
-        elif ffi.typeof(native) is ffi.typeof("ConnectionSettings*"):
-            self.native[0] = native
-            self.owning = owning
+    def __init__(self, *args, **kwargs):
+        if not Config.instance:
+            Config.instance = Config.__Config(*args, **kwargs)
         else:
-            raise ValueError("invalid type for native pointer")
+            Config.instance._conf.update(dict(*args, **kwargs))
 
-    def __del__(self):
-        if self.owning:
-            dj_core.connection_settings_free(self.native[0])
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
 
-    # TODO(jackson-nestelroad): Type checking here for inputs and outputs.
+    def __getitem__(self, item):
+        return self.instance.__getitem__(item)
 
-    def __setitem__(self, setting, value):
-        if setting.lower() in self.setters:
-            if value in self.database_type:
-                value = self.database_type[value]
-            if type(value) == str:
-                value = value.encode("utf-8")
-            self.setters[setting](self.native[0], value)
-        else:
-            raise Exception(f"no setting found with key: {setting}")
+    def __setitem__(self, item, value):
+        self.instance.__setitem__(item, value)
 
-    def __getitem__(self, setting):
-        if setting.lower() in self.getters:
-            val = self.getters[setting](self.native[0])
-            if type(val) == int:
-                return val
-            elif ffi.typeof(val) == ffi.typeof("char*"):
-                return ffi.string(val).decode("utf-8")
-            else:
-                raise Exception("unsupported type")
-        else:
-            raise Exception(f"no setting found with key: {setting}")
+    def __str__(self):
+        return pprint.pformat(self.instance._conf, indent=4)
 
     def __repr__(self):
-        settings = {setting: self[setting] for setting in self.getters}
-        if settings["database_type"] == dj_core.DatabaseType_MySql:
-            settings["database_type"] = "MySql"
-        else:
-            settings["database_type"] = "Postgres"
-        rep = "Database Settings:\n"
-        for setting in settings:
-            rep += f"{setting}: {settings[setting]}\n"
-        return rep
+        return self.__str__()
 
-    def update(self, mapping):
-        for key in mapping:
-            self[key] = mapping[key]
+    def __delitem__(self, key):
+        del self.instance._conf[key]
+
+    def __iter__(self):
+        return iter(self.instance._conf)
+
+    def __len__(self):
+        return len(self.instance._conf)
+
+    class __Config:
+        def __init__(self, *args, **kwargs):
+            self._conf = dict(default)
+            self._conf.update(dict(*args, **kwargs))
+
+        def __getitem__(self, key):
+            return self._conf[key]
+
+        def __setitem__(self, key, value):
+            self._conf[key] = value
 
 
-# Placeholders for setting default values into the config variable
-# In the future this would be upadated with settings from environment
-# variables similar to how it is done in 'datajoint-python/settings.py'
-load_dotenv()
+config = Config()
 
-default_config = {k: v for k, v in zip(
-    ("hostname", "username", "password",
-     "port", "database_name",),
-    map(os.getenv, ("DJ_HOST", "DJ_USER", "DJ_PASS",
-                    "PORT", "DB_NAME")))
+# override login credentials with environment variables
+mapping = {k: v for k, v in zip(
+    ('database.host', 'database.user', 'database.password',
+     'external.aws_access_key_id', 'external.aws_secret_access_key',),
+    map(os.getenv, ('DJ_HOST', 'DJ_USER', 'DJ_PASS',
+                    'DJ_AWS_ACCESS_KEY_ID', 'DJ_AWS_SECRET_ACCESS_KEY',)))
     if v is not None}
-default_config["port"] = int(default_config["port"])
+config.update(mapping)
