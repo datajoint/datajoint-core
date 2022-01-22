@@ -1,3 +1,7 @@
 /target
 Cargo.lock
 *.pyc
+*.h
+*.idea
+.vscode/
+_datajoint_core.py

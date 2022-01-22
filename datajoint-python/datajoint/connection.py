@@ -1,37 +1,83 @@
-import os, sys
-from cffi import FFI
-ffi = FFI()
+from ._datajoint_core import ffi
+from .cursor import Cursor
+from .datajoint_core_lib import dj_core
+from .errors import datajoint_core_assert_success
+from .placeholders import PlaceholderArgumentVector
+from .settings import Config, default_config
 
-prefix = {'win32': ''}.get(sys.platform, 'lib')
-extension = {'darwin': '.dylib', 'win32': '.dll'}.get(sys.platform, '.so')
-dirname = os.path.dirname(__file__)
-library_file = os.path.join(dirname + '/../../target/debug/' + prefix + 'corelib' + extension)
-header_file = os.path.join(dirname + '/../../packages/datajoint-core-ffi-c/datajoint-core-ffi-c.h')
-
-with open(header_file, 'r') as f:
-    headers = f.read()
-    ffi.cdef(headers)
-
-C = ffi.dlopen(library_file)
 
 class Connection:
-    def __init__(self, host, user, password, reset, use_tls):
-        self._conn = C.connection_new(host.encode('utf-8'), user.encode('utf-8'), password.encode('utf-8'), reset, use_tls)
-        self.connect()
+    def __init__(self):
+        self.native = dj_core.connection_new(dj_core.connection_settings_new())
+        self.config = Config(
+            native=dj_core.connection_get_settings(self.native), owning=False)
 
-    def __enter__(self):
-        return self
+        # TODO(jackson-nestelroad): Probably don't do this here, do it in some
+        # higher-level layer.
+        for key in default_config:
+            self.config[key] = default_config[key]
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        C.connection_free(self._conn)
+    def __del__(self):
+        dj_core.connection_free(self.native)
 
     def connect(self):
-        C.connection_connect(self._conn)
+        err = dj_core.connection_connect(self.native)
+        datajoint_core_assert_success(err)
 
-    def raw_query(self, query):
-        return C.connection_raw_query(self._conn, query.encode('utf-8'))
+    def disconnect(self):
+        err = dj_core.connection_disconnect(self.native)
+        datajoint_core_assert_success(err)
 
-def conn(host=None, user=None, password=None, *, init_fun=None, reset=False, use_tls=None):
-    conn.Connection = Connection(host, user, password, reset, use_tls)
-    return conn.Connection
+    def reconnect(self):
+        err = dj_core.connection_reconnect(self.native)
+        datajoint_core_assert_success(err)
 
+    def execute_query(self, query, *args):
+        out = ffi.new("uint64_t*")
+        if len(args) == 0:
+            err = dj_core.connection_execute_query(
+                self.native, query.encode("utf-8"), ffi.NULL, out)
+            datajoint_core_assert_success(err)
+            return out[0]
+        else:
+            ph_args = PlaceholderArgumentVector()
+            for arg in args:
+                ph_args.add(arg)
+            err = dj_core.connection_execute_query(
+                self.native, query.encode("utf-8"), ph_args.native, out)
+            ph_args.native = ffi.NULL
+            datajoint_core_assert_success(err)
+            return out[0]
+
+    def fetch_query(self, query, *args):
+        out = Cursor()
+        if len(args) == 0:
+            err = dj_core.connection_fetch_query(
+                self.native, query.encode("utf-8"), ffi.NULL, out.native)
+            datajoint_core_assert_success(err)
+            return out
+        else:
+            ph_args = PlaceholderArgumentVector()
+            for arg in args:
+                ph_args.add(arg)
+            err = dj_core.connection_fetch_query(
+                self.native, query.encode("utf-8"), ph_args.native, out.native)
+            ph_args.native = ffi.NULL
+            datajoint_core_assert_success(err)
+            return out
+
+
+def conn(host=None, user=None, password=None, database_name=None, database_type=None, *, init_fun=None, reset=False, use_tls=None):
+    connection = Connection()
+    if host is not None:
+        connection.config["hostname"] = host
+    if user is not None:
+        connection.config["username"] = user
+    if password is not None:
+        connection.config["password"] = password
+    if database_name is not None:
+        connection.config["database_name"] = database_name
+    if database_type is not None:
+        connection.config["database_type"] = database_type
+    connection.connect()
+    return connection

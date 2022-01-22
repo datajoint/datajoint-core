@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
-
 import datajoint as dj
 
-connection = dj.conn("example@email.com", "Username123", "secretPassword", reset=False, use_tls=True)
-result = connection.raw_query("SELECT STUFF FROM TABLE")
-print(f'result from query is: {result}')
+
+connection = dj.conn(host="tutorial-db.datajoint.io", user="<username>",
+                     password="<password>", database_name="jonathan_tutorial", reset=False, use_tls=True)
+
+cursor = connection.fetch_query(
+    "select * from mouse where sex = ?", 'M')
+try:
+    l = list(cursor)
+    for row in l:
+        print(row.to_dict())
+except AssertionError:
+    print('failed :(')
+
+connection.disconnect()

@@ -1,4 +1,5 @@
-use sqlx::Column;
+use crate::types::DataJointType;
+use sqlx::{Column, TypeInfo};
 
 /// Trait for types that can be used to index columns.
 ///
@@ -10,11 +11,13 @@ impl<T> ColumnIndex for T where T: sqlx::ColumnIndex<sqlx::any::AnyRow> {}
 pub struct TableColumn {
     pub ordinal: usize,
     pub name: String,
+    pub type_name: DataJointType,
 }
 
 /// A reference to data about a table column.
 ///
 /// Wraps `sqlx::any::AnyColumn`.
+#[derive(Copy, Clone)]
 pub struct TableColumnRef<'r> {
     column: &'r sqlx::any::AnyColumn,
 }
@@ -37,11 +40,16 @@ impl<'r> TableColumnRef<'r> {
         self.column.name()
     }
 
+    pub fn type_name(&self) -> DataJointType {
+        DataJointType::from_sqlx_type_name(self.column.type_info().name())
+    }
+
     // Converts the column reference to an owned instance for storage.
     pub fn to_owned(&self) -> TableColumn {
         TableColumn {
             ordinal: self.ordinal(),
             name: self.name().to_string(),
+            type_name: self.type_name(),
         }
     }
 }
