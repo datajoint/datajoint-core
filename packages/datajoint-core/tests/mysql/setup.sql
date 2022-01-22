@@ -3,6 +3,6 @@ CREATE TABLE tweet
 (
     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    text       TEXT      NOT NULL,
+    text       VARCHAR(255)      NOT NULL,
     owner_id   BIGINT
 );

@@ -1,0 +1,16 @@
+name: coverage
+
+on: [push]
+jobs:
+  test:
+    name: coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run tests and upload coverage
+        run: |
+          cd packages/datajoint-core/tests
+          docker-compose -f docker-compose-test.yml up --build --exit-code-from tests
