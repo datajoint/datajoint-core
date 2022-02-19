@@ -1,7 +1,7 @@
 use std::convert::TryInto;
 
 fn main() {
-    let var = pack(2147483647_i32);
+    let var = pack(2147483647_i64);
     println!("{:?}", var);
 
     unpack(var);
@@ -39,7 +39,7 @@ fn pack<T: Pack>(obj: T) -> Vec<u8> {
     let type_var = check_type(&obj);
     let mut packed_data: Vec<u8> = {
         match type_var {
-            "i32" => obj.as_i32().pack(),
+            "i64" => obj.as_int().pack(),
             _ => panic!(),
         }
     };
@@ -53,37 +53,56 @@ trait Pack {
     fn pack(&self) -> Vec<u8>;
 
     fn as_string(self) -> String;
-    fn as_i32(self) -> i32;
+    fn as_int(self) -> i64;
 }
-    
-impl Pack for i32 {
+
+impl Pack for i64 {
     #[inline]
     fn as_string(self) -> String {panic!()}
-    fn as_i32(self) -> i32 {self}
+    fn as_int(self) -> i64 {self}
 
     fn pack(&self) -> Vec<u8> {
         let mut packed: Vec<u8> = b"\x0a".to_vec(); // Prefix
+        let mut data: Vec<u8> = self.to_ne_bytes().to_vec(); // Data
 
-        let n_bytes = self.to_ne_bytes().len() as u8; // Size
-        packed.push(n_bytes);
+        // Get size
+        let mut n_bytes = self.to_ne_bytes().len(); // Size
+        while n_bytes > 0 {
+            if *data.get(n_bytes - 1).unwrap() == 0 {
+                n_bytes = n_bytes - 1;
+            }
+            else {
+                break;
+            }
+        }
+
+        // Get rid of extra 0's
+        data.truncate(n_bytes);
+
+        packed.push(n_bytes as u8);
         packed.push(b'\0');
 
-        packed.append(&mut self.to_ne_bytes().to_vec()); // Data
+        packed.append(&mut data); // Data
         
         return packed;
     }
 }
 
-fn unpack_int(mut bytes:Vec<u8>) -> i32{
-    // Get n_bytes
+fn unpack_int(mut bytes:Vec<u8>) -> i64{
+    // Get n_byte
     let pos = get_zero_terminated_pos(&bytes);
     bytes.remove(pos);
     let mut n_bytes: Vec<u8> = bytes;
     bytes = n_bytes.split_off(pos);
 
+    let mut i = 8 - *n_bytes.get(0).unwrap();
+    while i > 0 {
+        bytes.push(b'\0');
+        i = i - 1;
+    }
+
     let byte_arr = bytes.try_into().unwrap();
-    let num = i32::from_ne_bytes(byte_arr);
-    return num;
+    i64::from_ne_bytes(byte_arr)
 }
 
 fn check_type<T>(_obj: &T) -> &str {
