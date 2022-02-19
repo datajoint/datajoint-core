@@ -8,7 +8,7 @@ fn main() {
     unpack(var);
 }
 
-fn unpack <T: Pack + Copy> (mut blob: Vec<u8>) -> T{
+fn unpack (mut blob: Vec<u8>){
     // Get Protocol
     let pos = get_zero_terminated_pos(&blob);
     blob.remove(pos);
@@ -16,34 +16,22 @@ fn unpack <T: Pack + Copy> (mut blob: Vec<u8>) -> T{
     blob = protocol.split_off(pos);
     //println!("Protocol: {:?} Blob: {:?}", protocol, blob);
 
-    return read_blob(blob);
+    read_blob(blob);
 }
 
-fn read_blob <T: Pack + Copy> (mut blob: Vec<u8>) -> T{
+fn read_blob(mut blob: Vec<u8>){
     // Get Prefix
     let prefix = blob.get(0).cloned().unwrap();
     blob = blob.split_off(1);
     //println!("Prefix: {} Blob: {:?}", prefix, blob);
 
     match prefix{
-        //b'\x0a'=>println!("{}", unpack_int(blob)),
-        b'\x0a'=>return unpack_int(blob),
+        b'\x0a'=>println!("{}", unpack_int(blob)),
+        //b'\x0a'=>return unpack_int(blob),
         //b'\x02'=>println!("{}", unpack_list(list)),
         _=>println!("Not Implemented")
     }
 }
-
-// def read_list(self):
-// return list(self.read_blob(self.read_value()) for _ in range(self.read_value()))
-
-// def read_value(self, dtype=None, count=1):
-// if dtype is None:
-//     dtype = 'uint32' if use_32bit_dims else 'uint64'
-// data = np.frombuffer(self._blob, dtype=dtype, count=count, offset=self._pos)
-// self._pos += data.dtype.itemsize * data.size
-// return data[0] if count == 1 else data
-
-
 
 fn pack<T: Pack>(obj: T) -> Vec<u8> {
     let mut blob: Vec<u8> = b"dj0\0".to_vec();
