@@ -1,11 +1,6 @@
 use std::convert::TryInto;
-use std::collections::HashMap;
 
-//[100, 106, 48, 0, 4, 5, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 10, 1, 0, 1, 4, 0, 0, 0, 0, 0, 0, 0, 10, 1, 0, 10, 4, 0, 0, 0, 0, 0, 0, 0, 10, 1, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 10, 1, 0, 20, 4, 0, 0, 0, 0, 0, 0, 0, 10, 1, 0, 3, 5, 0, 0, 0, 0, 0, 0, 0, 10, 2, 0, 44, 1, 4, 0, 0, 0, 0, 0, 0, 0, 10, 1, 0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 10, 1, 0, 40, 4, 0, 0, 0, 0, 0, 0, 0, 10, 1, 0, 5, 4, 0, 0, 0, 0, 0, 0, 0, 10, 1, 0, 50]
-// def pack_dict(self, d):
-// return b"\4" + len_u64(d) + b"".join(
-//     b"".join((len_u64(it) + it) for it in packed)
-//     for packed in (map(self.pack_blob, pair) for pair in d.items()))
+use std::collections::HashMap;
 
 fn main() {
     let test = HashMap::from([
@@ -28,8 +23,8 @@ fn unpack (mut blob: Vec<u8>){
     blob.remove(pos);
     let mut protocol: Vec<u8> = blob;
     blob = protocol.split_off(pos);
-    //println!("Protocol: {:?} Blob: {:?}", protocol, blob);
 
+    //println!("Protocol: {:?} Blob: {:?}", protocol, blob);
     read_blob(blob);
 }
 
@@ -130,7 +125,6 @@ macro_rules! pack_dictionary {
 //INCLUDE IMPLEMENTATION HERE IF PRIMITIVE TYPE
 pack_dictionary!(i64);
 
-
 impl Pack for i64 {
     #[inline]
     fn as_string(self) -> String {panic!()}
@@ -183,7 +177,6 @@ fn unpack_int(mut bytes:Vec<u8>) -> i64{
 fn check_type<T>(_obj: &T) -> &str {
     let type_var: &str = std::any::type_name::<T>();
     //println!("{}", std::any::type_name::<T>());
-
     return type_var;
 }
 
@@ -196,4 +189,3 @@ fn len_u64 (bytes: Vec<u8>) -> Vec<u8> {
     let num = bytes.len() as i64;
     num.to_ne_bytes().to_vec()
 }
-
