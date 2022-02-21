@@ -3,14 +3,14 @@ use std::convert::TryInto;
 use std::collections::HashMap;
 
 fn main() {
-    //let test = vec![4,5,6];
-    let test = HashMap::from([
-        (1,10),
-        (2,20),
-        (3,30),
-        (4,40),
-        (5,50),
-    ]);
+    let test = vec![4,5,6];
+    // let test = HashMap::from([
+    //     (1,10),
+    //     (2,20),
+    //     (3,30),
+    //     (4,40),
+    //     (5,50),
+    // ]);
     let var = pack(test);
     println!("{:?}", var);
 
@@ -75,11 +75,14 @@ macro_rules! pack_list {
         impl Pack for Vec<$ty> {
             fn pack(&self) -> Vec<u8> {
                 let mut packed: Vec<u8> = b"\x02".to_vec();
-                packed.push(self.len() as u8);
-                packed.push(b'\0');
+                
+                let num = self.len() as i64;
+                packed.append( &mut num.to_ne_bytes().to_vec());
                 
                 for n in 0..self.len() {
-                    packed.append( &mut pack_blob(*self.get(n).unwrap()));
+                    let mut packed_data = pack_blob(*self.get(n).unwrap());
+                    packed.append(&mut len_u64(packed_data.clone()));
+                    packed.append( &mut packed_data);
                 }
 
                 return packed;
