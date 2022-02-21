@@ -91,12 +91,12 @@ macro_rules! pack_list {
     }
 }
 
-//INCLUDE IMPLEMENTATION HERE IF PRIMITIVE TYPE
+//LIST IMPLEMENTATIONS
 pack_list!(i64);
 
 macro_rules! pack_dictionary {
-    ($ty:ty) => {
-        impl Pack for HashMap<$ty, $ty> {
+    ($key:ty, $val:ty) => {
+        impl Pack for HashMap<$key, $val> {
             fn pack(&self) -> Vec<u8> {
                 let mut packed: Vec<u8> = b"\x04".to_vec();
                 
@@ -104,11 +104,13 @@ macro_rules! pack_dictionary {
                 packed.append( &mut num.to_ne_bytes().to_vec());
                 
                 for (k,v) in self{
-                    packed.append(&mut len_u64(pack_blob(*k)));
-                    packed.append( &mut pack_blob(*k));
+                    let mut packed_key = pack_blob(*k);
+                    packed.append(&mut len_u64(packed_key.clone()));
+                    packed.append( &mut packed_key);
 
-                    packed.append(&mut len_u64(pack_blob(*v)));
-                    packed.append( &mut pack_blob(*v));
+                    let mut packed_val = pack_blob(*v);
+                    packed.append(&mut len_u64(packed_val.clone()));
+                    packed.append( &mut packed_val);
                 }
 
                 return packed;
@@ -120,8 +122,13 @@ macro_rules! pack_dictionary {
     }
 }
 
-//INCLUDE IMPLEMENTATION HERE IF PRIMITIVE TYPE
-pack_dictionary!(i64);
+// DICTIONARY IMPLEMENTATIONS
+macro_rules! permutations {
+    ($ty:ty) => {
+        pack_dictionary!(i64, $ty);
+    }
+}
+permutations!(i64);
 
 impl Pack for i64 {
     #[inline]
