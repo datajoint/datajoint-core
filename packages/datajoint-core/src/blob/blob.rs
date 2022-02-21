@@ -1,11 +1,20 @@
 use std::convert::TryInto;
 
+use std::collections::HashMap;
+
 fn main() {
-    let test = vec![4,5,6];
+    //let test = vec![4,5,6];
+    let test = HashMap::from([
+        (1,10),
+        (2,20),
+        (3,30),
+        (4,40),
+        (5,50),
+    ]);
     let var = pack(test);
     println!("{:?}", var);
 
-    unpack(var);
+    //unpack(var);
 }
 
 fn unpack (mut blob: Vec<u8>){
@@ -15,7 +24,6 @@ fn unpack (mut blob: Vec<u8>){
     let mut protocol: Vec<u8> = blob;
     blob = protocol.split_off(pos);
     //println!("Protocol: {:?} Blob: {:?}", protocol, blob);
-
     read_blob(blob);
 }
 
@@ -45,8 +53,9 @@ fn pack_blob<T: Pack>(obj: T) -> Vec<u8> {
 
     let packed_data: Vec<u8> = {
         match type_var {
+            "i32" => obj.as_int().pack(),
             "i64" => obj.as_int().pack(),
-            _ => obj.pack(),
+            _ => obj.pack(), // List, Dictionary
         }
     };
 
@@ -84,7 +93,35 @@ macro_rules! pack_list {
 
 //INCLUDE IMPLEMENTATION HERE IF PRIMITIVE TYPE
 pack_list!(i64);
-//pack_list!(f32);
+
+macro_rules! pack_dictionary {
+    ($ty:ty) => {
+        impl Pack for HashMap<$ty, $ty> {
+            fn pack(&self) -> Vec<u8> {
+                let mut packed: Vec<u8> = b"\x04".to_vec();
+                
+                let num = self.len() as i64;
+                packed.append( &mut num.to_ne_bytes().to_vec());
+                
+                for (k,v) in self{
+                    packed.append(&mut len_u64(pack_blob(*k)));
+                    packed.append( &mut pack_blob(*k));
+
+                    packed.append(&mut len_u64(pack_blob(*v)));
+                    packed.append( &mut pack_blob(*v));
+                }
+
+                return packed;
+            }
+
+            fn as_string(self) -> String {panic!()}
+            fn as_int(self) -> i64 {panic!()}
+        }
+    }
+}
+
+//INCLUDE IMPLEMENTATION HERE IF PRIMITIVE TYPE
+pack_dictionary!(i64);
 
 impl Pack for i64 {
     #[inline]
@@ -138,7 +175,6 @@ fn unpack_int(mut bytes:Vec<u8>) -> i64{
 fn check_type<T>(_obj: &T) -> &str {
     let type_var: &str = std::any::type_name::<T>();
     //println!("{}", std::any::type_name::<T>());
-
     return type_var;
 }
 
@@ -146,3 +182,9 @@ fn get_zero_terminated_pos (blob: &Vec<u8>) -> usize{
     let mut iter = blob.iter();
     return iter.position(|x| x == &b'\0').unwrap();
 }
+
+fn len_u64 (bytes: Vec<u8>) -> Vec<u8> {
+    let num = bytes.len() as i64;
+    num.to_ne_bytes().to_vec()
+}
+
