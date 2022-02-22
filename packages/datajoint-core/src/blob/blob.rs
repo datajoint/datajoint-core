@@ -3,20 +3,21 @@ use std::convert::TryInto;
 use std::collections::HashMap;
 
 fn main() {
-    let vec = vec![4,5,6];
+    let vec = vec![1,2,3];
     let test = HashMap::from([
-        (1,vec),
+        ("spikes",vec),
     ]);
 
-    let test1 = HashMap::from([
-        (1,10),
-        (2,20),
-        (3,30),
-        (4,40),
-        (5,50),
-    ]);
+    // let test1 = HashMap::from([
+    //     (1,10),
+    //     (2,20),
+    //     (3,30),
+    //     (4,40),
+    //     (5,50),
+    // ]);
     
     let var = pack(test);
+    //println!("{:02X?}", var); //hex
     println!("{:?}", var);
 
     //unpack(var);
@@ -85,7 +86,7 @@ macro_rules! pack_list {
                 packed.append( &mut num.to_ne_bytes().to_vec());
                 
                 for n in 0..self.len() {
-                    let mut packed_data = pack_blob(*self.get(n).unwrap());
+                    let mut packed_data = pack_blob(self.get(n).unwrap().clone());
                     packed.append(&mut len_u64(packed_data.clone()));
                     packed.append( &mut packed_data);
                 }
@@ -101,6 +102,9 @@ macro_rules! pack_list {
 
 //LIST IMPLEMENTATIONS
 pack_list!(i64);
+pack_list!(String);
+pack_list!(&str);
+
 
 macro_rules! pack_dictionary {
     ($key:ty, $val:ty) => {
@@ -135,15 +139,42 @@ macro_rules! permutations {
     ($ty:ty) => {
         pack_dictionary!(i64, $ty);
         pack_dictionary!($ty, Vec<i64>);
+        pack_dictionary!(String, $ty);
+        pack_dictionary!($ty, Vec<String>);
+        pack_dictionary!($ty, Vec<&str>);
+        pack_dictionary!(&str, $ty);
+
     }
 }
 permutations!(i64);
+permutations!(String);
+permutations!(&str);
+
+
+macro_rules! pack_string {
+    ($ty:ty) => {
+        impl Pack for $ty{
+            fn pack(&self) -> Vec<u8>{
+                let mut packed: Vec<u8> = b"\x05".to_vec();
+            
+                let n_bytes = self.as_bytes().len() as i64;
+                packed.append( &mut n_bytes.to_ne_bytes().to_vec());
+
+                packed.append(&mut self.as_bytes().to_vec()); // Data
+            
+                return packed;
+            }
+
+            #[inline]
+            fn as_string(self) -> String {String::from(self)}
+            fn as_int(self) -> i64 {panic!()}
+        }
+    }
+}
+pack_string!(&str);
+pack_string!(String);
 
 impl Pack for i64 {
-    #[inline]
-    fn as_string(self) -> String {panic!()}
-    fn as_int(self) -> i64 {self}
-
     fn pack(&self) -> Vec<u8> {
         let mut packed: Vec<u8> = b"\x0a".to_vec(); // Prefix
         let mut data: Vec<u8> = self.to_ne_bytes().to_vec(); // Data
@@ -169,6 +200,10 @@ impl Pack for i64 {
         
         return packed;
     }
+
+    #[inline]
+    fn as_string(self) -> String {panic!()}
+    fn as_int(self) -> i64 {self}
 }
 
 fn unpack_int(mut bytes:Vec<u8>) -> i64{
@@ -208,3 +243,5 @@ fn len_u64 (bytes: Vec<u8>) -> Vec<u8> {
 // payload = 2147483647
 // packed_payload = pack(payload)
 // print([p for p in packed_payload])
+
+
