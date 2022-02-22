@@ -1,12 +1,13 @@
 use std::convert::TryInto;
-
 use std::collections::HashMap;
 
 fn main() {
-    let vec = vec![1,2,3];
+    let vec = vec![1, 2, 3];
     let test = HashMap::from([
         ("spikes",vec),
     ]);
+
+    //let hello = "hello world";
 
     // let test1 = HashMap::from([
     //     (1,10),
@@ -20,7 +21,7 @@ fn main() {
     //println!("{:02X?}", var); //hex
     println!("{:?}", var);
 
-    //unpack(var);
+    unpack(var);
 }
 
 fn unpack (mut blob: Vec<u8>){
@@ -40,9 +41,10 @@ fn read_blob(mut blob: Vec<u8>){
     //println!("Prefix: {} Blob: {:?}", prefix, blob);
 
     match prefix{
+        b'\x02'=> unpack_list(blob),
+        b'\x04'=> unpack_dictionary(blob),
+        b'\x05'=>println!("{}", unpack_string(blob)),
         b'\x0a'=>println!("{}", unpack_int(blob)),
-        //b'\x0a'=>return unpack_int(blob),
-        //b'\x02'=>println!("{}", unpack_list(list)),
         _=>println!("Not Implemented")
     }
 }
@@ -61,7 +63,7 @@ fn pack_blob<T: Pack>(obj: T) -> Vec<u8> {
         match type_var {
             "i32" => obj.as_int().pack(),
             "i64" => obj.as_int().pack(),
-            _ => obj.pack(), // List, Dictionary
+            _ => obj.pack(), // List, Dictionary, String
         }
     };
 
@@ -105,6 +107,23 @@ pack_list!(i64);
 pack_list!(String);
 pack_list!(&str);
 
+//Probably have to think of other data types within the list too instead of just returning int
+//Something like ["hello", "world"] would also need to be taken account of
+fn unpack_list(mut bytes:Vec<u8>){
+    //let result: Vec<T> = Vec::New();
+    let mut len_list: Vec<u8> = bytes;
+    bytes = len_list.split_off(8);
+
+    for _ in 0..*len_list.get(0).unwrap() {
+        let mut len: Vec<u8> = bytes;
+        bytes = len.split_off(8);
+        
+        let rest = bytes.split_off((*len.get(0).unwrap()).into());
+        //result.push(read_blob(bytes));
+        read_blob(bytes);
+        bytes = rest;
+    }
+}
 
 macro_rules! pack_dictionary {
     ($key:ty, $val:ty) => {
@@ -150,6 +169,19 @@ permutations!(i64);
 permutations!(String);
 permutations!(&str);
 
+fn unpack_dictionary(mut bytes:Vec<u8>){
+    let mut len_dict: Vec<u8> = bytes;
+    bytes = len_dict.split_off(8);
+
+    for _ in 0..*len_dict.get(0).unwrap()*2{
+        let mut len: Vec<u8> = bytes;
+        bytes = len.split_off(8);
+        
+        let rest = bytes.split_off((*len.get(0).unwrap()).into());
+        read_blob(bytes);
+        bytes = rest;
+    }
+}
 
 macro_rules! pack_string {
     ($ty:ty) => {
@@ -171,8 +203,18 @@ macro_rules! pack_string {
         }
     }
 }
+
 pack_string!(&str);
 pack_string!(String);
+
+fn unpack_string(mut bytes:Vec<u8>) -> String {
+    // Get n_byte
+    let pos = 8;
+    let mut n_bytes: Vec<u8> = bytes;
+    bytes = n_bytes.split_off(pos);
+    
+    String::from_utf8(bytes).unwrap()
+}
 
 impl Pack for i64 {
     fn pack(&self) -> Vec<u8> {
@@ -243,5 +285,3 @@ fn len_u64 (bytes: Vec<u8>) -> Vec<u8> {
 // payload = 2147483647
 // packed_payload = pack(payload)
 // print([p for p in packed_payload])
-
-
