@@ -3,14 +3,19 @@ use std::convert::TryInto;
 use std::collections::HashMap;
 
 fn main() {
-    let test = vec![4,5,6];
-    // let test = HashMap::from([
-    //     (1,10),
-    //     (2,20),
-    //     (3,30),
-    //     (4,40),
-    //     (5,50),
-    // ]);
+    let vec = vec![4,5,6];
+    let test = HashMap::from([
+        (1,vec),
+    ]);
+
+    let test1 = HashMap::from([
+        (1,10),
+        (2,20),
+        (3,30),
+        (4,40),
+        (5,50),
+    ]);
+    
     let var = pack(test);
     println!("{:?}", var);
 
@@ -107,11 +112,11 @@ macro_rules! pack_dictionary {
                 packed.append( &mut num.to_ne_bytes().to_vec());
                 
                 for (k,v) in self{
-                    let mut packed_key = pack_blob(*k);
+                    let mut packed_key = pack_blob(k.clone());
                     packed.append(&mut len_u64(packed_key.clone()));
                     packed.append( &mut packed_key);
 
-                    let mut packed_val = pack_blob(*v);
+                    let mut packed_val = pack_blob(v.clone());
                     packed.append(&mut len_u64(packed_val.clone()));
                     packed.append( &mut packed_val);
                 }
@@ -129,6 +134,7 @@ macro_rules! pack_dictionary {
 macro_rules! permutations {
     ($ty:ty) => {
         pack_dictionary!(i64, $ty);
+        pack_dictionary!(Vec<i64>, $ty);
     }
 }
 permutations!(i64);
@@ -198,3 +204,7 @@ fn len_u64 (bytes: Vec<u8>) -> Vec<u8> {
     num.to_ne_bytes().to_vec()
 }
 
+// from datajoint.blob import pack, unpack
+// payload = 2147483647
+// packed_payload = pack(payload)
+// print([p for p in packed_payload])
