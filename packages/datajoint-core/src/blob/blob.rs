@@ -134,7 +134,7 @@ macro_rules! pack_dictionary {
 macro_rules! permutations {
     ($ty:ty) => {
         pack_dictionary!(i64, $ty);
-        pack_dictionary!(Vec<i64>, $ty);
+        pack_dictionary!($ty, Vec<i64>);
     }
 }
 permutations!(i64);
