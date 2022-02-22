@@ -3,14 +3,19 @@ use std::convert::TryInto;
 use std::collections::HashMap;
 
 fn main() {
+    let vec = vec![4,5,6];
     let test = HashMap::from([
+        (1,vec),
+    ]);
+
+    let test1 = HashMap::from([
         (1,10),
         (2,20),
         (3,30),
         (4,40),
         (5,50),
     ]);
-
+    
     let var = pack(test);
     println!("{:?}", var);
 
@@ -23,7 +28,6 @@ fn unpack (mut blob: Vec<u8>){
     blob.remove(pos);
     let mut protocol: Vec<u8> = blob;
     blob = protocol.split_off(pos);
-
     //println!("Protocol: {:?} Blob: {:?}", protocol, blob);
     read_blob(blob);
 }
@@ -57,7 +61,6 @@ fn pack_blob<T: Pack>(obj: T) -> Vec<u8> {
             "i32" => obj.as_int().pack(),
             "i64" => obj.as_int().pack(),
             _ => obj.pack(), // List, Dictionary
-            
         }
     };
 
@@ -77,11 +80,14 @@ macro_rules! pack_list {
         impl Pack for Vec<$ty> {
             fn pack(&self) -> Vec<u8> {
                 let mut packed: Vec<u8> = b"\x02".to_vec();
-                packed.push(self.len() as u8);
-                packed.push(b'\0');
+                
+                let num = self.len() as i64;
+                packed.append( &mut num.to_ne_bytes().to_vec());
                 
                 for n in 0..self.len() {
-                    packed.append( &mut pack_blob(*self.get(n).unwrap()));
+                    let mut packed_data = pack_blob(*self.get(n).unwrap());
+                    packed.append(&mut len_u64(packed_data.clone()));
+                    packed.append( &mut packed_data);
                 }
 
                 return packed;
@@ -93,12 +99,12 @@ macro_rules! pack_list {
     }
 }
 
-//INCLUDE IMPLEMENTATION HERE IF PRIMITIVE TYPE
+//LIST IMPLEMENTATIONS
 pack_list!(i64);
 
 macro_rules! pack_dictionary {
-    ($ty:ty) => {
-        impl Pack for HashMap<$ty, $ty> {
+    ($key:ty, $val:ty) => {
+        impl Pack for HashMap<$key, $val> {
             fn pack(&self) -> Vec<u8> {
                 let mut packed: Vec<u8> = b"\x04".to_vec();
                 
@@ -106,11 +112,13 @@ macro_rules! pack_dictionary {
                 packed.append( &mut num.to_ne_bytes().to_vec());
                 
                 for (k,v) in self{
-                    packed.append(&mut len_u64(pack_blob(*k)));
-                    packed.append( &mut pack_blob(*k));
+                    let mut packed_key = pack_blob(k.clone());
+                    packed.append(&mut len_u64(packed_key.clone()));
+                    packed.append( &mut packed_key);
 
-                    packed.append(&mut len_u64(pack_blob(*v)));
-                    packed.append( &mut pack_blob(*v));
+                    let mut packed_val = pack_blob(v.clone());
+                    packed.append(&mut len_u64(packed_val.clone()));
+                    packed.append( &mut packed_val);
                 }
 
                 return packed;
@@ -122,8 +130,14 @@ macro_rules! pack_dictionary {
     }
 }
 
-//INCLUDE IMPLEMENTATION HERE IF PRIMITIVE TYPE
-pack_dictionary!(i64);
+// DICTIONARY IMPLEMENTATIONS
+macro_rules! permutations {
+    ($ty:ty) => {
+        pack_dictionary!(i64, $ty);
+        pack_dictionary!($ty, Vec<i64>);
+    }
+}
+permutations!(i64);
 
 impl Pack for i64 {
     #[inline]
@@ -189,3 +203,8 @@ fn len_u64 (bytes: Vec<u8>) -> Vec<u8> {
     let num = bytes.len() as i64;
     num.to_ne_bytes().to_vec()
 }
+
+// from datajoint.blob import pack, unpack
+// payload = 2147483647
+// packed_payload = pack(payload)
+// print([p for p in packed_payload])
