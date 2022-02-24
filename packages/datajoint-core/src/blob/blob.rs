@@ -1,3 +1,4 @@
+
 use std::convert::TryInto;
 use std::collections::HashMap;
 
@@ -22,6 +23,18 @@ fn main() {
     println!("{:?}", var);
 
     unpack(var);
+    
+    
+// [100, 106, 48, 0, 11, 1] : True
+// [100, 106, 48, 0, 11, 0] : false
+
+    //[100, 106, 48, 0, 10, 1, 0, 1] : true
+    //[100, 106, 48, 0, 10, 0, 0] : false
+    let varb = pack(true); //as i64);
+    
+    println!("{:?}", varb);
+    
+
 }
 
 fn unpack (mut blob: Vec<u8>){
@@ -45,6 +58,7 @@ fn read_blob(mut blob: Vec<u8>){
         b'\x04'=> unpack_dictionary(blob),
         b'\x05'=>println!("{}", unpack_string(blob)),
         b'\x0a'=>println!("{}", unpack_int(blob)),
+        //b'\x0b'=>println!("{}", unpack_bool(blob)),
         _=>println!("Not Implemented")
     }
 }
@@ -63,6 +77,7 @@ fn pack_blob<T: Pack>(obj: T) -> Vec<u8> {
         match type_var {
             "i32" => obj.as_int().pack(),
             "i64" => obj.as_int().pack(),
+            "bool"=> obj.as_int().pack(),
             _ => obj.pack(), // List, Dictionary, String
         }
     };
@@ -76,6 +91,7 @@ trait Pack {
 
     fn as_string(self) -> String;
     fn as_int(self) -> i64;
+    fn as_bool(self) -> &'static bool;
 }
 
 macro_rules! pack_list {
@@ -98,6 +114,8 @@ macro_rules! pack_list {
 
             fn as_string(self) -> String {panic!()}
             fn as_int(self) -> i64 {panic!()}
+            //fn as_bool(self) -> bool {panic!()}
+            fn as_bool(self) -> &'static bool {panic!()}
         }
     }
 }
@@ -106,6 +124,7 @@ macro_rules! pack_list {
 pack_list!(i64);
 pack_list!(String);
 pack_list!(&str);
+//pack_list!(bool);
 
 //Probably have to think of other data types within the list too instead of just returning int
 //Something like ["hello", "world"] would also need to be taken account of
@@ -149,6 +168,8 @@ macro_rules! pack_dictionary {
 
             fn as_string(self) -> String {panic!()}
             fn as_int(self) -> i64 {panic!()}
+            //fn as_bool(self) -> bool {panic!()}
+            fn as_bool(self) -> &'static bool {panic!()}
         }
     }
 }
@@ -162,12 +183,14 @@ macro_rules! permutations {
         pack_dictionary!($ty, Vec<String>);
         pack_dictionary!($ty, Vec<&str>);
         pack_dictionary!(&str, $ty);
-
+        //pack_dictionary!($ty, bool);
+        //pack_dictionary!(&str, bool);
     }
 }
 permutations!(i64);
 permutations!(String);
 permutations!(&str);
+//permutations!(bool);
 
 fn unpack_dictionary(mut bytes:Vec<u8>){
     let mut len_dict: Vec<u8> = bytes;
@@ -200,6 +223,8 @@ macro_rules! pack_string {
             #[inline]
             fn as_string(self) -> String {String::from(self)}
             fn as_int(self) -> i64 {panic!()}
+            //fn as_bool(self) -> bool {panic!()}
+            fn as_bool(self) -> &'static bool {panic!()}
         }
     }
 }
@@ -246,6 +271,8 @@ impl Pack for i64 {
     #[inline]
     fn as_string(self) -> String {panic!()}
     fn as_int(self) -> i64 {self}
+    //fn as_bool(self) -> bool {panic!()}
+    fn as_bool(self) -> &'static bool {panic!()}
 }
 
 fn unpack_int(mut bytes:Vec<u8>) -> i64{
@@ -263,6 +290,30 @@ fn unpack_int(mut bytes:Vec<u8>) -> i64{
 
     let byte_arr = bytes.try_into().unwrap();
     i64::from_ne_bytes(byte_arr)
+}
+
+impl Pack for bool {
+    fn pack(&self) -> Vec<u8> {
+        let mut packed: Vec<u8> = b"\x0b".to_vec(); // Prefix
+        packed.push((self.clone()).try_into().unwrap());
+        
+        // if self.clone() == true {
+        //     packed.push((true as i8).try_into().unwrap());
+        // } else if self.clone() == false {
+        //     packed.push((false as i8).try_into().unwrap());
+        // } else {
+        //     println!("not boolean");
+        // }
+        
+        
+        return packed;
+    }
+
+    #[inline]
+    fn as_string(self) -> String {panic!()}
+    fn as_int(self) -> i64 {self as i64}
+    //fn as_bool(self) -> bool {panic!()}
+    fn as_bool(self) -> &'static bool {panic!()}
 }
 
 fn check_type<T>(_obj: &T) -> &str {
