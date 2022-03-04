@@ -7,30 +7,55 @@ fn main() {
     let vec = vec![1, 2, 3];
     let var = Blob::pack(vec);
     println!("List: {:02x?}", var);
+    for i in &var {
+        let i: &u8 = i;
+        print!("{:02x?}", i);
+    }
+    println!("\n");
     Blob::unpack(var);
     println!("\n");
 
     let num = 5;
     let var = Blob::pack(num);
     println!("Int: {:02x?}", var);
+    for i in &var {
+        let i: &u8 = i;
+        print!("{:02x?}", i);
+    }
+    println!("\n");
     Blob::unpack(var);
     println!("\n");
 
     let str = "hello world";
     let var = Blob::pack(str);
     println!("Str: {:02x?}", var);
+    for i in &var {
+        let i: &u8 = i;
+        print!("{:02x?}", i);
+    }
+    println!("\n");
     Blob::unpack(var);
     println!("\n");
     
     let float = 3.2343584785385744;
     let var = Blob::pack(float);
     println!("Float: {:02x?}", var);
+    for i in &var {
+        let i: &u8 = i;
+        print!("{:02x?}", i);
+    }
+    println!("\n");
     Blob::unpack(var);
     println!("\n");
     
     let boolean = false;
     let var = Blob::pack(boolean);
     println!("Boolean: {:02x?}", var);
+    for i in &var {
+        let i: &u8 = i;
+        print!("{:02x?}", i);
+    }
+    println!("\n");
     Blob::unpack(var);
     println!("\n");
 
@@ -41,6 +66,11 @@ fn main() {
     ]);
     let var = Blob::pack(test);
     println!("HashMap with Int: {:02x?}", var);
+    for i in &var {
+        let i: &u8 = i;
+        print!("{:02x?}", i);
+    }
+    println!("\n");
     Blob::unpack(var);
     println!("\n");
 
@@ -51,6 +81,11 @@ fn main() {
     ]);
     let var = Blob::pack(test1);
     println!("HashMap with Float: {:02x?}", var);
+    for i in &var {
+        let i: &u8 = i;
+        print!("{:02x?}", i);
+    }
+    println!("\n");
     Blob::unpack(var);
     println!("\n");
 }
@@ -65,7 +100,7 @@ impl Blob{
         return blob;
     }
 
-    pub fn unpack(mut blob: Vec<u8>){
+    pub fn unpack (mut blob: Vec<u8>){
         // Get Protocol
         let pos = get_zero_terminated_pos(&blob);
         blob.remove(pos);
@@ -73,7 +108,6 @@ impl Blob{
         blob = protocol.split_off(pos);
         //println!("Protocol: {:?} Blob: {:?}", protocol, blob);
         read_blob(blob);
-        
     }
 }
 
@@ -113,7 +147,7 @@ fn pack_blob<T: Pack>(obj: T) -> Vec<u8> {
 pub trait Pack {
     //REMEMBER TO ADD YOUR FUNCTION HERE WHEN YOU WORK ON IT AND TO INCLUDE ALL
     fn pack(&self) -> Vec<u8>;
-    
+
     fn as_string(self) -> String;
     fn as_int(self) -> i64;
     fn as_bool(self) -> bool;
