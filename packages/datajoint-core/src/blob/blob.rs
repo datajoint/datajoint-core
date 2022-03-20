@@ -4,55 +4,74 @@ use std::collections::HashMap;
 // use crate::types::NativeType;
 
 fn main() {
-    let vec = vec![1, 2, 3];
+    // let vec1 = vec![HashMap::from([
+    //     ("spikes", 1),
+    //     ("spikes2", 2)
+    // ]), HashMap::from([
+    //     ("spikes", 1),
+    //     ("spikes2", 2)
+    // ])];
+
+    let vec = vec![true, false];
     let var = Blob::pack(vec);
     println!("List: {:02x?}", var);
-    Blob::unpack(var);
-    println!("\n");
+    println!("{:?}\n", Blob::unpack(var));
 
     let num = 5;
     let var = Blob::pack(num);
     println!("Int: {:02x?}", var);
-    Blob::unpack(var);
-    println!("\n");
+    println!("{:?}\n", Blob::unpack(var));
 
     let str = "hello world";
     let var = Blob::pack(str);
     println!("Str: {:02x?}", var);
-    Blob::unpack(var);
-    println!("\n");
+    println!("{:?}\n", Blob::unpack(var));
     
     let float = 3.2343584785385744;
     let var = Blob::pack(float);
     println!("Float: {:02x?}", var);
-    Blob::unpack(var);
-    println!("\n");
+    println!("{:?}\n", Blob::unpack(var));
     
     let boolean = false;
     let var = Blob::pack(boolean);
     println!("Boolean: {:02x?}", var);
-    Blob::unpack(var);
-    println!("\n");
+    println!("{:?}\n", Blob::unpack(var));
+
+    // let test = HashMap::from([
+    //     ("spikes", 1),
+    //     ("spikes2", 2)
+    // ]);
+    // let var = Blob::pack(test);
+    // println!("HashMap with Int: {:02x?}", var);
+    // Blob::unpack(var);
+    // println!("\n");
 
     
-    let test = HashMap::from([
-        ("spikes", 1),
-        ("spikes2", 2)
-    ]);
-    let var = Blob::pack(test);
-    println!("HashMap with Int: {:02x?}", var);
-    Blob::unpack(var);
-    println!("\n");
+    // let test1 = HashMap::from([
+    //     ("", vec![3, 2, 1]),
+    //     ("hello", vec![4, 5, 6, 7, 8])
+    // ]);
+    // let var = Blob::pack(test1);
+    // println!("HashMap with Float: {:02x?}", var);
+    // Blob::unpack(var);
+    // println!("\n");
+}
 
-    
-    let test1 = HashMap::from([
-        ("spikes", vec![1.1, 2.2, 3.3]),
-        ("spikes2", vec![1.1, 2.2, 3.3])
-    ]);
-    let var = Blob::pack(test1);
-    println!("HashMap with Float: {:02x?}", var);
-    Blob::unpack(var);
-    println!("\n");
+#[derive(Debug)]
+pub enum Value {
+    Null,
+    Bool(bool),
+    Number(i64),
+    Float(f64),
+    String(String),
+    List(Vec<Value>),
+    // Object(HashMap<String, Value>),
+}
+
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
 }
 
 pub struct Blob {
@@ -65,31 +84,31 @@ impl Blob{
         return blob;
     }
 
-    pub fn unpack (mut blob: Vec<u8>){
+    pub fn unpack (mut blob: Vec<u8>) -> Value{
         // Get Protocol
         let pos = get_zero_terminated_pos(&blob);
         blob.remove(pos);
         let mut protocol: Vec<u8> = blob;
         blob = protocol.split_off(pos);
         //println!("Protocol: {:?} Blob: {:?}", protocol, blob);
-        read_blob(blob);
+        return read_blob(blob);
     }
 }
 
-fn read_blob(mut blob: Vec<u8>){
+fn read_blob(mut blob: Vec<u8>) -> Value{
     // Get Prefix
     let prefix = blob.get(0).cloned().unwrap();
     blob = blob.split_off(1);
     //println!("Prefix: {} Blob: {:?}", prefix, blob);
 
     match prefix{
-        b'\x02'=> unpack_list(blob),
-        b'\x04'=> unpack_dictionary(blob),
-        b'\x05'=>print!("{}", unpack_string(blob)),
-        b'\x0a'=>print!("{}", unpack_int(blob)),
-        b'\x0b'=>print!("{}", unpack_bool(blob)),
-        b'\x0d'=>print!("{}", unpack_float(blob)),
-        _=>println!("Not Implemented")
+        b'\x02'=> return Value::List(unpack_list(blob)),
+        // b'\x04'=> unpack_dictionary(blob),
+        b'\x05'=> return Value::String(unpack_string(blob)),
+        b'\x0a'=> return Value::Number(unpack_int(blob)),
+        b'\x0b'=> return Value::Bool(unpack_bool(blob)),
+        b'\x0d'=> return Value::Float(unpack_float(blob)),
+        _=>/*println!("Not Implemented")*/ Value::Null
     }
 }
 
@@ -113,7 +132,6 @@ pub trait Pack {
     //REMEMBER TO ADD YOUR FUNCTION HERE WHEN YOU WORK ON IT AND TO INCLUDE ALL
     fn pack(&self) -> Vec<u8>;
 
-    fn as_string(self) -> String;
     fn as_int(self) -> i64;
     fn as_bool(self) -> bool;
     fn as_float(self) -> f64;
@@ -136,7 +154,6 @@ macro_rules! pack_list {
                 return packed;
             }
 
-            fn as_string(self) -> String {panic!()}
             fn as_int(self) -> i64 {panic!()}
             fn as_bool(self) -> bool {panic!()}
             fn as_float(self) -> f64 {panic!()}
@@ -151,28 +168,25 @@ pack_list!(&str);
 pack_list!(bool);
 pack_list!(f64);
 
-fn unpack_list(mut bytes:Vec<u8>){
+fn unpack_list(mut bytes:Vec<u8>) -> Vec<Value>{
     let mut len_list: Vec<u8> = bytes;
     bytes = len_list.split_off(8);
 
-    print!("["); // formatting
-    for _ in 0..*len_list.get(0).unwrap()-1 { // formatting take out -1 when fixed
+    let mut vec = Vec::<Value>::new();
+
+    for _ in 0..*len_list.get(0).unwrap(){
         let mut len: Vec<u8> = bytes;
         bytes = len.split_off(8);
         
         let rest = bytes.split_off((*len.get(0).unwrap()).into());
-        read_blob(bytes);
+        // let Value::Bool(x) = read_blob(bytes);
+        // vec.push(x);
+        vec.push(read_blob(bytes));
         bytes = rest;
-
-        print!(", "); // formatting
     }
-    
-    // formatting remove when fixed
-    let mut len: Vec<u8> = bytes;
-    bytes = len.split_off(8);
-    read_blob(bytes);
-    
-    print!("]"); // formatting 
+
+    println!("{:?}", vec);
+    vec
 }
 
 macro_rules! pack_dictionary {
@@ -197,7 +211,6 @@ macro_rules! pack_dictionary {
                 return packed;
             }
 
-            fn as_string(self) -> String {panic!()}
             fn as_int(self) -> i64 {panic!()}
             fn as_bool(self) -> bool {panic!()}
             fn as_float(self) -> f64 {panic!()}
@@ -224,6 +237,10 @@ permutations!(i64);
 permutations!(String);
 permutations!(&str);
 permutations!(f64);
+// why and why not to use recursion in rust
+// alt to recur in rust
+//  - traversal
+// struct
 
 fn unpack_dictionary(mut bytes:Vec<u8>){
     let mut len_dict: Vec<u8> = bytes;
@@ -270,7 +287,6 @@ macro_rules! pack_string {
             }
 
             #[inline]
-            fn as_string(self) -> String {String::from(self)}
             fn as_int(self) -> i64 {panic!()}
             fn as_bool(self) -> bool {panic!()}
             fn as_float(self) -> f64 {panic!()}
@@ -318,7 +334,6 @@ impl Pack for i64 {
     }
 
     #[inline]
-    fn as_string(self) -> String {panic!()}
     fn as_int(self) -> i64 {self}
     fn as_bool(self) -> bool {panic!()}
     fn as_float(self) -> f64 {panic!()}
@@ -349,7 +364,6 @@ impl Pack for bool {
     }
 
     #[inline]
-    fn as_string(self) -> String {panic!()}
     fn as_int(self) -> i64 {panic!()}
     fn as_bool(self) -> bool {self}
     fn as_float(self) -> f64 {panic!()}
@@ -371,7 +385,6 @@ impl Pack for f64 {
     }
 
     #[inline]
-    fn as_string(self) -> String {panic!()}
     fn as_int(self) -> i64 {panic!()}
     fn as_bool(self) -> bool {panic!()}
     fn as_float(self) -> f64 {self}
