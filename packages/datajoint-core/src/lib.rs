@@ -5,6 +5,7 @@ pub mod blob;
 pub mod common;
 pub mod connection;
 pub mod error;
+pub mod hash;
 pub mod placeholders;
 pub mod query;
 pub mod results;
