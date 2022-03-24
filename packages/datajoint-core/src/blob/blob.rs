@@ -1,5 +1,6 @@
 use std::convert::TryInto;
 use std::collections::HashMap;
+use std::collections::HashSet;
 // use crate::error::{DataJointError, Error, ErrorCode};
 // use crate::types::NativeType;
 
@@ -37,24 +38,33 @@ fn main() {
     println!("Boolean: {:02x?}", var);
     println!("{:?}\n", Blob::unpack(var));
 
-    // let test = HashMap::from([
-    //     ("spikes", 1),
-    //     ("spikes2", 2)
-    // ]);
-    // let var = Blob::pack(test);
-    // println!("HashMap with Int: {:02x?}", var);
-    // Blob::unpack(var);
-    // println!("\n");
+    let test = HashMap::from([
+        ("spikes", 1),
+        ("spikes2", 2)
+    ]);
+    let var = Blob::pack(test);
+    println!("HashMap with Int: {:02x?}", var);
+    Blob::unpack(var);
+    println!("\n");
 
-    
-    // let test1 = HashMap::from([
-    //     ("", vec![3, 2, 1]),
-    //     ("hello", vec![4, 5, 6, 7, 8])
-    // ]);
-    // let var = Blob::pack(test1);
-    // println!("HashMap with Float: {:02x?}", var);
-    // Blob::unpack(var);
-    // println!("\n");
+    let test1 = HashMap::from([
+        ("", vec![3, 2, 1]),
+        ("hello", vec![4, 5, 6, 7, 8])
+    ]);
+    let var = Blob::pack(test1);
+    println!("HashMap with Float: {:02x?}", var);
+    Blob::unpack(var);
+    println!("\n");
+
+    let test2 = HashSet::from([
+        1,
+        2,
+        3
+    ]);
+    let var = Blob::pack(test2);
+    println!("HashSet with Int: {:02x?}", var);
+    Blob::unpack(var);
+    println!("\n");
 }
 
 #[derive(Debug)]
@@ -65,6 +75,7 @@ pub enum Value {
     Float(f64),
     String(String),
     List(Vec<Value>),
+    // Set(HashSet<Value>),
     // Object(HashMap<String, Value>),
 }
 
@@ -187,6 +198,56 @@ fn unpack_list(mut bytes:Vec<u8>) -> Vec<Value>{
 
     println!("{:?}", vec);
     vec
+}
+
+macro_rules! pack_set {
+    ($ty:ty) => {
+        impl Pack for HashSet<$ty> {
+            fn pack(&self) -> Vec<u8> {
+                let mut packed: Vec<u8> = b"\x03".to_vec();
+                let num = self.len() as i64;
+                packed.append( &mut num.to_ne_bytes().to_vec());
+                
+                for n in self{
+                    let mut packed_data = pack_blob(self.get(n).unwrap().clone());
+                    packed.append(&mut len_u64(packed_data.clone()));
+                    packed.append(&mut packed_data);
+                }
+
+                return packed;
+            }
+
+            fn as_int(self) -> i64 {panic!()}
+            fn as_bool(self) -> bool {panic!()}
+            fn as_float(self) -> f64 {panic!()}
+        }
+    }
+}
+
+//SET IMPLEMENTATIONS
+pack_set!(i64);
+pack_set!(String);
+pack_set!(&str);
+pack_set!(bool);
+//pack_set!(f64); // floats not compatible with hashset
+
+// Work in progress
+fn unpack_set(mut bytes:Vec<u8>) -> HashSet<Value>{
+    let mut len_set: Vec<u8> = bytes;
+    bytes = len_set.split_off(8);
+    let mut set = HashSet::<Value>::new();
+
+    for _ in 0..*len_set.get(0).unwrap(){
+        let mut len: Vec<u8> = bytes;
+        bytes = len.split_off(8);
+        
+        let rest = bytes.split_off((*len.get(0).unwrap()).into());
+        read_blob(bytes);
+        bytes = rest;
+    }
+
+    println!("{:?}", set);
+    set
 }
 
 macro_rules! pack_dictionary {
