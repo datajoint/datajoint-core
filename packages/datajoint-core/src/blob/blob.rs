@@ -15,7 +15,7 @@ fn main() {
     Blob::unpack(var);
     println!("\n");
 
-    let num = 5;
+    let num = 12;
     let var = Blob::pack(num);
     println!("Int: {:02x?}", var);
     for i in &var {
@@ -26,8 +26,8 @@ fn main() {
     Blob::unpack(var);
     println!("\n");
 
-    let str = "hello world";
-    let var = Blob::pack(str);
+    let string = "hello world";
+    let var = Blob::pack(string);
     println!("Str: {:02x?}", var);
     for i in &var {
         let i: &u8 = i;
@@ -76,8 +76,8 @@ fn main() {
 
     
     let test1 = HashMap::from([
-        ("spikes", vec![1.1, 2.2, 3.3]),
-        ("spikes2", vec![1.1, 2.2, 3.3])
+        ("result", 1)
+        
     ]);
     let var = Blob::pack(test1);
     println!("HashMap with Float: {:02x?}", var);
@@ -90,7 +90,9 @@ fn main() {
     println!("\n");
 }
 
+#[repr(C)]
 pub struct Blob {
+    pub blobbed: Vec<u8>,
 }
 
 impl Blob{
