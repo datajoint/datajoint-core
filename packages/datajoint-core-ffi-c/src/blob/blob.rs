@@ -1,33 +1,45 @@
 use datajoint_core::blob::{Blob};
-use datajoint_core::types::NativeType;
-
 
 #[no_mangle]
-pub unsafe extern "C" fn pack<T>(obj: *mut T){
-    
+pub unsafe extern "C" fn packInt(this: i64) -> *mut Vec<u8>{
 
-    //let blob = Blob{
-    //    packed: Blob::pack(obj);
-    //}
-
-    //return Box:into_raw(Blob)
-    //let connection = unsafe { &mut *this };
-    //blob.unpack(this, packed_blob);
-    //blob:Pack();
-    
+    let blob = Blob::pack(this);
+    return Box::into_raw(Box::new(blob));
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn unpack(this: *mut Blob) -> *mut UnBlob{
-    let vec = Box::from_raw(this).packed;
-    Blob::unpack(vec);
+pub unsafe extern "C" fn packFloat(this: f64) -> *mut Vec<u8>{
 
+    let blob = Blob::pack(this);
+    return Box::into_raw(Box::new(blob));
+}
 
+#[no_mangle]
+pub unsafe extern "C" fn packString(this: String) -> *mut Vec<u8>{
 
+    let blob = Blob::pack(this);
+    return Box::into_raw(Box::new(blob));
+}
 
-    Box::from_raw(unpack(Box::from_raw(this).packed));
-    let unblob = UnBlob{
-        result: Blob::unpack(this.packed);
-    }
-    return unblob
+#[no_mangle]
+pub unsafe extern "C" fn packBool(this: bool) -> *mut Vec<u8>{
+
+    let blob = Blob::pack(this);
+    return Box::into_raw(Box::new(blob));
+}
+
+/*
+#[no_mangle]
+pub unsafe extern "C" fn packdict(this: ) -> *mut Vec<u8>{
+    let blob = Blob::pack(this);
+    return Box::into_raw(Box::new(blob));
+
+}
+*/
+
+#[no_mangle]
+pub unsafe extern "C" fn unpack(this: *mut Vec<u8>){
+    let answer = Blob::unpack(*Box::from_raw(this));
+    let answer2 = &*this;
+    println!("{:?} \n{:?}", answer, answer2);
 }
