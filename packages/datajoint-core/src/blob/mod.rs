@@ -1,3 +1,3 @@
 mod blob;
 
-pub use blob::{Blob, Value};
+pub use blob::{Blob};
