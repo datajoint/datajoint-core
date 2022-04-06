@@ -159,6 +159,57 @@ fn unpack_vec(mut bytes:Vec<u8>) -> Vec<serde_json::value::Value>{
 
     vec
 }
+          
+macro_rules! pack_set {
+    ($ty:ty) => {
+        impl Pack for HashSet<$ty> {
+            fn pack(&self) -> Vec<u8> {
+                let mut packed: Vec<u8> = b"\x03".to_vec();
+                let num = self.len() as i64;
+                packed.append( &mut num.to_ne_bytes().to_vec());
+                
+                for n in self{
+                    let mut packed_data = pack_blob(self.get(n).unwrap().clone());
+                    packed.append(&mut len_u64(packed_data.clone()));
+                    packed.append(&mut packed_data);
+                }
+
+                return packed;
+            }
+
+            fn as_int(self) -> i64 {panic!()}
+            fn as_bool(self) -> bool {panic!()}
+            fn as_float(self) -> f64 {panic!()}
+        }
+    }
+}
+
+//SET IMPLEMENTATIONS
+pack_set!(i64);
+pack_set!(String);
+pack_set!(&str);
+pack_set!(bool);
+//pack_set!(f64); // floats not compatible with hashset
+
+// Work in progress
+fn unpack_set(mut bytes:Vec<u8>) -> HashSet<Value>{
+    let mut len_set: Vec<u8> = bytes;
+    bytes = len_set.split_off(8);
+    let mut set = HashSet::<Value>::new();
+
+    for _ in 0..*len_set.get(0).unwrap(){
+        let mut len: Vec<u8> = bytes;
+        bytes = len.split_off(8);
+        
+        let rest = bytes.split_off((*len.get(0).unwrap()).into());
+        read_blob(bytes);
+        bytes = rest;
+    }
+
+    println!("{:?}", set);
+    set
+}
+
 
 // ----- PRIMITIVE DATA TYPE IMPLEMENTATION ----- //
 
@@ -277,10 +328,4 @@ fn get_zero_terminated_pos (blob: &Vec<u8>) -> usize{
 fn len_u64 (bytes: Vec<u8>) -> Vec<u8> {
     let num = bytes.len() as i64;
     num.to_ne_bytes().to_vec()
-}
-
-fn check_type<T>(_obj: &T) -> &str {
-    let type_var: &str = std::any::type_name::<T>();
-    //println!("{}", std::any::type_name::<T>());
-    return type_var;
 }
