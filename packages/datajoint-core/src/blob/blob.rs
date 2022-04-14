@@ -2,6 +2,8 @@ use std::convert::TryInto;
 use std::collections::HashMap;
 use serde_json::json;
 
+//static check_set: i64 = 0;
+
 #[cfg(test)]
 mod test {
     use serde_json::json;
@@ -10,7 +12,7 @@ mod test {
     #[test]
     fn test_blob() {
         let item = json!({
-            "key1": "value",
+            "key1": true,
             "key2": ["val", "val", "val"],
             "key3": { "keyX": 12 }
         });
@@ -23,7 +25,6 @@ mod test {
         let digest = md5::compute(b"abcdefghijklmnopqrstuvwxyz");
         println!("{:x}", digest);
         assert_eq!(format!("{:x}", digest), "c3fcd3d76192e4007dfb496cca67e13b");
-
     
         // let response = serde_json::to_string(&item).unwrap();
     }
@@ -73,6 +74,7 @@ fn pack_blob(obj: serde_json::value::Value) -> Vec<u8> {
         else if obj.is_string() { obj.as_str().unwrap().pack() }
         else if obj.is_array() { pack_vec(obj) }
         else if obj.is_object() { pack_dict(obj) }
+        else if obj.is_boolean() {obj.as_bool().unwrap().pack() }
         else {vec![b'a']}
     };
 
