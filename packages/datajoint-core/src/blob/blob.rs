@@ -1,93 +1,35 @@
 use std::convert::TryInto;
 use std::collections::HashMap;
+use serde_json::json;
 // use crate::error::{DataJointError, Error, ErrorCode};
 // use crate::types::NativeType;
 
-fn main() {
-    let vec = vec![1, 2, 3];
-    let var = Blob::pack(vec);
-    println!("List: {:02x?}", var);
-    for i in &var {
-        let i: &u8 = i;
-        print!("{:02x?}", i);
-    }
-    println!("\n");
-    Blob::unpack(var);
-    println!("\n");
 
-    let num = 12;
-    let var = Blob::pack(num);
-    println!("Int: {:02x?}", var);
-    for i in &var {
-        let i: &u8 = i;
-        print!("{:02x?}", i);
-    }
-    println!("\n");
-    Blob::unpack(var);
-    println!("\n");
+#[cfg(test)]
+mod test {
+    use serde_json::json;
+    use super::Blob;
 
-    let string = "hello world";
-    let var = Blob::pack(string);
-    println!("Str: {:02x?}", var);
-    for i in &var {
-        let i: &u8 = i;
-        print!("{:02x?}", i);
-    }
-    println!("\n");
-    Blob::unpack(var);
-    println!("\n");
-    
-    let float = 3.2343584785385744;
-    let var = Blob::pack(float);
-    println!("Float: {:02x?}", var);
-    for i in &var {
-        let i: &u8 = i;
-        print!("{:02x?}", i);
-    }
-    println!("\n");
-    Blob::unpack(var);
-    println!("\n");
-    
-    let boolean = false;
-    let var = Blob::pack(boolean);
-    println!("Boolean: {:02x?}", var);
-    for i in &var {
-        let i: &u8 = i;
-        print!("{:02x?}", i);
-    }
-    println!("\n");
-    Blob::unpack(var);
-    println!("\n");
-
-    
-    let test = HashMap::from([
-        ("spikes", 1),
-        ("spikes2", 2)
-    ]);
-    let var = Blob::pack(test);
-    println!("HashMap with Int: {:02x?}", var);
-    for i in &var {
-        let i: &u8 = i;
-        print!("{:02x?}", i);
-    }
-    println!("\n");
-    Blob::unpack(var);
-    println!("\n");
-
-    
-    let test1 = HashMap::from([
-        ("result", 1)
+    #[test]
+    fn test_blob() {
+        let item = json!({
+            "key1": "value",
+            "key2": ["val", "val", "val"],
+            "key3": { "keyX": 12 }
+        });
+        let x = "hello";
+        let mut v = json!({ "an": "object" });
+        let var = Blob::pack(item);
+        println!("{:02x?}", var);
+        println!("{}\n", Blob::unpack(var));
         
-    ]);
-    let var = Blob::pack(test1);
-    println!("HashMap with Float: {:02x?}", var);
-    for i in &var {
-        let i: &u8 = i;
-        print!("{:02x?}", i);
+        let digest = md5::compute(b"abcdefghijklmnopqrstuvwxyz");
+        println!("{:x}", digest);
+        assert_eq!(format!("{:x}", digest), "c3fcd3d76192e4007dfb496cca67e13b");
+
+    
+        // let response = serde_json::to_string(&item).unwrap();
     }
-    println!("\n");
-    Blob::unpack(var);
-    println!("\n");
 }
 
 #[repr(C)]
@@ -96,200 +38,192 @@ pub struct Blob {
 }
 
 impl Blob{
-    pub fn pack<T: Pack>(obj: T) -> Vec<u8> {
+    pub fn pack(obj: serde_json::value::Value) -> Vec<u8> {
         let mut blob: Vec<u8> = b"dj0\0".to_vec();
         blob.append(&mut pack_blob(obj));
         return blob;
     }
 
-    pub fn unpack (mut blob: Vec<u8>){
+    pub fn unpack (mut blob: Vec<u8>) -> serde_json::value::Value{
         // Get Protocol
         let pos = get_zero_terminated_pos(&blob);
         blob.remove(pos);
         let mut protocol: Vec<u8> = blob;
         blob = protocol.split_off(pos);
-        //println!("Protocol: {:?} Blob: {:?}", protocol, blob);
-        read_blob(blob);
+        return read_blob(blob);
     }
 }
 
-fn read_blob(mut blob: Vec<u8>){
+fn read_blob(mut blob: Vec<u8>) -> serde_json::value::Value{
     // Get Prefix
     let prefix = blob.get(0).cloned().unwrap();
     blob = blob.split_off(1);
-    //println!("Prefix: {} Blob: {:?}", prefix, blob);
 
     match prefix{
-        b'\x02'=> unpack_list(blob),
-        b'\x04'=> unpack_dictionary(blob),
-        b'\x05'=>print!("{}", unpack_string(blob)),
-        b'\x0a'=>print!("{}", unpack_int(blob)),
-        b'\x0b'=>print!("{}", unpack_bool(blob)),
-        b'\x0d'=>print!("{}", unpack_float(blob)),
-        _=>println!("Not Implemented")
+        b'\x02'=> return json!(unpack_vec(blob)),
+        b'\x04'=> return json!(unpack_dict(blob)),
+        b'\x05'=> return json!(unpack_string(blob)),
+        b'\x0a'=> return json!(unpack_int(blob)),
+        b'\x0b'=> return json!(unpack_bool(blob)),
+        b'\x0d'=> return json!(unpack_float(blob)),
+        _=>/*println!("Not Implemented")*/ serde_json::value::Value::Null
     }
 }
 
-#[inline]
-fn pack_blob<T: Pack>(obj: T) -> Vec<u8> {
-    let type_var = check_type(&obj);
+fn pack_blob(obj: serde_json::value::Value) -> Vec<u8> {
 
     let packed_data: Vec<u8> = {
-        match type_var {
-            "i32" => obj.as_int().pack(),
-            "i64" => obj.as_int().pack(),
-            "bool" => obj.as_bool().pack(),
-            _ => obj.pack(), // List, Dictionary, String
-        }
+        if obj.is_i64() { obj.as_i64().unwrap().pack() }
+        else if obj.is_f64() { obj.as_f64().unwrap().pack() }
+        else if obj.is_string() { obj.as_str().unwrap().pack() }
+        else if obj.is_boolean() {obj.as_bool().unwrap().pack()}
+        else if obj.is_array() { pack_vec(obj) }
+        else if obj.is_object() { pack_dict(obj) }
+        else {vec![b'a']}
     };
 
     return packed_data;
 }
 
-pub trait Pack {
-    //REMEMBER TO ADD YOUR FUNCTION HERE WHEN YOU WORK ON IT AND TO INCLUDE ALL
-    fn pack(&self) -> Vec<u8>;
-
-    fn as_string(self) -> String;
-    fn as_int(self) -> i64;
-    fn as_bool(self) -> bool;
-    fn as_float(self) -> f64;
-}
-
-macro_rules! pack_list {
-    ($ty:ty) => {
-        impl Pack for Vec<$ty> {
-            fn pack(&self) -> Vec<u8> {
-                let mut packed: Vec<u8> = b"\x02".to_vec();
-                
-                let num = self.len() as i64;
-                packed.append( &mut num.to_ne_bytes().to_vec());
-                
-                for n in 0..self.len() {
-                    let mut packed_data = pack_blob(self.get(n).unwrap().clone());
-                    packed.append(&mut len_u64(packed_data.clone()));
-                    packed.append( &mut packed_data);
-                }
-                return packed;
-            }
-
-            fn as_string(self) -> String {panic!()}
-            fn as_int(self) -> i64 {panic!()}
-            fn as_bool(self) -> bool {panic!()}
-            fn as_float(self) -> f64 {panic!()}
-        }
-    }
-}
-
-//LIST IMPLEMENTATIONS
-pack_list!(i64);
-pack_list!(String);
-pack_list!(&str);
-pack_list!(bool);
-pack_list!(f64);
-
-fn unpack_list(mut bytes:Vec<u8>){
-    let mut len_list: Vec<u8> = bytes;
-    bytes = len_list.split_off(8);
-
-    print!("["); // formatting
-    for _ in 0..*len_list.get(0).unwrap()-1 { // formatting take out -1 when fixed
-        let mut len: Vec<u8> = bytes;
-        bytes = len.split_off(8);
-        
-        let rest = bytes.split_off((*len.get(0).unwrap()).into());
-        read_blob(bytes);
-        bytes = rest;
-
-        print!(", "); // formatting
-    }
+// ----- COMPLEX DATA TYPE IMPLEMENTATION ----- //
+fn pack_dict(obj: serde_json::value::Value) -> Vec<u8> {
+    let dict = obj.as_object().unwrap();
+    let mut packed: Vec<u8> = b"\x04".to_vec();
     
-    // formatting remove when fixed
-    let mut len: Vec<u8> = bytes;
-    bytes = len.split_off(8);
-    read_blob(bytes);
+    let num = dict.len() as i64;
+    packed.append( &mut num.to_ne_bytes().to_vec());
     
-    print!("]"); // formatting 
-}
+    for (k,v) in dict{
+        let mut packed_key = pack_blob(serde_json::Value::String(k.clone()));
+        packed.append(&mut len_u64(packed_key.clone()));
+        packed.append( &mut packed_key);
 
-macro_rules! pack_dictionary {
-    ($key:ty, $val:ty) => {
-        impl Pack for HashMap<$key, $val> {
-            fn pack(&self) -> Vec<u8> {
-                let mut packed: Vec<u8> = b"\x04".to_vec();
-                
-                let num = self.len() as i64;
-                packed.append( &mut num.to_ne_bytes().to_vec());
-                
-                for (k,v) in self{
-                    let mut packed_key = pack_blob(k.clone());
-                    packed.append(&mut len_u64(packed_key.clone()));
-                    packed.append( &mut packed_key);
-
-                    let mut packed_val = pack_blob(v.clone());
-                    packed.append(&mut len_u64(packed_val.clone()));
-                    packed.append( &mut packed_val);
-                }
-
-                return packed;
-            }
-
-            fn as_string(self) -> String {panic!()}
-            fn as_int(self) -> i64 {panic!()}
-            fn as_bool(self) -> bool {panic!()}
-            fn as_float(self) -> f64 {panic!()}
-        }
+        let mut packed_val = pack_blob(v.clone());
+        packed.append(&mut len_u64(packed_val.clone()));
+        packed.append( &mut packed_val);
     }
+
+    return packed;
 }
 
-// DICTIONARY IMPLEMENTATIONS
-macro_rules! permutations {
-    ($ty:ty) => {
-        pack_dictionary!(i64, $ty);
-        pack_dictionary!($ty, Vec<i64>);
-        pack_dictionary!(String, $ty);
-        pack_dictionary!($ty, Vec<String>);
-        pack_dictionary!(&str, $ty);
-        pack_dictionary!($ty, Vec<&str>);
-        pack_dictionary!(bool, $ty);
-        pack_dictionary!($ty, Vec<bool>);
-        pack_dictionary!(f64, $ty);
-        pack_dictionary!($ty, Vec<f64>);
-    }
-}
-permutations!(i64);
-permutations!(String);
-permutations!(&str);
-permutations!(f64);
-
-fn unpack_dictionary(mut bytes:Vec<u8>){
+fn unpack_dict(mut bytes:Vec<u8>) -> HashMap<String, serde_json::value::Value> {
     let mut len_dict: Vec<u8> = bytes;
     bytes = len_dict.split_off(8);
 
-    print!("{{"); // formatting
-    for n in 0..*len_dict.get(0).unwrap()*2 - 1 { // formatting remove -1 when fixed
+    let mut dict = HashMap::new();
+
+    for n in 0..*len_dict.get(0).unwrap(){
         let mut len: Vec<u8> = bytes;
         bytes = len.split_off(8);
         
         let rest = bytes.split_off((*len.get(0).unwrap()).into());
-        read_blob(bytes);
+        let key = read_blob(bytes).as_str().unwrap().to_string();
         bytes = rest;
+    
+        let mut len: Vec<u8> = bytes;
+        bytes = len.split_off(8);
         
-        // formatting
-        if n % 2 == 0 {
-            print!(": ");
-        }
-        else {
-            print!(", ");
-        }
+        let rest = bytes.split_off((*len.get(0).unwrap()).into());
+        let val = read_blob(bytes);
+        bytes = rest;
+
+        dict.insert(key, val);
     }
 
-    // formatting remove when fixed
-    let mut len: Vec<u8> = bytes;
-    bytes = len.split_off(8);
-    read_blob(bytes);
+    dict
+}
 
-    print!("}}");
+fn pack_vec(obj: serde_json::value::Value) -> Vec<u8> {
+    let arr = obj.as_array().unwrap();
+
+    let mut packed: Vec<u8> = b"\x02".to_vec();
+    
+    let num = arr.len() as i64;
+    packed.append( &mut num.to_ne_bytes().to_vec());
+    
+    for n in 0..arr.len() {
+        println!("{:?}", arr.get(n).unwrap());
+        let packed_data: &mut Vec<u8> = &mut pack_blob(arr.get(n).unwrap().clone());
+        packed.append(&mut len_u64(packed_data.clone()));
+        packed.append(packed_data);
+    }
+    return packed;
+}
+
+
+fn unpack_vec(mut bytes:Vec<u8>) -> Vec<serde_json::value::Value>{
+    let mut len_list: Vec<u8> = bytes;
+    bytes = len_list.split_off(8);
+
+    let mut vec = Vec::<serde_json::value::Value>::new();
+
+    for _ in 0..*len_list.get(0).unwrap(){
+        let mut len: Vec<u8> = bytes;
+        bytes = len.split_off(8);
+        
+        let rest = bytes.split_off((*len.get(0).unwrap()).into());
+        vec.push(read_blob(bytes));
+        bytes = rest;
+    }
+
+    vec
+}
+          
+// macro_rules! pack_set {
+//     ($ty:ty) => {
+//         impl Pack for HashSet<$ty> {
+//             fn pack(&self) -> Vec<u8> {
+//                 let mut packed: Vec<u8> = b"\x03".to_vec();
+//                 let num = self.len() as i64;
+//                 packed.append( &mut num.to_ne_bytes().to_vec());
+                
+//                 for n in self{
+//                     let mut packed_data = pack_blob(self.get(n).unwrap().clone());
+//                     packed.append(&mut len_u64(packed_data.clone()));
+//                     packed.append(&mut packed_data);
+//                 }
+
+//                 return packed;
+//             }
+
+//             fn as_int(self) -> i64 {panic!()}
+//             fn as_bool(self) -> bool {panic!()}
+//             fn as_float(self) -> f64 {panic!()}
+//         }
+//     }
+// }
+
+// //SET IMPLEMENTATIONS
+// pack_set!(i64);
+// pack_set!(String);
+// pack_set!(&str);
+// pack_set!(bool);
+// //pack_set!(f64); // floats not compatible with hashset
+
+// // Work in progress
+// fn unpack_set(mut bytes:Vec<u8>) -> HashSet<Value>{
+//     let mut len_set: Vec<u8> = bytes;
+//     bytes = len_set.split_off(8);
+//     let mut set = HashSet::<Value>::new();
+
+//     for _ in 0..*len_set.get(0).unwrap(){
+//         let mut len: Vec<u8> = bytes;
+//         bytes = len.split_off(8);
+        
+//         let rest = bytes.split_off((*len.get(0).unwrap()).into());
+//         read_blob(bytes);
+//         bytes = rest;
+//     }
+
+//     println!("{:?}", set);
+//     set
+// }
+
+
+// ----- PRIMITIVE DATA TYPE IMPLEMENTATION ----- //
+
+pub trait Pack {
+    fn pack(&self) -> Vec<u8>;
 }
 
 macro_rules! pack_string {
@@ -305,12 +239,6 @@ macro_rules! pack_string {
             
                 return packed;
             }
-
-            #[inline]
-            fn as_string(self) -> String {String::from(self)}
-            fn as_int(self) -> i64 {panic!()}
-            fn as_bool(self) -> bool {panic!()}
-            fn as_float(self) -> f64 {panic!()}
         }
     }
 }
@@ -353,12 +281,6 @@ impl Pack for i64 {
         
         return packed;
     }
-
-    #[inline]
-    fn as_string(self) -> String {panic!()}
-    fn as_int(self) -> i64 {self}
-    fn as_bool(self) -> bool {panic!()}
-    fn as_float(self) -> f64 {panic!()}
 }
 
 fn unpack_int(mut bytes:Vec<u8>) -> i64{
@@ -384,12 +306,6 @@ impl Pack for bool {
         packed.push(*self as u8);
         return packed;
     }
-
-    #[inline]
-    fn as_string(self) -> String {panic!()}
-    fn as_int(self) -> i64 {panic!()}
-    fn as_bool(self) -> bool {self}
-    fn as_float(self) -> f64 {panic!()}
 }
 
 fn unpack_bool(bytes:Vec<u8>) -> bool {
@@ -406,23 +322,11 @@ impl Pack for f64 {
 
         return packed;
     }
-
-    #[inline]
-    fn as_string(self) -> String {panic!()}
-    fn as_int(self) -> i64 {panic!()}
-    fn as_bool(self) -> bool {panic!()}
-    fn as_float(self) -> f64 {self}
 }
 
 fn unpack_float(bytes:Vec<u8>) -> f64{
     let byte_arr = bytes.try_into().unwrap();
     f64::from_ne_bytes(byte_arr)
-}
-
-fn check_type<T>(_obj: &T) -> &str {
-    let type_var: &str = std::any::type_name::<T>();
-    //println!("{}", std::any::type_name::<T>());
-    return type_var;
 }
 
 fn get_zero_terminated_pos (blob: &Vec<u8>) -> usize{

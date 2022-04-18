@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate num_derive;
+extern crate serde_json;
 
 pub mod blob;
 pub mod common;
