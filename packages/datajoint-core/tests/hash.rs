@@ -7,6 +7,6 @@ fn test_hash() {
     result = Hash::uuid_from_buffer(b"");
     println!("[RESULT]: {:?}", result);
     
-    result = Hash::uuid_from_file("/Users/thi.vu/datajoint/thi_branch/datajoint-core/packages/datajoint-core/src/hash/test.txt".to_string());
-    println!("[RESULT]: {:?}", result);
+    // result = Hash::uuid_from_file("/Users/thi.vu/datajoint/thi_branch/datajoint-core/packages/datajoint-core/src/hash/test.txt".to_string());
+    // println!("[RESULT]: {:?}", result);
 }
