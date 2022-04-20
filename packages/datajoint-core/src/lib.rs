@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate num_derive;
 extern crate serde_json;
+extern crate md5;
+extern crate hex;
 
 pub mod blob;
 pub mod common;

@@ -1,36 +1,8 @@
 use std::convert::TryInto;
 use std::collections::HashMap;
 use serde_json::json;
-// use crate::error::{DataJointError, Error, ErrorCode};
-// use crate::types::NativeType;
 
-
-#[cfg(test)]
-mod test {
-    use serde_json::json;
-    use super::Blob;
-
-    #[test]
-    fn test_blob() {
-        let item = json!({
-            "key1": "value",
-            "key2": ["val", "val", "val"],
-            "key3": { "keyX": 12 }
-        });
-        let x = "hello";
-        let mut v = json!({ "an": "object" });
-        let var = Blob::pack(item);
-        println!("{:02x?}", var);
-        println!("{}\n", Blob::unpack(var));
-        
-        let digest = md5::compute(b"abcdefghijklmnopqrstuvwxyz");
-        println!("{:x}", digest);
-        assert_eq!(format!("{:x}", digest), "c3fcd3d76192e4007dfb496cca67e13b");
-
-    
-        // let response = serde_json::to_string(&item).unwrap();
-    }
-}
+//static check_set: i64 = 0;
 
 #[repr(C)]
 pub struct Blob {
@@ -76,9 +48,9 @@ fn pack_blob(obj: serde_json::value::Value) -> Vec<u8> {
         if obj.is_i64() { obj.as_i64().unwrap().pack() }
         else if obj.is_f64() { obj.as_f64().unwrap().pack() }
         else if obj.is_string() { obj.as_str().unwrap().pack() }
-        else if obj.is_boolean() {obj.as_bool().unwrap().pack()}
         else if obj.is_array() { pack_vec(obj) }
         else if obj.is_object() { pack_dict(obj) }
+        else if obj.is_boolean() {obj.as_bool().unwrap().pack() }
         else {vec![b'a']}
     };
 
@@ -112,7 +84,7 @@ fn unpack_dict(mut bytes:Vec<u8>) -> HashMap<String, serde_json::value::Value> {
 
     let mut dict = HashMap::new();
 
-    for n in 0..*len_dict.get(0).unwrap(){
+    for _n in 0..*len_dict.get(0).unwrap(){
         let mut len: Vec<u8> = bytes;
         bytes = len.split_off(8);
         
@@ -142,7 +114,6 @@ fn pack_vec(obj: serde_json::value::Value) -> Vec<u8> {
     packed.append( &mut num.to_ne_bytes().to_vec());
     
     for n in 0..arr.len() {
-        println!("{:?}", arr.get(n).unwrap());
         let packed_data: &mut Vec<u8> = &mut pack_blob(arr.get(n).unwrap().clone());
         packed.append(&mut len_u64(packed_data.clone()));
         packed.append(packed_data);
