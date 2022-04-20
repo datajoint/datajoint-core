@@ -308,4 +308,8 @@ fn get_zero_terminated_pos (blob: &Vec<u8>) -> usize{
 fn len_u64 (bytes: Vec<u8>) -> Vec<u8> {
     let num = bytes.len() as i64;
     num.to_ne_bytes().to_vec()
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> dedb2e9f469d62b28943ccdbda02f8388f307bff
