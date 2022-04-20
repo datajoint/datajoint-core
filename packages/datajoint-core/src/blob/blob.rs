@@ -84,7 +84,7 @@ fn unpack_dict(mut bytes:Vec<u8>) -> HashMap<String, serde_json::value::Value> {
 
     let mut dict = HashMap::new();
 
-    for n in 0..*len_dict.get(0).unwrap(){
+    for _n in 0..*len_dict.get(0).unwrap(){
         let mut len: Vec<u8> = bytes;
         bytes = len.split_off(8);
         

@@ -10,8 +10,8 @@ fn test_blob() {
         "key2": ["val", "val", "val"],
         "key3": { "keyX": 12_i64 }
     });
-    let x = "hello";
-    let mut v = json!({ "an": "object" });
+    let _x = "hello";
+    let _v = json!({ "an": "object" });
     let var = Blob::pack(item);
     println!("{:02x?}", var);
     println!("{}\n", Blob::unpack(var));
