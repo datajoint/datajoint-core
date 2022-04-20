@@ -31,9 +31,5 @@ impl Hash{
     pub fn uuid_from_file(filepath: String) -> String {
         Hash::uuid_from_stream(BufReader::new(File::open(filepath).unwrap()))
     }
-<<<<<<< HEAD
-}
-=======
 }
 
->>>>>>> dedb2e9f469d62b28943ccdbda02f8388f307bff
