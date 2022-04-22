@@ -2,7 +2,6 @@ use datajoint_core::blob::{Blob};
 use std::ffi::CStr;
 use serde_json::json;
 use std::os::raw::c_char;
-use std::str;
 
 #[no_mangle]
 pub unsafe extern "C" fn packInt(this: i64) -> *mut Blob{
