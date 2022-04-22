@@ -5,6 +5,9 @@ use std::os::raw::c_char;
 
 #[no_mangle]
 pub unsafe extern "C" fn uuid_from_buffer(bytes: *const c_char) -> *mut c_char{
+    if bytes.is_null() {
+        return std::ptr::null_mut();
+    }
     let c_str = CStr::from_ptr(bytes);
     let r_str = c_str.to_str().unwrap();
     let answer = Hash::uuid_from_buffer(r_str.as_bytes());
@@ -14,6 +17,9 @@ pub unsafe extern "C" fn uuid_from_buffer(bytes: *const c_char) -> *mut c_char{
 
 #[no_mangle]
 pub unsafe extern "C" fn uuid_from_file(filepath: *const c_char) -> *mut c_char{
+    if filepath.is_null() {
+        return std::ptr::null_mut();
+    }
     let c_str = CStr::from_ptr(filepath);
     let r_str = c_str.to_str().unwrap();
     let answer = Hash::uuid_from_file(r_str.to_string());
