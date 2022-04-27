@@ -31,3 +31,25 @@ try:
 except AssertionError err:
     print(err)
 ```
+
+Import FFI from cffi and create FFI object.
+
+```python
+from cffi import FFI
+ffi = FFI()
+```
+
+Create space to define functions and open file for accessing Rust library. Change target
+file path if needed. Functions can be defined from the ones found in packages\datajoint-core-ffi-c\datajoint-core-ffi-c.h. From there any function in the ffi.cdef can be used 
+
+```python
+ffi.cdef("""
+    char *uuid_from_file(const char *bytes);
+
+""")
+
+C = ffi.dlopen("target\debug\datajoint_core_ffi_c.dll")
+
+this = C.uuid_from_file("test.png".encode('utf-8'))
+print(ffi.string(this))
+```
