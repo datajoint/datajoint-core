@@ -1,3 +1,4 @@
 mod blob;
 
-pub use blob::{Blob};
+
+pub use blob::{Blob, Pack};
